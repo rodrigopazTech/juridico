@@ -39,6 +39,10 @@
                 <i class="fas fa-calendar-alt"></i>
                 <span>Agenda General</span>
             </a>
+            <a href="usuarios.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Usuarios</span>
+            </a>
             <a href="notificaciones.html" class="nav-item">
                 <i class="fas fa-bell"></i>
                 <span>Notificaciones</span>
@@ -248,30 +252,25 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="sala-audiencia">Sala/Lugar de Audiencia</label>
-                            <input type="text" id="sala-audiencia" placeholder="Ej. Sala 2, Planta Baja">
-                        </div>
-
-                        <div class="form-group">
                             <label for="abogado-comparece">Abogado que Comparece *</label>
                             <select id="abogado-comparece" required>
                                 <option value="">Seleccione un abogado</option>
-                                <option value="Lic. María González Ruiz">Lic. María González Ruiz</option>
-                                <option value="Lic. Carlos Hernández López">Lic. Carlos Hernández López</option>
-                                <option value="Lic. Ana Patricia Morales">Lic. Ana Patricia Morales</option>
-                                <option value="Lic. Roberto Silva Martínez">Lic. Roberto Silva Martínez</option>
-                                <option value="Lic. Sandra Jiménez Castro">Lic. Sandra Jiménez Castro</option>
-                                <option value="Lic. Fernando Ramírez Torres">Lic. Fernando Ramírez Torres</option>
-                                <option value="Lic. Carmen Delgado Vázquez">Lic. Carmen Delgado Vázquez</option>
-                                <option value="Lic. Alejandro Mendoza Ruiz">Lic. Alejandro Mendoza Ruiz</option>
+                                <option value="1">Lic. María González Ruiz</option>
+                                <option value="2">Lic. Carlos Hernández López</option>
+                                <option value="3">Lic. Ana Patricia Morales</option>
+                                <option value="4">Lic. Roberto Silva Martínez</option>
+                                <option value="5">Lic. Sandra Jiménez Castro</option>
+                                <option value="6">Lic. Fernando Ramírez Torres</option>
+                                <option value="7">Lic. Carmen Delgado Vázquez</option>
+                                <option value="8">Lic. Alejandro Mendoza Ruiz</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="acta-audiencia">Acta de Audiencia (Archivo)</label>
+                            <label for="acta-documento">Acta de Audiencia (Archivo)</label>
                             <div class="file-upload-container">
-                                <input type="file" id="acta-audiencia" accept=".pdf,.doc,.docx" class="file-input">
-                                <label for="acta-audiencia" class="file-upload-btn">
+                                <input type="file" id="acta-documento" accept=".pdf,.doc,.docx" class="file-input">
+                                <label for="acta-documento" class="file-upload-btn">
                                     <i class="fas fa-file-upload"></i>
                                     Subir Acta de Audiencia
                                 </label>
@@ -279,22 +278,30 @@
                             </div>
                         </div>
 
+                        <div class="form-group">
+                            <label for="atendida">¿Atendida?</label>
+                            <select id="atendida">
+                                <option value="false">No</option>
+                                <option value="true">Sí</option>
+                            </select>
+                        </div>
+
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="notify-days-audiencia">Recordatorio días antes</label>
-                                <input type="number" id="notify-days-audiencia" min="1" placeholder="Ej. 7 días antes">
-                                <small>Opcional: Notificación por días</small>
+                                <label for="recordatorio-dias">Recordatorio Días Antes</label>
+                                <input type="number" id="recordatorio-dias" min="1" value="1" placeholder="Ej. 7 días">
+                                <small>Por defecto: 1 día antes</small>
                             </div>
                             <div class="form-group">
-                                <label for="notify-hours-audiencia">Recordatorio horas antes</label>
-                                <input type="number" id="notify-hours-audiencia" min="1" placeholder="Ej. 24 horas antes">
-                                <small>Opcional: Notificación por horas</small>
+                                <label for="recordatorio-horas">Recordatorio Horas Antes</label>
+                                <input type="number" id="recordatorio-horas" min="1" value="2" placeholder="Ej. 24 horas">
+                                <small>Por defecto: 2 horas antes</small>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="observaciones-audiencia">Observaciones</label>
-                            <textarea id="observaciones-audiencia" rows="3" placeholder="Observaciones adicionales sobre la audiencia..."></textarea>
+                            <label for="observaciones">Observaciones</label>
+                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales sobre la audiencia..."></textarea>
                         </div>
                     </fieldset>
                 </form>

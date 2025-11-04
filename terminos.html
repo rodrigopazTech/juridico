@@ -39,6 +39,14 @@
                 <i class="fas fa-calendar-alt"></i>
                 <span>Agenda General</span>
             </a>
+            <a href="usuarios.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Usuarios</span>
+            </a>
+            <a href="notificaciones.html" class="nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Notificaciones</span>
+            </a>
         </div>
         
         
@@ -242,24 +250,24 @@
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="termino-fecha-ingreso">F. Ingreso*</label>
-                                <input type="date" id="termino-fecha-ingreso" required>
+                                <label for="fecha-ingreso">Fecha de Ingreso*</label>
+                                <input type="date" id="fecha-ingreso" required>
                             </div>
                             <div class="form-group">
-                                <label for="termino-fecha-vencimiento">F. Vencimiento*</label>
-                                <input type="date" id="termino-fecha-vencimiento" required>
+                                <label for="fecha-vencimiento">Fecha de Vencimiento*</label>
+                                <input type="date" id="fecha-vencimiento" required>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="termino-actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
-                            <textarea id="termino-actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
+                            <label for="actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
+                            <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="termino-etapa-revision">Etapa de Revisión*</label>
-                                <select id="termino-etapa-revision" required>
+                                <label for="etapa-revision">Etapa de Revisión*</label>
+                                <select id="etapa-revision" required>
                                     <option value="">Seleccione etapa</option>
                                     <option value="Proyectista">Proyectista</option>
                                     <option value="Liberado">Liberado</option>
@@ -268,8 +276,8 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="termino-notificado">Notificado</label>
-                                <select id="termino-notificado">
+                                <label for="atendido">¿Atendido?</label>
+                                <select id="atendido">
                                     <option value="false">No</option>
                                     <option value="true">Sí</option>
                                 </select>
@@ -277,40 +285,35 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="termino-acuse">Acuse del Término</label>
-                            <input type="text" id="termino-acuse" placeholder="Número de acuse o referencia">
+                            <label for="acuse-documento">Acuse (Subir Documento)</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
+                                <label for="acuse-documento" class="file-upload-btn">
+                                    <i class="fas fa-file-upload"></i>
+                                    Subir Acuse del Término
+                                </label>
+                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
+                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="termino-observaciones">Observaciones</label>
-                            <textarea id="termino-observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
+                            <label for="observaciones">Observaciones</label>
+                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="termino-notify-days">Recordatorio Días Antes</label>
-                                <input type="number" id="termino-notify-days" min="1" placeholder="Ej. 7 días">
+                                <label for="recordatorio-dias">Recordatorio Días Antes</label>
+                                <input type="number" id="recordatorio-dias" min="1" value="1" placeholder="Ej. 7 días">
+                                <small>Por defecto: 1 día antes</small>
                             </div>
                             <div class="form-group">
-                                <label for="termino-notify-hours">Recordatorio Horas Antes</label>
-                                <input type="number" id="termino-notify-hours" min="1" placeholder="Ej. 24 horas">
+                                <label for="recordatorio-horas">Recordatorio Horas Antes</label>
+                                <input type="number" id="recordatorio-horas" min="1" value="2" placeholder="Ej. 24 horas">
+                                <small>Por defecto: 2 horas antes</small>
                             </div>
                         </div>
                     </fieldset>
-                    
-                    <!-- Recordatorios (opcional) -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="termino-notify-days">Recordatorio días antes</label>
-                            <input type="number" id="termino-notify-days" min="1" placeholder="Ej. 7 (días antes)">
-                            <small>Dejar vacío si no desea recordatorio por días</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="termino-notify-hours">Recordatorio horas antes</label>
-                            <input type="number" id="termino-notify-hours" min="1" placeholder="Ej. 24 (horas antes)">
-                            <small>Dejar vacío si no desea recordatorio por horas</small>
-                        </div>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">

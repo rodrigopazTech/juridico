@@ -44,6 +44,9 @@ function initTerminos() {
     // Configurar selector de asunto y carga de datos
     setupAsuntoSelector();
     
+    // Configurar subida de archivos
+    setupFileUploadTermino();
+    
     // El botón para nuevo término ahora está manejado en el HTML
 }
 
@@ -129,25 +132,19 @@ function guardarTermino() {
     const termino = {
         // Datos heredados del asunto (solo para referencia)
         asuntoId: document.getElementById('asunto-selector').value,
-        expediente: document.getElementById('expediente-auto').value,
-        materia: document.getElementById('materia-auto').value,
-        gerencia: document.getElementById('gerencia-auto').value,
-        abogado: document.getElementById('abogado-auto').value,
-        partes: document.getElementById('partes-auto').value,
-        organoJurisdiccional: document.getElementById('organo-auto').value,
-        prioridad: document.getElementById('prioridad-auto').value,
         
-        // Datos específicos del término
+        // Datos específicos del término (coinciden con la BD)
+        fechaIngreso: document.getElementById('fecha-ingreso').value,
+        fechaVencimiento: document.getElementById('fecha-vencimiento').value,
         actuacion: document.getElementById('actuacion').value.trim(),
         etapaRevision: document.getElementById('etapa-revision').value,
-        fechaTermino: document.getElementById('fecha-termino').value,
-        fechaVencimiento: document.getElementById('fecha-vencimiento').value,
-        presentadoVia: document.getElementById('presentado-via').value,
-        acuse: document.getElementById('acuse').files[0]?.name || '',
+        acuseDocumento: document.getElementById('acuse-documento').files[0]?.name || '',
         observaciones: document.getElementById('observaciones').value.trim(),
+        atendido: document.getElementById('atendido').value === 'true',
+        recordatorioDias: parseInt(document.getElementById('recordatorio-dias').value) || 1,
+        recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2,
         id: Date.now().toString(),
-        fechaCreacion: new Date().toISOString().split('T')[0],
-        estatus: 'Pendiente'
+        fechaCreacion: new Date().toISOString().split('T')[0]
     };
     
     // Validar campos obligatorios
@@ -156,8 +153,14 @@ function guardarTermino() {
         return;
     }
     
-    if (!termino.actuacion || !termino.fechaTermino) {
-        alert('Por favor, completa todos los campos obligatorios (Actuación y Fecha del Término).');
+    if (!termino.actuacion || !termino.fechaIngreso || !termino.fechaVencimiento || !termino.etapaRevision) {
+        alert('Por favor, completa todos los campos obligatorios (Fecha Ingreso, Fecha Vencimiento, Actuación y Etapa de Revisión).');
+        return;
+    }
+    
+    // Validar que la fecha de vencimiento sea posterior a la de ingreso
+    if (new Date(termino.fechaVencimiento) <= new Date(termino.fechaIngreso)) {
+        alert('La fecha de vencimiento debe ser posterior a la fecha de ingreso.');
         return;
     }
     
@@ -175,6 +178,8 @@ function guardarTermino() {
     // Limpiar formulario
     document.getElementById('formTerminos').reset();
     limpiarCamposAutoLlenados();
+    document.getElementById('acuse-filename').textContent = 'Ningún archivo seleccionado';
+    document.getElementById('acuse-filename').classList.remove('has-file');
     
     // Actualizar la tabla si estamos en la vista de términos
     if (typeof loadTerminos === 'function') {
@@ -182,6 +187,24 @@ function guardarTermino() {
     }
     
     console.log('Término guardado:', termino);
+}
+
+// Función para configurar la subida de archivos en términos
+function setupFileUploadTermino() {
+    const fileInput = document.getElementById('acuse-documento');
+    const fileName = document.getElementById('acuse-filename');
+    
+    if (fileInput && fileName) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                fileName.classList.add('has-file');
+            } else {
+                fileName.textContent = 'Ningún archivo seleccionado';
+                fileName.classList.remove('has-file');
+            }
+        });
+    }
 }
 
 // Función para calcular el estado del semáforo

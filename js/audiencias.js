@@ -127,7 +127,7 @@ function limpiarCamposAutoLlenadosAudiencia() {
 
 // Función para configurar la subida de archivos
 function setupFileUploadAudiencia() {
-    const fileInput = document.getElementById('acta-audiencia');
+    const fileInput = document.getElementById('acta-documento');
     const fileName = document.getElementById('acta-filename');
     
     if (fileInput && fileName) {
@@ -151,27 +151,19 @@ function guardarAudiencia() {
     const audiencia = {
         // Datos heredados del asunto (solo para referencia)
         asuntoId: document.getElementById('asunto-selector-audiencia').value,
-        expediente: document.getElementById('expediente-auto-audiencia').value,
-        materia: document.getElementById('materia-auto-audiencia').value,
-        gerencia: document.getElementById('gerencia-auto-audiencia').value,
-        abogado: document.getElementById('abogado-auto-audiencia').value,
-        partes: document.getElementById('partes-auto-audiencia').value,
-        organoJurisdiccional: document.getElementById('organo-auto-audiencia').value,
-        prioridad: document.getElementById('prioridad-auto-audiencia').value,
         
-        // Datos específicos de la audiencia
-        tipoAudiencia: document.getElementById('tipo-audiencia').value,
+        // Datos específicos de la audiencia (coinciden con la BD)
         fechaAudiencia: document.getElementById('fecha-audiencia').value,
         horaAudiencia: document.getElementById('hora-audiencia').value,
-        salaAudiencia: document.getElementById('sala-audiencia').value.trim(),
-        abogadoComparece: document.getElementById('abogado-comparece').value,
-        actaAudiencia: document.getElementById('acta-audiencia').files[0]?.name || '',
-        notifyDays: document.getElementById('notify-days-audiencia').value,
-        notifyHours: document.getElementById('notify-hours-audiencia').value,
-        observaciones: document.getElementById('observaciones-audiencia').value.trim(),
+        tipoAudiencia: document.getElementById('tipo-audiencia').value,
+        abogadoComparece: parseInt(document.getElementById('abogado-comparece').value),
+        actaDocumento: document.getElementById('acta-documento').files[0]?.name || '',
+        observaciones: document.getElementById('observaciones').value.trim(),
+        atendida: document.getElementById('atendida').value === 'true',
+        recordatorioDias: parseInt(document.getElementById('recordatorio-dias').value) || 1,
+        recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2,
         id: Date.now().toString(),
-        fechaCreacion: new Date().toISOString().split('T')[0],
-        estatus: 'Programada'
+        fechaCreacion: new Date().toISOString().split('T')[0]
     };
     
     // Validar campos obligatorios
@@ -182,6 +174,13 @@ function guardarAudiencia() {
     
     if (!audiencia.tipoAudiencia || !audiencia.fechaAudiencia || !audiencia.horaAudiencia || !audiencia.abogadoComparece) {
         alert('Por favor, completa todos los campos obligatorios (Tipo, Fecha, Hora y Abogado que Comparece).');
+        return;
+    }
+    
+    // Validar que la fecha de audiencia no sea en el pasado
+    const hoy = new Date().toISOString().split('T')[0];
+    if (audiencia.fechaAudiencia < hoy) {
+        alert('La fecha de la audiencia no puede ser en el pasado.');
         return;
     }
     

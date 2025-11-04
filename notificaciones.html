@@ -9,45 +9,7 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-gavel fa-2x"></i>
-            <h2>Agenda Legal</h2>
-        </div>
-        <div class="sidebar-nav">
-            <a href="index.html" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span>Inicio</span>
-            </a>
-            <a href="dashboard.html" class="nav-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="audiencias.html" class="nav-item">
-                <i class="fas fa-gavel"></i>
-                <span>Audiencias</span>
-            </a>
-            <a href="terminos.html" class="nav-item">
-                <i class="fas fa-clock"></i>
-                <span>Términos</span>
-            </a>
-            <a href="asuntos.html" class="nav-item">
-                <i class="fas fa-folder-open"></i>
-                <span>Asuntos</span>
-            </a>
-            <a href="agenda-general.html" class="nav-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Agenda General</span>
-            </a>
-            <a href="usuarios.html" class="nav-item">
-                <i class="fas fa-users"></i>
-                <span>Usuarios</span>
-            </a>
-            <a href="notificaciones.html" class="nav-item active">
-                <i class="fas fa-bell"></i>
-                <span>Notificaciones</span>
-            </a>
-        </div>
+    <div id="sidebar-container"></div>
     </div>
 
     <div class="main-content">
@@ -90,8 +52,17 @@
     </div>
 
     <script src="js/notificaciones.js"></script>
+    
+    <!-- Cargar componentes -->
+    <script src="js/components.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('notificaciones.html');
+            }
+            
+            // Inicializar notificaciones
             if (typeof initNotificaciones === 'function') initNotificaciones();
         });
     </script>

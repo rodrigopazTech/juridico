@@ -1,16 +1,18 @@
-// Lista de tribunales existentes
-let tribunalesExistentes = [
-    'Primer Tribunal Colegiado en Materia Laboral',
-    'Segundo Tribunal Laboral',
-    'Tercer Tribunal de Enjuiciamiento',
-    'Cuarto Tribunal Colegiado',
-    'Quinto Tribunal Civil',
-    'Sexto Tribunal Penal',
-    'Séptimo Tribunal Administrativo',
-    'Octavo Tribunal de Amparo',
-    'Noveno Tribunal Mercantil',
-    'Décimo Tribunal Familiar'
-];
+// Lista de tribunales existentes - solo declarar si no existe
+if (typeof tribunalesExistentes === 'undefined') {
+    var tribunalesExistentes = [
+        'Primer Tribunal Colegiado en Materia Laboral',
+        'Segundo Tribunal Laboral',
+        'Tercer Tribunal de Enjuiciamiento',
+        'Cuarto Tribunal Colegiado',
+        'Quinto Tribunal Civil',
+        'Sexto Tribunal Penal',
+        'Séptimo Tribunal Administrativo',
+        'Octavo Tribunal de Amparo',
+        'Noveno Tribunal Mercantil',
+        'Décimo Tribunal Familiar'
+    ];
+}
 
 // Lista de estados de México (fija, no se permite agregar más)
 const estadosMexico = [

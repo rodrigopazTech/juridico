@@ -6,6 +6,8 @@
     <title>Términos - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Librería XLSX para exportar a Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         /* Estilos específicos para el selector de asunto */
@@ -76,9 +78,14 @@
                         <i class="fas fa-search"></i>
                         <input type="text" id="search-terminos" placeholder="Buscar en términos...">
                     </div>
-                    <button class="btn btn-primary" id="add-termino">
-                        <i class="fas fa-plus"></i> Nuevo Término
-                    </button>
+                    <div class="toolbar-buttons">
+                        <button class="btn btn-success" id="export-terminos" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-primary" id="add-termino">
+                            <i class="fas fa-plus"></i> Nuevo Término
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Filtros para términos -->
@@ -165,7 +172,6 @@
                                 <th>Asunto</th>
                                 <th>Prestación</th>
                                 <th>Abogado</th>
-                                <th>Acuse</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -179,6 +185,7 @@
     </div>
     
     <!-- Scripts -->
+    <script src="js/excel-export.js"></script>
     <script src="js/terminos.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -379,6 +386,7 @@
             }
             initModalTerminos();
             setupMateriaFields();
+            initExportacionTerminos();
         });
         
         function setupMateriaFields() {
@@ -493,31 +501,57 @@
             
             if (termino) {
                 title.textContent = 'Editar Término';
+                document.getElementById('save-termino').textContent = 'Actualizar Término';
                 document.getElementById('termino-id').value = termino.id;
                 
                 // Si tiene asunto asociado, seleccionarlo
                 if (termino.asuntoId) {
                     document.getElementById('asunto-selector').value = termino.asuntoId;
                     cargarDatosAsuntoEnModal(termino.asuntoId);
+                } else {
+                    // Si no hay asuntoId, llenar manualmente los campos auto-llenados con los datos existentes
+                    document.getElementById('termino-expediente').value = termino.expediente || '';
+                    document.getElementById('termino-materia').value = termino.materia || '';
+                    document.getElementById('termino-gerencia').value = termino.estado || termino.gerencia || '';
+                    document.getElementById('termino-abogado').value = termino.abogado || '';
+                    document.getElementById('termino-partes').value = termino.actor || '';
+                    document.getElementById('termino-organo').value = termino.tribunal || '';
+                    document.getElementById('termino-prioridad').value = termino.prioridad || '';
                 }
                 
-                // Datos específicos del término
-                document.getElementById('fecha-ingreso').value = termino.fechaIngreso;
-                document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento;
-                document.getElementById('actuacion').value = termino.actuacion || '';
-                document.getElementById('etapa-revision').value = termino.etapaRevision || '';
+                // Datos específicos del término - mapear nombres de campos
+                document.getElementById('fecha-ingreso').value = termino.fechaIngreso || termino.fechaIngreso || '';
+                document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || termino.fechaVencimiento || '';
+                document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
+                document.getElementById('etapa-revision').value = termino.etapaRevision || termino.estatus || '';
                 document.getElementById('atendido').value = termino.atendido ? 'true' : 'false';
                 document.getElementById('observaciones').value = termino.observaciones || '';
                 document.getElementById('recordatorio-dias').value = termino.recordatorioDias || 1;
                 document.getElementById('recordatorio-horas').value = termino.recordatorioHoras || 2;
+                
+                // Manejar archivo de acuse si existe
+                const acuseFilename = document.getElementById('acuse-filename');
+                if (termino.acuseDocumento) {
+                    acuseFilename.textContent = termino.acuseDocumento;
+                    acuseFilename.classList.add('has-file');
+                } else {
+                    acuseFilename.textContent = 'Ningún archivo seleccionado';
+                    acuseFilename.classList.remove('has-file');
+                }
             } else {
                 title.textContent = 'Nuevo Término';
+                document.getElementById('save-termino').textContent = 'Guardar Término';
                 if (form) form.reset();
                 document.getElementById('termino-id').value = '';
                 document.getElementById('asunto-selector').value = '';
                 
                 // Limpiar campos auto-llenados
                 limpiarCamposAutoLlenadosModal();
+                
+                // Resetear archivo
+                const acuseFilename = document.getElementById('acuse-filename');
+                acuseFilename.textContent = 'Ningún archivo seleccionado';
+                acuseFilename.classList.remove('has-file');
                 
                 // Establecer fecha de hoy como predeterminada
                 const today = new Date().toISOString().split('T')[0];
@@ -600,96 +634,30 @@
         }
 
         function saveTermino() {
-            const id = document.getElementById('termino-id').value;
-            const asuntoId = document.getElementById('termino-asunto-id').value;
-            
-            // Validar que se haya seleccionado un asunto
-            if (!asuntoId) {
-                alert('Por favor, selecciona un asunto antes de guardar el término.');
-                return;
-            }
-            
-            // Datos auto-llenados del asunto
-            const expediente = document.getElementById('termino-expediente').value;
-            const materia = document.getElementById('termino-materia').value;
-            const gerencia = document.getElementById('termino-gerencia').value;
-            const abogado = document.getElementById('termino-abogado').value;
-            const partes = document.getElementById('termino-partes').value;
-            const organo = document.getElementById('termino-organo').value;
-            const prioridad = document.getElementById('termino-prioridad').value;
-            
-            // Datos específicos del término
-            const fechaIngreso = document.getElementById('fecha-ingreso').value;
-            const fechaVencimiento = document.getElementById('fecha-vencimiento').value;
-            const actuacion = document.getElementById('actuacion').value;
-            const etapaRevision = document.getElementById('etapa-revision').value;
-            const atendido = document.getElementById('atendido').value;
-            const observaciones = document.getElementById('observaciones').value;
-            const recordatorioDias = document.getElementById('recordatorio-dias').value;
-            const recordatorioHoras = document.getElementById('recordatorio-horas').value;
-            
-            // Validar campos obligatorios
-            if (!fechaIngreso || !fechaVencimiento || !actuacion || !etapaRevision) {
-                alert('Por favor, complete todos los campos obligatorios: Fecha de Ingreso, Fecha de Vencimiento, Actuación y Etapa de Revisión');
-                return;
-            }
-            
-            // Validar que la fecha de vencimiento sea posterior a la de ingreso
-            if (new Date(fechaVencimiento) <= new Date(fechaIngreso)) {
-                alert('La fecha de vencimiento debe ser posterior a la fecha de ingreso');
-                return;
-            }
-
-            // Crear objeto término
-            const termino = {
-                id: id || Date.now().toString(),
-                asuntoId: asuntoId, // ID del asunto asociado
-                expediente: expediente,
-                materia: materia,
-                gerencia: gerencia,
-                abogado: abogado,
-                partes: partes,
-                organo: organo,
-                prioridad: prioridad,
-                fechaIngreso: fechaIngreso,
-                fechaVencimiento: fechaVencimiento,
-                actuacion: actuacion,
-                etapaRevision: etapaRevision,
-                atendido: atendido === 'true',
-                observaciones: observaciones,
-                recordatorioDias: parseInt(recordatorioDias) || 1,
-                recordatorioHoras: parseInt(recordatorioHoras) || 2,
-                fechaCreacion: new Date().toISOString().split('T')[0]
-            };
-
-            // Guardar en localStorage (simulación)
-            let terminos = JSON.parse(localStorage.getItem('terminos') || '[]');
-            if (id) {
-                // Actualizar término existente
-                const index = terminos.findIndex(t => t.id === id);
-                if (index !== -1) {
-                    terminos[index] = termino;
-                }
+            // Llamar a la función de guardar término del archivo JS
+            if (typeof guardarTermino === 'function') {
+                guardarTermino();
             } else {
-                // Agregar nuevo término
-                terminos.push(termino);
+                alert('Error: Función guardarTermino no encontrada.');
             }
-            localStorage.setItem('terminos', JSON.stringify(terminos));
+        }
 
-            alert('Término guardado correctamente:\n' +
-                  'Expediente: ' + expediente + '\n' +
-                  'Actuación: ' + actuacion + '\n' +
-                  'Vencimiento: ' + fechaVencimiento);
-
-            // Cerrar modal y recargar datos
-            document.getElementById('modal-termino').style.display = 'none';
-            
-            // Recargar la tabla si existe la función
-            if (typeof loadTerminos === 'function') {
-                loadTerminos();
+        function initExportacionTerminos() {
+            // Configurar botón de exportar a Excel
+            const btnExportTerminos = document.getElementById('export-terminos');
+            if (btnExportTerminos) {
+                btnExportTerminos.addEventListener('click', function() {
+                    console.log('Iniciando exportación de términos...');
+                    if (typeof exportarTerminosAExcel === 'function') {
+                        exportarTerminosAExcel();
+                    } else {
+                        alert('Error: La función de exportación no está disponible.');
+                        console.error('Función exportarTerminosAExcel no encontrada');
+                    }
+                });
+            } else {
+                console.warn('Botón export-terminos no encontrado');
             }
-
-            // Aquí podrías recargar la tabla o agregar el nuevo término
         }
     </script>
     

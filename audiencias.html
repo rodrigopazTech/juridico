@@ -6,6 +6,8 @@
     <title>Audiencias - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Librería XLSX para exportar a Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- Sidebar de navegación -->
@@ -30,9 +32,14 @@
                         <i class="fas fa-search"></i>
                         <input type="text" id="search-audiencias" placeholder="Buscar en audiencias...">
                     </div>
-                    <button class="btn btn-primary" id="add-audiencia">
-                        <i class="fas fa-plus"></i> Nueva Audiencia
-                    </button>
+                    <div class="toolbar-buttons">
+                        <button class="btn btn-success" id="export-audiencias" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-primary" id="add-audiencia">
+                            <i class="fas fa-plus"></i> Nueva Audiencia
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Filtros para audiencias -->
@@ -339,6 +346,7 @@
 
     <!-- Scripts -->
     <script src="js/notificaciones.js"></script>
+    <script src="js/excel-export.js"></script>
     <script src="js/audiencias.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -348,6 +356,7 @@
             initModalAudiencias();
             initModalComentarios();
             initModalFinalizarAudiencia();
+            initExportacionAudiencias();
         });
 
         function initModalAudiencias() {
@@ -477,29 +486,107 @@
             modal.style.display = 'flex';
         }
 
+        function initExportacionAudiencias() {
+            // Configurar botón de exportar a Excel
+            const btnExportAudiencias = document.getElementById('export-audiencias');
+            if (btnExportAudiencias) {
+                btnExportAudiencias.addEventListener('click', function() {
+                    console.log('Iniciando exportación de audiencias...');
+                    if (typeof exportarAudienciasAExcel === 'function') {
+                        exportarAudienciasAExcel();
+                    } else {
+                        alert('Error: La función de exportación no está disponible.');
+                        console.error('Función exportarAudienciasAExcel no encontrada');
+                    }
+                });
+            } else {
+                console.warn('Botón export-audiencias no encontrado');
+            }
+        }
+
         function openAudienciaModal(audiencia = null) {
             const modal = document.getElementById('modal-audiencia');
             const title = document.getElementById('modal-audiencia-title');
             const form = document.getElementById('form-audiencia');
             
             if (audiencia) {
+                // Modo edición
                 title.textContent = 'Editar Audiencia';
+                document.getElementById('save-audiencia').textContent = 'Actualizar Audiencia';
                 document.getElementById('audiencia-id').value = audiencia.id;
-                document.getElementById('audiencia-fecha').value = audiencia.fecha;
-                document.getElementById('audiencia-hora').value = audiencia.hora;
-                document.getElementById('audiencia-tipo').value = audiencia.tipo;
-                document.getElementById('audiencia-materia').value = audiencia.materia;
-                document.getElementById('audiencia-gerencia').value = audiencia.gerencia || '';
-                document.getElementById('audiencia-tribunal').value = audiencia.tribunal;
-                document.getElementById('audiencia-expediente').value = audiencia.expediente;
-                document.getElementById('audiencia-actor').value = audiencia.actor;
-                document.getElementById('audiencia-abogado-encargado').value = audiencia.abogadoEncargado || '';
-                document.getElementById('audiencia-abogado-comparece').value = audiencia.abogadoComparece || '';
-                document.getElementById('audiencia-prioridad').value = audiencia.prioridad;
+                
+                // Datos del asunto (auto-llenados) - mapear desde los datos existentes
+                if (audiencia.asuntoId) {
+                    document.getElementById('asunto-selector-audiencia').value = audiencia.asuntoId;
+                    // Disparar evento para auto-llenar campos del asunto
+                    const event = new Event('change');
+                    document.getElementById('asunto-selector-audiencia').dispatchEvent(event);
+                } else {
+                    // Si no hay asuntoId, simular los datos desde los campos existentes
+                    document.getElementById('expediente-auto-audiencia').value = audiencia.expediente || '';
+                    document.getElementById('materia-auto-audiencia').value = audiencia.materia || '';
+                    document.getElementById('gerencia-auto-audiencia').value = audiencia.gerencia || '';
+                    document.getElementById('abogado-auto-audiencia').value = audiencia.abogadoEncargado || '';
+                    document.getElementById('partes-auto-audiencia').value = `${audiencia.actor || ''} vs ${audiencia.demandado || ''}`;
+                    document.getElementById('organo-auto-audiencia').value = audiencia.tribunal || '';
+                    document.getElementById('prioridad-auto-audiencia').value = audiencia.prioridad || '';
+                }
+                
+                // Datos específicos de la audiencia - mapear nombres de campos
+                document.getElementById('tipo-audiencia').value = audiencia.tipoAudiencia || audiencia.tipo || '';
+                document.getElementById('fecha-audiencia').value = audiencia.fechaAudiencia || audiencia.fecha || '';
+                document.getElementById('hora-audiencia').value = audiencia.horaAudiencia || audiencia.hora || '';
+                
+                // Mapear abogado que comparece (puede ser nombre o ID)
+                const abogadoComparece = audiencia.abogadoComparece || '';
+                if (abogadoComparece) {
+                    // Si es un nombre, intentar mapear a ID
+                    const abogadoSelect = document.getElementById('abogado-comparece');
+                    let found = false;
+                    for (let option of abogadoSelect.options) {
+                        if (option.text.includes(abogadoComparece) || option.value == abogadoComparece) {
+                            abogadoSelect.value = option.value;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found && typeof abogadoComparece === 'number') {
+                        abogadoSelect.value = abogadoComparece;
+                    }
+                }
+                
+                document.getElementById('observaciones').value = audiencia.observaciones || '';
+                document.getElementById('atendida').value = audiencia.atendida ? 'true' : 'false';
+                document.getElementById('recordatorio-dias').value = audiencia.recordatorioDias || 1;
+                document.getElementById('recordatorio-horas').value = audiencia.recordatorioHoras || 2;
+                
+                // Actualizar nombre del archivo si existe
+                const actaFilename = document.getElementById('acta-filename');
+                const actaDoc = audiencia.actaDocumento || audiencia.actaNombre || '';
+                if (actaDoc) {
+                    actaFilename.textContent = actaDoc;
+                    actaFilename.classList.add('has-file');
+                } else {
+                    actaFilename.textContent = 'Ningún archivo seleccionado';
+                    actaFilename.classList.remove('has-file');
+                }
+                
             } else {
+                // Modo nueva audiencia
                 title.textContent = 'Nueva Audiencia';
+                document.getElementById('save-audiencia').textContent = 'Guardar Audiencia';
                 if (form) form.reset();
                 document.getElementById('audiencia-id').value = '';
+                
+                // Limpiar campos auto-llenados
+                if (typeof limpiarCamposAutoLlenadosAudiencia === 'function') {
+                    limpiarCamposAutoLlenadosAudiencia();
+                }
+                
+                // Resetear archivo
+                const actaFilename = document.getElementById('acta-filename');
+                actaFilename.textContent = 'Ningún archivo seleccionado';
+                actaFilename.classList.remove('has-file');
             }
             
             modal.style.display = 'flex';

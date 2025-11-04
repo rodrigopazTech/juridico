@@ -147,8 +147,12 @@ function setupFileUploadAudiencia() {
 function guardarAudiencia() {
     console.log('Guardando audiencia...');
     
+    // Verificar si es edición o nueva audiencia
+    const audienciaId = document.getElementById('audiencia-id').value;
+    const isEditing = audienciaId && audienciaId !== '';
+    
     // Obtener valores del formulario
-    const audiencia = {
+    const audienciaData = {
         // Datos heredados del asunto (solo para referencia)
         asuntoId: document.getElementById('asunto-selector-audiencia').value,
         
@@ -157,43 +161,84 @@ function guardarAudiencia() {
         horaAudiencia: document.getElementById('hora-audiencia').value,
         tipoAudiencia: document.getElementById('tipo-audiencia').value,
         abogadoComparece: parseInt(document.getElementById('abogado-comparece').value),
-        actaDocumento: document.getElementById('acta-documento').files[0]?.name || '',
         observaciones: document.getElementById('observaciones').value.trim(),
         atendida: document.getElementById('atendida').value === 'true',
         recordatorioDias: parseInt(document.getElementById('recordatorio-dias').value) || 1,
-        recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2,
-        id: Date.now().toString(),
-        fechaCreacion: new Date().toISOString().split('T')[0]
+        recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2
     };
     
+    // Manejar archivo (preservar el existente si no se selecciona uno nuevo)
+    const archivoInput = document.getElementById('acta-documento');
+    if (archivoInput.files[0]) {
+        audienciaData.actaDocumento = archivoInput.files[0].name;
+    } else if (isEditing) {
+        // Mantener el archivo existente si estamos editando y no se seleccionó uno nuevo
+        const audienciaExistente = AUDIENCIAS.find(a => a.id == audienciaId);
+        audienciaData.actaDocumento = audienciaExistente?.actaDocumento || '';
+    } else {
+        audienciaData.actaDocumento = '';
+    }
+    
     // Validar campos obligatorios
-    if (!audiencia.asuntoId) {
+    if (!audienciaData.asuntoId) {
         alert('Por favor, selecciona un asunto.');
         return;
     }
     
-    if (!audiencia.tipoAudiencia || !audiencia.fechaAudiencia || !audiencia.horaAudiencia || !audiencia.abogadoComparece) {
+    if (!audienciaData.tipoAudiencia || !audienciaData.fechaAudiencia || !audienciaData.horaAudiencia || !audienciaData.abogadoComparece) {
         alert('Por favor, completa todos los campos obligatorios (Tipo, Fecha, Hora y Abogado que Comparece).');
         return;
     }
     
-    // Validar que la fecha de audiencia no sea en el pasado
-    const hoy = new Date().toISOString().split('T')[0];
-    if (audiencia.fechaAudiencia < hoy) {
-        alert('La fecha de la audiencia no puede ser en el pasado.');
-        return;
+    // Validar que la fecha de audiencia no sea en el pasado (solo para nuevas audiencias)
+    if (!isEditing) {
+        const hoy = new Date().toISOString().split('T')[0];
+        if (audienciaData.fechaAudiencia < hoy) {
+            alert('La fecha de la audiencia no puede ser en el pasado.');
+            return;
+        }
     }
     
     // Obtener audiencias existentes
     let audiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
     
-    // Agregar nueva audiencia
-    audiencias.push(audiencia);
+    if (isEditing) {
+        // Modo edición: actualizar audiencia existente
+        const index = AUDIENCIAS.findIndex(a => a.id == audienciaId);
+        if (index !== -1) {
+            // Mantener ID y fecha de creación originales
+            audienciaData.id = AUDIENCIAS[index].id;
+            audienciaData.fechaCreacion = AUDIENCIAS[index].fechaCreacion;
+            audienciaData.fechaModificacion = new Date().toISOString().split('T')[0];
+            
+            // Actualizar en el array global
+            AUDIENCIAS[index] = { ...AUDIENCIAS[index], ...audienciaData };
+            
+            // Actualizar en localStorage
+            const localStorageIndex = audiencias.findIndex(a => a.id == audienciaId);
+            if (localStorageIndex !== -1) {
+                audiencias[localStorageIndex] = AUDIENCIAS[index];
+            }
+            
+            alert('Audiencia actualizada exitosamente.');
+        } else {
+            alert('Error: No se encontró la audiencia a editar.');
+            return;
+        }
+    } else {
+        // Modo nueva audiencia
+        audienciaData.id = Date.now().toString();
+        audienciaData.fechaCreacion = new Date().toISOString().split('T')[0];
+        
+        // Agregar nueva audiencia
+        audiencias.push(audienciaData);
+        AUDIENCIAS.push(audienciaData);
+        
+        alert('Audiencia guardada exitosamente.');
+    }
     
     // Guardar en localStorage
     localStorage.setItem('audiencias', JSON.stringify(audiencias));
-    
-    alert('Audiencia guardada exitosamente.');
     
     // Limpiar formulario
     document.getElementById('form-audiencia').reset();
@@ -210,7 +255,7 @@ function guardarAudiencia() {
         loadAudiencias();
     }
     
-    console.log('Audiencia guardada:', audiencia);
+    console.log('Audiencia procesada:', audienciaData);
 }
 // Estado global simple
 let AUDIENCIAS = [];

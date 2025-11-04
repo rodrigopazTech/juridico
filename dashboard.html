@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
+    <!-- Chart.js para gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ESTILO TEMPORAL PARA EL CALENDARIO */
         #calendar {
@@ -20,6 +22,52 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Estilos para la gráfica */
+        .chart-container {
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }        .chart-info {
+            text-align: center;
+            padding: 10px 0;
+            color: #666;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        
+        .chart-info small {
+            font-size: 0.9rem;
+        }
+        
+        .chart-stats {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c5aa0;
         }
     </style>
 </head>
@@ -56,6 +104,27 @@
                                <div class="stat-card stat-presentado">
                                 <div class="stat-value" id="total-presentado">0</div>
                                 <div class="stat-label">Presentados</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-pie"></i> Distribución de Asuntos por Gerencia</h3>
+                        <div class="chart-container">
+                            <canvas id="gerencia-chart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="chart-info">
+                            <h4>Distribución por Gerencia</h4>
+                            <p><small><i class="fas fa-info-circle"></i> Distribución basada en los asuntos registrados por cada gerencia estatal</small></p>
+                            <div class="chart-stats" id="chart-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total de Asuntos:</span>
+                                    <span class="stat-value" id="total-asuntos">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Gerencias Activas:</span>
+                                    <span class="stat-value" id="total-gerencias">0</span>
+                                </div>
                             </div>
                         </div>
                     </div>

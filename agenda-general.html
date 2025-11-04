@@ -41,38 +41,50 @@
                         <i class="fas fa-calendar"></i> Este Mes
                     </button>
                 </div>
+                <div class="month-filters">
+                    <button class="btn btn-secondary" data-month="">
+                        <i class="fas fa-calendar-alt"></i> Todos los Meses
+                    </button>
+                    <button class="btn btn-secondary" data-month="01">
+                        <i class="fas fa-snowflake"></i> Enero
+                    </button>
+                    <button class="btn btn-secondary" data-month="02">
+                        <i class="fas fa-heart"></i> Febrero
+                    </button>
+                    <button class="btn btn-secondary" data-month="03">
+                        <i class="fas fa-seedling"></i> Marzo
+                    </button>
+                    <button class="btn btn-secondary" data-month="04">
+                        <i class="fas fa-leaf"></i> Abril
+                    </button>
+                    <button class="btn btn-secondary" data-month="05">
+                        <i class="fas fa-flower-daffodil"></i> Mayo
+                    </button>
+                    <button class="btn btn-secondary" data-month="06">
+                        <i class="fas fa-sun"></i> Junio
+                    </button>
+                    <button class="btn btn-secondary" data-month="07">
+                        <i class="fas fa-fire"></i> Julio
+                    </button>
+                    <button class="btn btn-secondary" data-month="08">
+                        <i class="fas fa-umbrella-beach"></i> Agosto
+                    </button>
+                    <button class="btn btn-secondary" data-month="09">
+                        <i class="fas fa-maple-leaf"></i> Septiembre
+                    </button>
+                    <button class="btn btn-secondary" data-month="10">
+                        <i class="fas fa-pumpkin"></i> Octubre
+                    </button>
+                    <button class="btn btn-secondary" data-month="11">
+                        <i class="fas fa-wind"></i> Noviembre
+                    </button>
+                    <button class="btn btn-secondary" data-month="12">
+                        <i class="fas fa-holly-berry"></i> Diciembre
+                    </button>
+                </div>
             </div>
 
-            <!-- Estadísticas rápidas -->
-            <div class="agenda-stats">
-                <div class="stat-item">
-                    <div class="stat-icon audiencia">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-audiencias-desahogadas">0</div>
-                        <div class="stat-label">Audiencias Desahogadas</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon termino">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-terminos-presentados">0</div>
-                        <div class="stat-label">Términos Presentados</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon completado">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-completados">0</div>
-                        <div class="stat-label">Total Completados</div>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Contenido principal con pestañas -->
             <div class="tabs-container">
@@ -89,11 +101,6 @@
                 <div class="tab-content active" id="audiencias-desahogadas">
                     <div class="section-header">
                         <h3><i class="fas fa-gavel"></i> Audiencias Desahogadas</h3>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="window.location.href='audiencias.html'">
-                                <i class="fas fa-plus"></i> Nueva Audiencia
-                            </button>
-                        </div>
                     </div>
                     
                     <div class="table-container">
@@ -169,9 +176,6 @@
             <div class="modal-footer">
                 <button class="btn btn-primary" id="btn-ir-expediente">
                     <i class="fas fa-folder-open"></i> Ir al Expediente
-                </button>
-                <button class="btn btn-success" onclick="window.location.href='audiencias.html'">
-                    <i class="fas fa-gavel"></i> Nueva Audiencia
                 </button>
                 <button class="btn btn-warning" onclick="window.location.href='terminos.html'">
                     <i class="fas fa-clock"></i> Nuevo Término

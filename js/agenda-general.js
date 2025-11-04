@@ -5,6 +5,7 @@ class AgendaGeneralManager {
         this.terminosPresentados = [];
         this.periodoActual = 'hoy';
         this.pestañaActiva = 'audiencias-desahogadas';
+        this.mesSeleccionado = '';
         this.init();
     }
 
@@ -13,6 +14,7 @@ class AgendaGeneralManager {
         this.inicializarEventos();
         this.configurarPestañas();
         this.configurarFiltrosTiempo();
+        this.configurarFiltroMeses();
         this.actualizarVista();
         this.actualizarEstadisticas();
     }
@@ -25,6 +27,7 @@ class AgendaGeneralManager {
         // Si no hay datos, crear algunos de ejemplo
         if (this.audienciasDesahogadas.length === 0) {
             this.audienciasDesahogadas = [
+                // Noviembre 2025
                 {
                     id: 1,
                     fechaAudiencia: '2025-11-04',
@@ -51,6 +54,31 @@ class AgendaGeneralManager {
                 },
                 {
                     id: 3,
+                    fechaAudiencia: '2025-11-02',
+                    horaAudiencia: '09:30',
+                    expediente: '2890/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Ramírez Torres Patricia vs. Textiles del Golfo S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    actaDocumento: 'ACTA-2890-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-02'
+                },
+                {
+                    id: 4,
+                    fechaAudiencia: '2025-11-01',
+                    horaAudiencia: '16:00',
+                    expediente: '3241/2025',
+                    tipoAudiencia: 'Desahogo de Pruebas',
+                    partes: 'López Méndez Ricardo vs. Transportes Peninsulares S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    actaDocumento: 'ACTA-3241-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-01'
+                },
+                // Octubre 2025
+                {
+                    id: 5,
                     fechaAudiencia: '2025-10-30',
                     horaAudiencia: '11:00',
                     expediente: '2156/2025',
@@ -60,6 +88,68 @@ class AgendaGeneralManager {
                     actaDocumento: 'ACTA-2156-2025.pdf',
                     atendida: true,
                     fechaDesahogo: '2025-10-30'
+                },
+                {
+                    id: 6,
+                    fechaAudiencia: '2025-10-28',
+                    horaAudiencia: '15:30',
+                    expediente: '1987/2025',
+                    tipoAudiencia: 'Alegatos',
+                    partes: 'Herrera Campos José vs. Manufacturas Industriales S.A.',
+                    abogado: 'Lic. Roberto Silva Martínez',
+                    actaDocumento: 'ACTA-1987-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-10-28'
+                },
+                {
+                    id: 7,
+                    fechaAudiencia: '2025-10-25',
+                    horaAudiencia: '12:00',
+                    expediente: '2674/2025',
+                    tipoAudiencia: 'Testimonial',
+                    partes: 'Pérez Canul Carmen vs. Hoteles del Caribe S.A.',
+                    abogado: 'Lic. Diego Alejandro Castillo',
+                    actaDocumento: 'ACTA-2674-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-10-25'
+                },
+                // Septiembre 2025
+                {
+                    id: 8,
+                    fechaAudiencia: '2025-09-30',
+                    horaAudiencia: '10:30',
+                    expediente: '2013/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Tun May Alberto vs. Servicios Logísticos del Sureste S.C.',
+                    abogado: 'Lic. Mónica Isabel Vázquez',
+                    actaDocumento: 'ACTA-2013-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-09-30'
+                },
+                {
+                    id: 9,
+                    fechaAudiencia: '2025-09-27',
+                    horaAudiencia: '14:00',
+                    expediente: '1789/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Cauich Pool María vs. Grupo Comercial Peninsular S.A.',
+                    abogado: 'Lic. Alejandro Domínguez Cruz',
+                    actaDocumento: 'ACTA-1789-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-09-27'
+                },
+                // Agosto 2025
+                {
+                    id: 10,
+                    fechaAudiencia: '2025-08-29',
+                    horaAudiencia: '11:30',
+                    expediente: '1456/2025',
+                    tipoAudiencia: 'Intermedia',
+                    partes: 'Mukul Chan Jorge vs. Constructora Peninsular S.A.',
+                    abogado: 'Lic. Sandra Jiménez Castro',
+                    actaDocumento: 'ACTA-1456-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-08-29'
                 }
             ];
         }
@@ -71,6 +161,7 @@ class AgendaGeneralManager {
         // Si no hay datos, crear algunos de ejemplo
         if (this.terminosPresentados.length === 0) {
             this.terminosPresentados = [
+                // Noviembre 2025
                 {
                     id: 1,
                     fechaIngreso: '2025-11-02',
@@ -97,6 +188,31 @@ class AgendaGeneralManager {
                 },
                 {
                     id: 3,
+                    fechaIngreso: '2025-10-31',
+                    fechaVencimiento: '2025-11-12',
+                    expediente: '3156/2025',
+                    actuacion: 'Solicitud de medidas cautelares',
+                    partes: 'Tec Poot Francisco vs. Empresas Turísticas del Mayab S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    acuseDocumento: 'ACUSE-3156-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-02'
+                },
+                {
+                    id: 4,
+                    fechaIngreso: '2025-10-30',
+                    fechaVencimiento: '2025-11-14',
+                    expediente: '2890/2025',
+                    actuacion: 'Escrito de ofrecimiento de pruebas',
+                    partes: 'Chan Colli Esperanza vs. Distribuidora Comercial del Sureste S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    acuseDocumento: 'ACUSE-2890-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-01'
+                },
+                // Octubre 2025
+                {
+                    id: 5,
                     fechaIngreso: '2025-10-28',
                     fechaVencimiento: '2025-11-08',
                     expediente: '2413/2025',
@@ -106,6 +222,93 @@ class AgendaGeneralManager {
                     acuseDocumento: 'ACUSE-2413-2025.pdf',
                     etapaRevision: 'Presentado',
                     fechaPresentacion: '2025-10-30'
+                },
+                {
+                    id: 6,
+                    fechaIngreso: '2025-10-25',
+                    fechaVencimiento: '2025-11-05',
+                    expediente: '2674/2025',
+                    actuacion: 'Demanda de amparo indirecto',
+                    partes: 'Pech Martín Roberto vs. Autotransportes Yucatecos S.A.',
+                    abogado: 'Lic. Diego Alejandro Castillo',
+                    acuseDocumento: 'ACUSE-2674-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-10-28'
+                },
+                {
+                    id: 7,
+                    fechaIngreso: '2025-10-22',
+                    fechaVencimiento: '2025-11-02',
+                    expediente: '2156/2025',
+                    actuacion: 'Contestación a vista de traslado',
+                    partes: 'Uc Kauil Marina vs. Inmobiliaria del Centro S.C.',
+                    abogado: 'Lic. Ana Patricia Morales',
+                    acuseDocumento: 'ACUSE-2156-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-10-25'
+                },
+                // Septiembre 2025
+                {
+                    id: 8,
+                    fechaIngreso: '2025-09-28',
+                    fechaVencimiento: '2025-10-10',
+                    expediente: '2013/2025',
+                    actuacion: 'Promoción de nulidad de actuaciones',
+                    partes: 'Caamal Tun Eduardo vs. Constructora Peninsular S.A.',
+                    abogado: 'Lic. Mónica Isabel Vázquez',
+                    acuseDocumento: 'ACUSE-2013-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-09-30'
+                },
+                {
+                    id: 9,
+                    fechaIngreso: '2025-09-25',
+                    fechaVencimiento: '2025-10-08',
+                    expediente: '1789/2025',
+                    actuacion: 'Incidente de acumulación de autos',
+                    partes: 'May Poot Cristina vs. Hoteles y Restaurantes del Golfo S.A.',
+                    abogado: 'Lic. Alejandro Domínguez Cruz',
+                    acuseDocumento: 'ACUSE-1789-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-09-27'
+                },
+                // Agosto 2025
+                {
+                    id: 10,
+                    fechaIngreso: '2025-08-26',
+                    fechaVencimiento: '2025-09-08',
+                    expediente: '1456/2025',
+                    actuacion: 'Escrito de desistimiento parcial',
+                    partes: 'Pool Canché Jorge vs. Servicios Especializados del Sureste S.C.',
+                    abogado: 'Lic. Sandra Jiménez Castro',
+                    acuseDocumento: 'ACUSE-1456-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-08-29'
+                },
+                // Julio 2025
+                {
+                    id: 11,
+                    fechaIngreso: '2025-07-30',
+                    fechaVencimiento: '2025-08-12',
+                    expediente: '1123/2025',
+                    actuacion: 'Recurso de revisión laboral',
+                    partes: 'Dzul Herrera Carmen vs. Grupo Industrial Yucateco S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    acuseDocumento: 'ACUSE-1123-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-07-31'
+                },
+                {
+                    id: 12,
+                    fechaIngreso: '2025-07-25',
+                    fechaVencimiento: '2025-08-06',
+                    expediente: '987/2025',
+                    actuacion: 'Promoción de excepciones y defensas',
+                    partes: 'Balam Cocom Luis vs. Transportes Metropolitanos S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    acuseDocumento: 'ACUSE-987-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-07-27'
                 }
             ];
         }
@@ -155,6 +358,28 @@ class AgendaGeneralManager {
         });
     }
 
+    configurarFiltroMeses() {
+        const botonesMonth = document.querySelectorAll('.month-filters .btn[data-month]');
+        
+        botonesMonth.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover clase active de todos los botones de mes
+                botonesMonth.forEach(btn => {
+                    btn.classList.remove('btn-primary', 'active');
+                    btn.classList.add('btn-secondary');
+                });
+                
+                // Activar el botón seleccionado
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-primary', 'active');
+                
+                this.mesSeleccionado = button.getAttribute('data-month');
+                this.actualizarVista();
+                this.actualizarEstadisticas();
+            });
+        });
+    }
+
     filtrarPorPeriodo(datos, fechaCampo) {
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
@@ -162,6 +387,14 @@ class AgendaGeneralManager {
         return datos.filter(item => {
             const fechaItem = new Date(item[fechaCampo]);
             fechaItem.setHours(0, 0, 0, 0);
+            
+            // Aplicar filtro por mes específico si está seleccionado
+            if (this.mesSeleccionado && this.mesSeleccionado !== '') {
+                const mesItem = (fechaItem.getMonth() + 1).toString().padStart(2, '0');
+                if (mesItem !== this.mesSeleccionado) {
+                    return false;
+                }
+            }
             
             switch (this.periodoActual) {
                 case 'hoy':

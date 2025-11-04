@@ -1,0 +1,129 @@
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+    
+    .sidebar-header h2, .nav-item span {
+        display: none;
+    }
+    
+    .sidebar-header, .nav-item {
+        justify-content: center;
+    }
+    
+    .main-content {
+        margin-left: 70px;
+        width: calc(100% - 70px);
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+    }
+    
+    .search-box {
+        max-width: 100%;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .calendar-legend {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filter-group {
+        min-width: 100%;
+    }
+    
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .sidebar-document-manager {
+        display: none;
+    }
+
+    /* Vista 360 - Responsive */
+@media (max-width: 768px) {
+    .vista-360-container {
+        padding: 10px;
+    }
+    
+    .caso-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .caso-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        left: -20px;
+    }
+    
+    .search-global {
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+    }
+    
+    .asuntos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .documentos-fases {
+        grid-template-columns: 1fr;
+    }
+    
+    .plazo-input {
+        flex-direction: column;
+    }
+    
+    /* Navegación por gestos táctiles */
+    .touch-navigation {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 0;
+    }
+    
+    .touch-swipe-area {
+        position: relative;
+        overflow: hidden;
+    }
+}
+
+/* Modo tableta */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .asuntos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .caso-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+}

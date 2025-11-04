@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-gavel fa-2x"></i>
+            <h2>Agenda Legal</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="audiencias.html" class="nav-item">
+                <i class="fas fa-gavel"></i>
+                <span>Audiencias</span>
+            </a>
+            <a href="terminos.html" class="nav-item active">
+                <i class="fas fa-clock"></i>
+                <span>Términos</span>
+            </a>
+            <a href="asuntos.html" class="nav-item">
+                <i class="fas fa-folder-open"></i>
+                <span>Asuntos</span>
+            </a>
+            <a href="agenda-general.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Agenda General</span>
+            </a>
+        </div>
+        
+        
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-clock"></i> Términos - Agenda Legal</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Tabla de Términos -->
+            <div class="tab-content active" id="terminos">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-terminos" placeholder="Buscar en términos...">
+                    </div>
+                    <button class="btn btn-primary" id="add-termino">
+                        <i class="fas fa-plus"></i> Nuevo Término
+                    </button>
+                </div>
+                
+                <!-- Filtros para términos -->
+                <div class="filters">
+                    <div class="filters-title">
+                        <i class="fas fa-filter"></i> Filtros de Términos
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-tribunal-termino">Tribunal</label>
+                            <div class="tribunal-search-container">
+                                <input type="text" 
+                                       id="filter-tribunal-termino" 
+                                       placeholder="Buscar tribunal o agregar nuevo..."
+                                       autocomplete="off">
+                                <div class="tribunal-suggestions" id="tribunal-suggestions">
+                                    <!-- Las sugerencias aparecerán aquí -->
+                                </div>
+                                <button type="button" class="btn-clear-tribunal" id="clear-tribunal" title="Limpiar filtro">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-estado-termino">Gerencias</label>
+                            <div class="estado-search-container">
+                                <input type="text" 
+                                       id="filter-estado-termino" 
+                                       placeholder="Buscar estado..."
+                                       autocomplete="off">
+                                <div class="estado-suggestions" id="estado-suggestions">
+                                    <!-- Las sugerencias aparecerán aquí -->
+                                </div>
+                                <button type="button" class="btn-clear-estado" id="clear-estado" title="Limpiar filtro">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-estatus-termino">Estatus</label>
+                            <select id="filter-estatus-termino">
+                                <option value="">Todos los estatus</option>
+                                <option value="Proyectista">Proyectista</option>
+                                <option value="Liberado">Liberado</option>
+                                <option value="Revisión">Revisión</option>
+                                <option value="Presentado">Presentado</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-prioridad-termino">Prioridad</label>
+                            <select id="filter-prioridad-termino">
+                                <option value="">Todas las prioridades</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Media">Media</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-materia-termino">Materia</label>
+                            <select id="filter-materia-termino">
+                                <option value="">Todas las materias</option>
+                                <option value="Civil">Civil</option>
+                                <option value="Penal">Penal</option>
+                                <option value="Laboral">Laboral</option>
+                                <option value="Mercantil">Mercantil</option>
+                                <option value="Fiscal">Fiscal</option>
+                                <option value="Familiar">Familiar</option>
+                                <option value="Administrativo">Administrativo</option>
+                                <option value="Constitucional">Constitucional</option>
+                                <option value="Amparo">Amparo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="tabla-terminos">
+                        <thead>
+                            <tr>
+                                <th>F. Ingreso</th>
+                                <th>F. Vencimiento</th>
+                                <th>Expediente</th>
+                                <th>Actor/Quejoso</th>
+                                <th>Asunto</th>
+                                <th>Prestación</th>
+                                <th>Abogado</th>
+                                <th>Acuse</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="terminos-body">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/terminos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initTerminos === 'function') {
+                initTerminos();
+            }
+        });
+    </script>
+    <!-- Modal para Términos -->
+    <div class="modal" id="modal-termino">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-termino-title">Nuevo Término</h2>
+                <button class="btn btn-danger" id="close-modal-termino">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-termino">
+                    <input type="hidden" id="termino-id">
+                    <input type="hidden" id="termino-asunto-id">
+                    
+                    <!-- DATOS AUTO-LLENADOS DEL ASUNTO (Solo lectura) -->
+                    <fieldset class="auto-filled-section">
+                        <legend>Datos del Asunto (Auto-llenados)</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-expediente">Expediente</label>
+                                <input type="text" id="termino-expediente" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-materia">Materia</label>
+                                <input type="text" id="termino-materia" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-gerencia">Gerencia (Estado)</label>
+                                <input type="text" id="termino-gerencia" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-abogado">Abogado Responsable</label>
+                                <input type="text" id="termino-abogado" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-partes">Partes Procesales</label>
+                            <input type="text" id="termino-partes" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-tipo-asunto">Tipo de Asunto (Prestación/Procedimiento)</label>
+                            <input type="text" id="termino-tipo-asunto" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-organo">Órgano Jurisdiccional</label>
+                                <input type="text" id="termino-organo" placeholder="Puede editarse si es necesario">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-prioridad">Prioridad del Asunto</label>
+                                <input type="text" id="termino-prioridad" readonly class="readonly-field">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- DATOS ESPECÍFICOS DEL TÉRMINO (Usuario llena) -->
+                    <fieldset class="user-input-section">
+                        <legend>Datos Específicos del Término</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-fecha-ingreso">F. Ingreso*</label>
+                                <input type="date" id="termino-fecha-ingreso" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-fecha-vencimiento">F. Vencimiento*</label>
+                                <input type="date" id="termino-fecha-vencimiento" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
+                            <textarea id="termino-actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-etapa-revision">Etapa de Revisión*</label>
+                                <select id="termino-etapa-revision" required>
+                                    <option value="">Seleccione etapa</option>
+                                    <option value="Proyectista">Proyectista</option>
+                                    <option value="Liberado">Liberado</option>
+                                    <option value="Revisión">Revisión</option>
+                                    <option value="Presentado">Presentado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-notificado">Notificado</label>
+                                <select id="termino-notificado">
+                                    <option value="false">No</option>
+                                    <option value="true">Sí</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-acuse">Acuse del Término</label>
+                            <input type="text" id="termino-acuse" placeholder="Número de acuse o referencia">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-observaciones">Observaciones</label>
+                            <textarea id="termino-observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-notify-days">Recordatorio Días Antes</label>
+                                <input type="number" id="termino-notify-days" min="1" placeholder="Ej. 7 días">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-notify-hours">Recordatorio Horas Antes</label>
+                                <input type="number" id="termino-notify-hours" min="1" placeholder="Ej. 24 horas">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Recordatorios (opcional) -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="termino-notify-days">Recordatorio días antes</label>
+                            <input type="number" id="termino-notify-days" min="1" placeholder="Ej. 7 (días antes)">
+                            <small>Dejar vacío si no desea recordatorio por días</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="termino-notify-hours">Recordatorio horas antes</label>
+                            <input type="number" id="termino-notify-hours" min="1" placeholder="Ej. 24 (horas antes)">
+                            <small>Dejar vacío si no desea recordatorio por horas</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-termino">Cancelar</button>
+                <button class="btn btn-success" id="save-termino">Guardar Término</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Presentar Término -->
+    <div class="modal" id="modal-presentar-termino">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Presentar Término</h2>
+                <button class="btn btn-danger" id="close-modal-presentar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="presentar-termino-id">
+                <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
+                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
+                </div>
+                <div class="form-group">
+                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
+                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
+                    <small>Las observaciones son obligatorias para presentar el término</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
+                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/notificaciones.js"></script>
+    <script src="js/terminos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initTerminos === 'function') {
+                initTerminos();
+            }
+            initModalTerminos();
+            setupMateriaFields();
+        });
+        
+        function setupMateriaFields() {
+            const materiaSelect = document.getElementById('termino-materia');
+            const laboralFields = document.querySelectorAll('.field-laboral');
+            const procedimientoFields = document.querySelectorAll('.field-procedimiento');
+            const transparenciaFields = document.querySelectorAll('.field-transparencia');
+            
+            if (materiaSelect) {
+                materiaSelect.addEventListener('change', function() {
+                    const selectedMateria = this.value;
+                    
+                    // Ocultar todos los campos específicos con animación
+                    const allSpecificFields = document.querySelectorAll('.materia-specific-fields .form-group');
+                    allSpecificFields.forEach(field => {
+                        field.style.display = 'none';
+                        field.classList.remove('field-show');
+                    });
+                    
+                    // Limpiar los campos ocultos
+                    document.getElementById('termino-prestacion').value = '';
+                    document.getElementById('termino-procedimiento').value = '';
+                    document.getElementById('termino-solicitud').value = '';
+                    document.getElementById('termino-solicitante').value = '';
+                    
+                    // Resetear todos los campos como no obligatorios
+                    document.getElementById('termino-prestacion').required = false;
+                    document.getElementById('termino-solicitud').required = false;
+                    document.getElementById('termino-solicitante').required = false;
+                    
+                    // Mostrar campos según la materia seleccionada con pequeño delay para la animación
+                    setTimeout(() => {
+                        if (selectedMateria === 'Laboral') {
+                            laboralFields.forEach(field => {
+                                field.style.display = 'block';
+                                field.classList.add('field-show');
+                            });
+                            document.getElementById('termino-prestacion').required = true;
+                        }
+                        
+                        if (selectedMateria === 'Transparencia') {
+                            transparenciaFields.forEach(field => {
+                                field.style.display = 'block';
+                                field.classList.add('field-show');
+                            });
+                            document.getElementById('termino-solicitud').required = true;
+                            document.getElementById('termino-solicitante').required = true;
+                        }
+                        
+                        // Mostrar procedimiento solo para Mercantil
+                        if (selectedMateria === 'Mercantil') {
+                            procedimientoFields.forEach(field => {
+                                field.style.display = 'block';
+                                field.classList.add('field-show');
+                            });
+                        }
+                    }, 50);
+                });
+            }
+        }
+
+        function initModalTerminos() {
+            // Modal de términos
+            const modalTermino = document.getElementById('modal-termino');
+            const btnAddTermino = document.getElementById('add-termino');
+            const btnCloseTermino = document.getElementById('close-modal-termino');
+            const btnCancelTermino = document.getElementById('cancel-termino');
+            const btnSaveTermino = document.getElementById('save-termino');
+
+            // Abrir modal
+            if (btnAddTermino) {
+                btnAddTermino.addEventListener('click', function() {
+                    openTerminoModal();
+                });
+            }
+
+            // Cerrar modal
+            if (btnCloseTermino) {
+                btnCloseTermino.addEventListener('click', function() {
+                    modalTermino.style.display = 'none';
+                });
+            }
+
+            if (btnCancelTermino) {
+                btnCancelTermino.addEventListener('click', function() {
+                    modalTermino.style.display = 'none';
+                });
+            }
+
+            // Guardar término
+            if (btnSaveTermino) {
+                btnSaveTermino.addEventListener('click', function() {
+                    saveTermino();
+                });
+            }
+
+            // Cerrar modal al hacer clic fuera
+            window.addEventListener('click', function(event) {
+                if (event.target === modalTermino) {
+                    modalTermino.style.display = 'none';
+                }
+            });
+        }
+
+        function openTerminoModal(termino = null) {
+            const modal = document.getElementById('modal-termino');
+            const title = document.getElementById('modal-termino-title');
+            const form = document.getElementById('form-termino');
+            
+            if (termino) {
+                title.textContent = 'Editar Término';
+                document.getElementById('termino-id').value = termino.id;
+                document.getElementById('termino-expediente').value = termino.expediente;
+                document.getElementById('termino-materia').value = termino.materia || '';
+                document.getElementById('termino-fecha-ingreso').value = termino.fechaIngreso;
+                document.getElementById('termino-fecha-vencimiento').value = termino.fechaVencimiento;
+                document.getElementById('termino-actor').value = termino.actor || termino.partes || '';
+                document.getElementById('termino-asunto').value = termino.asunto;
+                document.getElementById('termino-tribunal').value = termino.tribunal;
+                document.getElementById('termino-abogado').value = termino.abogado;
+                document.getElementById('termino-gerencia').value = termino.gerencia || termino.estado || '';
+                document.getElementById('termino-prioridad').value = termino.prioridad;
+                document.getElementById('termino-estatus').value = termino.estatus;
+                
+                // Campos específicos por materia
+                document.getElementById('termino-prestacion').value = termino.prestacion || '';
+                document.getElementById('termino-procedimiento').value = termino.procedimiento || '';
+                document.getElementById('termino-solicitud').value = termino.solicitud || '';
+                document.getElementById('termino-solicitante').value = termino.solicitante || '';
+                
+                // Trigger materia change para mostrar campos apropiados
+                const materiaSelect = document.getElementById('termino-materia');
+                if (materiaSelect) {
+                    materiaSelect.dispatchEvent(new Event('change'));
+                }
+            } else {
+                title.textContent = 'Nuevo Término';
+                if (form) form.reset();
+                document.getElementById('termino-id').value = '';
+                
+                // Establecer fecha de hoy como predeterminada
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('termino-fecha-ingreso').value = today;
+                
+                // Establecer vencimiento en 15 días
+                const vencimiento = new Date();
+                vencimiento.setDate(vencimiento.getDate() + 15);
+                document.getElementById('termino-fecha-vencimiento').value = vencimiento.toISOString().split('T')[0];
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function saveTermino() {
+            const id = document.getElementById('termino-id').value;
+            const expediente = document.getElementById('termino-expediente').value;
+            const materia = document.getElementById('termino-materia').value;
+            const fechaIngreso = document.getElementById('termino-fecha-ingreso').value;
+            const fechaVencimiento = document.getElementById('termino-fecha-vencimiento').value;
+            const actor = document.getElementById('termino-actor').value;
+            const asunto = document.getElementById('termino-asunto').value;
+            const tribunal = document.getElementById('termino-tribunal').value;
+            const abogado = document.getElementById('termino-abogado').value;
+            const gerencia = document.getElementById('termino-gerencia').value;
+            const prioridad = document.getElementById('termino-prioridad').value;
+            const estatus = document.getElementById('termino-estatus').value;
+            
+            // Campos opcionales específicos por materia
+            const prestacion = document.getElementById('termino-prestacion').value;
+            const procedimiento = document.getElementById('termino-procedimiento').value;
+            const solicitud = document.getElementById('termino-solicitud').value;
+            const solicitante = document.getElementById('termino-solicitante').value;
+            
+            // Validar campos obligatorios
+            if (!expediente || !materia || !fechaIngreso || !fechaVencimiento || !actor || !asunto || !tribunal || !abogado || !gerencia || !prioridad || !estatus) {
+                alert('Por favor, complete todos los campos obligatorios');
+                return;
+            }
+            
+            // Validar campos específicos por materia
+            if (materia === 'Laboral' && !prestacion) {
+                alert('El campo Prestación es obligatorio para materia Laboral');
+                return;
+            }
+            
+            if (materia === 'Transparencia' && (!solicitud || !solicitante)) {
+                alert('Los campos Solicitud y Solicitante son obligatorios para Unidad de Transparencia');
+                return;
+            }
+
+            // Registrar notificaciones si corresponde
+            try {
+                const notifyDays = document.getElementById('termino-notify-days').value;
+                const notifyHours = document.getElementById('termino-notify-hours').value;
+                // Usar la fecha de vencimiento como evento a las 09:00
+                const eventISO = fechaVencimiento + 'T09:00:00';
+                
+                if (window.Notificaciones && typeof window.Notificaciones.add === 'function') {
+                    // Agregar notificación de días si se especificó
+                    if (notifyDays && Number(notifyDays) > 0) {
+                        window.Notificaciones.add({
+                            eventType: 'termino',
+                            title: asunto || '',
+                            expediente: expediente,
+                            eventAtISO: eventISO,
+                            notifyType: 'days',
+                            offset: Number(notifyDays)
+                        });
+                    }
+                    
+                    // Agregar notificación de horas si se especificó
+                    if (notifyHours && Number(notifyHours) > 0) {
+                        window.Notificaciones.add({
+                            eventType: 'termino',
+                            title: asunto || '',
+                            expediente: expediente,
+                            eventAtISO: eventISO,
+                            notifyType: 'hours',
+                            offset: Number(notifyHours)
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo registrar notificaciones', e);
+            }
+
+            alert('Término guardado correctamente:\n' +
+                  'Expediente: ' + expediente + '\n' +
+                  'Partes: ' + actor + '\n' +
+                  'Asunto: ' + asunto + '\n' +
+                  'Vencimiento: ' + fechaVencimiento);
+
+            // Cerrar modal
+            document.getElementById('modal-termino').style.display = 'none';
+
+            // Aquí podrías recargar la tabla o agregar el nuevo término
+        }
+    </script>
+</body>
+</html>

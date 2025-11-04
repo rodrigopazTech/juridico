@@ -1,0 +1,559 @@
+/* ===== ESTILOS ESPECÍFICOS PARA ASUNTOS.JS ===== */
+
+/* Grid de asuntos */
+.asuntos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.asunto-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid var(--secondary);
+    position: relative;
+    overflow: hidden;
+}
+
+.asunto-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--secondary), var(--primary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.asunto-card:hover::before {
+    opacity: 1;
+}
+
+.asunto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.asunto-card.alta {
+    border-left-color: var(--danger);
+    background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
+}
+
+.asunto-card.media {
+    border-left-color: var(--warning);
+    background: linear-gradient(135deg, #fff 0%, #fffbf0 100%);
+}
+
+.asunto-card.baja {
+    border-left-color: var(--success);
+    background: linear-gradient(135deg, #fff 0%, #f0fff4 100%);
+}
+
+/* Header de la tarjeta */
+.asunto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.asunto-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary);
+    flex: 1;
+    line-height: 1.3;
+}
+
+.asunto-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-end;
+}
+
+/* Cuerpo de la tarjeta */
+.asunto-body {
+    margin-bottom: 15px;
+}
+
+.asunto-body p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.asunto-body p strong {
+    color: var(--dark);
+    min-width: 80px;
+    display: inline-block;
+}
+
+/* Estadísticas del asunto */
+.asunto-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 15px 0 10px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.asunto-stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--gray);
+    padding: 4px 0;
+}
+
+.asunto-stats i {
+    color: var(--secondary);
+    font-size: 0.9rem;
+    width: 16px;
+    text-align: center;
+}
+
+/* Metadatos del asunto */
+.asunto-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.asunto-meta small {
+    font-size: 0.75rem;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.asunto-meta small i {
+    font-size: 0.7rem;
+}
+
+/* Acciones de la tarjeta */
+.asunto-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.asunto-actions .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+}
+
+.asunto-actions .btn-sm {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+}
+
+/* Estados vacíos y sin resultados */
+.no-resultados {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.empty-state {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #bdc3c7;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    margin: 0 0 10px 0;
+    color: var(--dark);
+    font-size: 1.3rem;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+    color: var(--gray);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Búsqueda global mejorada */
+.search-global {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 8px 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    flex: 1;
+    max-width: 500px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.search-global:focus-within {
+    border-color: var(--secondary);
+    box-shadow: 0 2px 12px rgba(52, 152, 219, 0.2);
+}
+
+.search-global i {
+    color: var(--gray);
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+.search-global input {
+    border: none;
+    outline: none;
+    padding: 8px 0;
+    width: 100%;
+    font-size: 0.9rem;
+    background: transparent;
+}
+
+.search-global input::placeholder {
+    color: #a0a0a0;
+}
+
+.btn-voice-search {
+    background: none;
+    border: none;
+    color: var(--secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    margin-left: 5px;
+}
+
+.btn-voice-search:hover {
+    background: #f8f9fa;
+    color: var(--primary);
+}
+
+/* Filtros mejorados */
+.filters {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #f0f0f0;
+}
+
+.filters-title {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--dark);
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-group select:hover {
+    border-color: #b0b0b0;
+}
+
+/* Toolbar mejorada */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Badges personalizados para asuntos */
+.badge-en-espera {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.badge-finalizado {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Estados de carga */
+.loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: var(--gray);
+}
+
+.loading-state i {
+    font-size: 2rem;
+    margin-right: 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Efectos de hover específicos */
+.asunto-card .btn {
+    transition: all 0.3s ease;
+}
+
+.asunto-card .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* Indicadores de prioridad */
+.priority-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.priority-indicator.alta {
+    background: var(--danger);
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
+}
+
+.priority-indicator.media {
+    background: var(--warning);
+    box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.3);
+}
+
+.priority-indicator.baja {
+    background: var(--success);
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3);
+}
+
+/* Responsive para asuntos */
+@media (max-width: 1200px) {
+    .asuntos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .asuntos-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .asunto-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .asunto-badges {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-global {
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .asunto-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .asunto-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .asunto-actions {
+        flex-wrap: wrap;
+    }
+    
+    .asunto-actions .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .asunto-card {
+        padding: 15px;
+    }
+    
+    .asunto-header h3 {
+        font-size: 1rem;
+    }
+    
+    .asunto-actions {
+        flex-direction: column;
+    }
+    
+    .asunto-actions .btn {
+        width: 100%;
+    }
+    
+    .empty-state {
+        padding: 0 10px;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Animaciones específicas para asuntos */
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.asunto-card {
+    animation: cardAppear 0.4s ease-out;
+}
+
+.asunto-card:nth-child(1) { animation-delay: 0.1s; }
+.asunto-card:nth-child(2) { animation-delay: 0.2s; }
+.asunto-card:nth-child(3) { animation-delay: 0.3s; }
+.asunto-card:nth-child(4) { animation-delay: 0.4s; }
+.asunto-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* Estados de interacción */
+.asunto-card:active {
+    transform: translateY(-2px) scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Mejoras de accesibilidad */
+.asunto-card:focus-within {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+}
+
+.btn:focus {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+}
+
+/* Modo de alto contraste */
+@media (prefers-contrast: high) {
+    .asunto-card {
+        border: 2px solid var(--dark);
+    }
+    
+    .asunto-stats {
+        border: 1px solid var(--dark);
+    }
+    
+    .search-global {
+        border: 2px solid var(--dark);
+    }
+}
+
+/* Modo de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    .asunto-card,
+    .btn,
+    .search-global,
+    .filter-group select {
+        transition: none;
+        animation: none;
+    }
+    
+    .asunto-card:hover {
+        transform: none;
+    }
+}
+
+

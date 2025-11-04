@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-gavel fa-2x"></i>
+            <h2>Agenda Legal</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="audiencias.html" class="nav-item">
+                <i class="fas fa-gavel"></i>
+                <span>Audiencias</span>
+            </a>
+            <a href="terminos.html" class="nav-item">
+                <i class="fas fa-clock"></i>
+                <span>Términos</span>
+            </a>
+            <a href="asuntos.html" class="nav-item">
+                <i class="fas fa-folder-open"></i>
+                <span>Asuntos</span>
+            </a>
+            <a href="agenda-general.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Agenda General</span>
+            </a>
+            <a href="notificaciones.html" class="nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Notificaciones</span>
+            </a>
+        </div>
+    </div>
+        
+        
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-home"></i> Inicio - Agenda Legal</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Contenido específico de cada página se cargará aquí -->
+            <div id="page-content">
+                <!-- Esta área se actualizará con el contenido de cada página -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* ESTILO TEMPORAL PARA EL CALENDARIO */
+        #calendar {
+            min-height: 600px;
+            background: white;
+        }
+        
+        .calendar-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-gavel"></i> Dashboard - Agenda Legal</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard -->
+            <div class="tab-content active" id="dashboard">
+                <div class="dashboard">
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-bar"></i> Resumen General</h3>
+                        <div class="stats-container">
+                            <div class="stat-card stat-audiencias">
+                                <div class="stat-value" id="total-audiencias">0</div>
+                                <div class="stat-label">Audiencias</div>
+                            </div>
+                            <div class="stat-card stat-terminos">
+                                <div class="stat-value" id="total-terminos">0</div>
+                                <div class="stat-label">Términos</div>
+                            </div>
+                               <div class="stat-card stat-presentado">
+                                <div class="stat-value" id="total-presentado">0</div>
+                                <div class="stat-label">Presentados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Calendario de Eventos</h3>
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="search-calendario" placeholder="Buscar en calendario...">
+                        </div>
+                        <button class="btn btn-primary" id="ver-todos">
+                            <i class="fas fa-eye"></i> Ver Todos
+                        </button>
+                        <button class="btn btn-warning" id="ver-audiencias">
+                            <i class="fas fa-gavel"></i> Solo Audiencias
+                        </button>
+                        <button class="btn btn-danger" id="ver-terminos">
+                            <i class="fas fa-clock"></i> Solo Términos
+                        </button>
+                    </div>
+                    
+                    <div class="calendar-container">
+                        <div id="calendar"></div>
+                    </div>
+                    
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-audiencia"></div>
+                            <span>Audiencias</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-termino"></div>
+                            <span>Términos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SCRIPTS EN ORDEN CORRECTO -->
+    <script src="js/components.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
+    <script src="js/dashboard.js"></script>
+    
+    <script>
+        // ✅ INICIALIZACIÓN GARANTIZADA
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM CARGADO - Iniciando aplicación...');
+            
+            let dashboardInitialized = false;
+            
+            // Estrategia 1: Esperar evento del sidebar
+            document.addEventListener('sidebarReady', function() {
+                console.log('🎯 Evento sidebarReady recibido');
+                safeInitDashboard();
+            });
+            
+            // Estrategia 2: Verificación periódica
+            const sidebarCheck = setInterval(() => {
+                if (window.sidebarReady || (window.componentLoader && window.componentLoader.sidebarLoaded)) {
+                    console.log('🔄 Sidebar listo (verificación)');
+                    clearInterval(sidebarCheck);
+                    safeInitDashboard();
+                }
+            }, 100);
+            
+            // Estrategia 3: Timeout de seguridad
+            setTimeout(() => {
+                console.log('⏰ Timeout de seguridad');
+                safeInitDashboard();
+            }, 4000);
+            
+            function safeInitDashboard() {
+                if (dashboardInitialized) {
+                    console.log('⚠️ Dashboard ya inicializado');
+                    return;
+                }
+                
+                dashboardInitialized = true;
+                console.log('🎯 Inicializando dashboard...');
+                
+                if (typeof initDashboard === 'function') {
+                    initDashboard();
+                } else {
+                    console.error('❌ initDashboard no disponible');
+                    // Intentar inicializar calendario directamente
+                    if (typeof initCalendar === 'function') {
+                        console.log('🔄 Inicializando calendario directamente...');
+                        initCalendar();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

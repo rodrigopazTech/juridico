@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de Asunto - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/vista360.css">
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-gavel fa-2x"></i>
+            <h2>Agenda Legal</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="audiencias.html" class="nav-item">
+                <i class="fas fa-gavel"></i>
+                <span>Audiencias</span>
+            </a>
+            <a href="terminos.html" class="nav-item">
+                <i class="fas fa-clock"></i>
+                <span>Términos</span>
+            </a>
+            <a href="asuntos.html" class="nav-item active">
+                <i class="fas fa-folder-open"></i>
+                <span>Asuntos</span>
+            </a>
+            <a href="agenda-general.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Agenda General</span>
+            </a>
+            <a href="notificaciones.html" class="nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Notificaciones</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Contenido principal - SOLO UN SCROLLBAR AQUÍ -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Header con navegación -->
+            <header>
+                <div class="header-content">
+                  <div class="breadcrumb">
+                    <a href="asuntos.html" class="breadcrumb-link">
+                        <i class="fas fa-arrow-left"></i> Volver a Asuntos
+                    </a>
+                  </div>                    
+                  <h1 id="titulo-asunto"><i class="fas fa-folder-open"></i> Detalles de asunto</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                    </div>
+                </div>
+            </header>
+
+            <!-- Barra de acciones rápidas -->
+            <div class="acciones-rapidas">
+                <button class="btn btn-primary" id="btn-editar-asunto">
+                    <i class="fas fa-edit"></i> Editar Asunto
+                </button>
+                <button class="btn btn-warning" id="btn-cambiar-estado">
+                    <i class="fas fa-exchange-alt"></i> Cambiar Estado
+                </button>
+            </div>
+
+            <!-- Contenido de la Vista 360° - SIN SCROLLBAR INTERNO -->
+            <div class="vista-360-container" id="vista-360-container">
+                <!-- Se cargará dinámicamente por JavaScript -->
+            </div>
+
+            <!-- Sección de documentos relacionados -->
+
+            <!-- Sección de actividad reciente -->
+            <div class="actividad-reciente">
+                <h3><i class="fas fa-history"></i> Actividad Reciente</h3>
+                <div class="actividad-list" id="actividad-reciente-list">
+                    <!-- Actividad se cargará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de recordatorios flotante -->
+    <div class="panel-recordatorios" id="panel-recordatorios">
+        <div class="panel-header">
+            <h4>📅 Recordatorios</h4>
+            <span class="badge" id="contador-recordatorios">0</span>
+            <button class="btn-close-panel" id="close-panel-recordatorios">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="lista-recordatorios">
+            <!-- Recordatorios se cargarán dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Modal para cambiar estado del asunto -->
+    <div class="modal" id="modal-cambio-estado">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exchange-alt"></i> Cambiar Estado del Asunto</h2>
+                <button class="btn btn-danger" id="close-modal-estado">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="estado-actual">Estado Actual:</label>
+                    <div class="estado-actual-container">
+                        <span class="badge" id="estado-actual">Activo</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nuevo-estado">Nuevo Estado:</label>
+                    <select id="nuevo-estado" required>
+                        <option value="">Seleccione nuevo estado...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="razon-cambio">Razón del cambio:</label>
+                    <textarea id="razon-cambio" rows="3" placeholder="Ingrese la razón del cambio de estado" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary">Cancelar</button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-check"></i> Confirmar Cambio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/asunto-detalle.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initAsuntoDetalle === 'function') {
+                initAsuntoDetalle();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asuntos - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/vista360.css">
+    <link rel="stylesheet" href="css/asuntos.css"> 
+
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-gavel fa-2x"></i>
+            <h2>Agenda Legal</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="audiencias.html" class="nav-item">
+                <i class="fas fa-gavel"></i>
+                <span>Audiencias</span>
+            </a>
+            <a href="terminos.html" class="nav-item">
+                <i class="fas fa-clock"></i>
+                <span>Términos</span>
+            </a>
+            <a href="asuntos.html" class="nav-item active">
+                <i class="fas fa-folder-open"></i>
+                <span>Asuntos</span>
+            </a>
+            <a href="agenda-general.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Agenda General</span>
+            </a>
+            <a href="notificaciones.html" class="nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Notificaciones</span>
+            </a>
+        </div>
+        
+        <!-- Gestor de Documentos en el Sidebar -->
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-folder-open"></i> Gestión de Asuntos</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Barra de herramientas -->
+            <div class="toolbar">
+                <div class="search-global">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="buscador-global" placeholder="Buscar en todos los expedientes...">
+                </div>
+                <button class="btn btn-primary" id="nuevo-asunto">
+                    <i class="fas fa-plus"></i> Nuevo Asunto
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters">
+                <div class="filters-title">
+                    <i class="fas fa-filter"></i> Filtros de Asuntos
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-materia-asunto">Materia</label>
+                        <select id="filter-materia-asunto">
+                            <option value="">Todas las materias</option>
+                            <option value="Laboral">Laboral</option>
+                            <option value="Penal">Penal</option>
+                            <option value="Mercantil">Mercantil</option>
+                            <option value="Civil">Civil</option>
+                            <option value="Fiscal">Fiscal</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-estado-asunto">Estado</label>
+                        <select id="filter-estado-asunto">
+                            <option value="">Todos los estados</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Archivado">Archivado</option>
+                            <option value="En espera">En espera</option>
+                            <option value="Finalizado">Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-prioridad-asunto">Prioridad</label>
+                        <select id="filter-prioridad-asunto">
+                            <option value="">Todas las prioridades</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-abogado-asunto">Abogado</label>
+                        <select id="filter-abogado-asunto">
+                            <option value="">Todos los abogados</option>
+                            <option value="Lic. Martínez">Lic. Martínez</option>
+                            <option value="Lic. González">Lic. González</option>
+                            <option value="Lic. Rodríguez">Lic. Rodríguez</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de asuntos -->
+            <div class="asuntos-grid" id="asuntos-grid">
+                <!-- Los asuntos se cargarán dinámicamente -->
+            </div>
+
+            <!-- Mensaje cuando no hay resultados -->
+            <div class="no-resultados" id="no-resultados" style="display: none;">
+                <div class="empty-state">
+                    <i class="fas fa-folder-open fa-3x"></i>
+                    <h3>No se encontraron asuntos</h3>
+                    <p>Intenta ajustar los filtros o crear un nuevo asunto</p>
+                    <button class="btn btn-primary" id="btn-crear-primer-asunto">
+                        <i class="fas fa-plus"></i> Crear Primer Asunto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de recordatorios flotante -->
+    <div class="panel-recordatorios" id="panel-recordatorios">
+        <div class="panel-header">
+            <h4>📅 Recordatorios</h4>
+            <span class="badge" id="contador-recordatorios">0</span>
+            <button class="btn-close-panel" id="close-panel-recordatorios">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="lista-recordatorios">
+            <!-- Recordatorios se cargarán dinámicamente -->
+        </div>
+    </div>
+
+                        <!-- Modal: Nuevo Asunto -->
+            <div class="modal" id="modal-nuevo-asunto">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Nuevo Asunto</h3>
+                <button class="btn btn-danger" id="cerrar-modal-nuevo-asunto"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+                <div class="modal-body">
+                <form id="form-nuevo-asunto">
+                    <!-- Expediente -->
+                    <div class="form-group">
+                        <label>Expediente*</label>
+                        <input type="text" id="na-expediente" required placeholder="0000/2025">
+                    </div>
+                    
+                    <!-- Materia -->
+                    <div class="form-group">
+                        <label>Materia*</label>
+                        <select id="na-materia" required>
+                            <option value="">Selecciona...</option>
+                            <option value="Civil">Civil</option>
+                            <option value="Penal">Penal</option>
+                            <option value="Laboral">Laboral</option>
+                            <option value="Mercantil">Mercantil</option>
+                            <option value="Fiscal">Fiscal</option>
+                            <option value="Familiar">Familiar</option>
+                            <option value="Administrativo">Administrativo</option>
+                            <option value="Constitucional">Constitucional</option>
+                            <option value="Amparo">Amparo</option>
+                            <option value="Transparencia">Unidad de Transparencia</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Gerencia -->
+                    <div class="form-group">
+                        <label>Gerencia (Estado)*</label>
+                        <select id="na-gerencia" required>
+                            <option value="">Seleccione un estado</option>
+                            <option value="Aguascalientes">Aguascalientes</option>
+                            <option value="Baja California">Baja California</option>
+                            <option value="Baja California Sur">Baja California Sur</option>
+                            <option value="Campeche">Campeche</option>
+                            <option value="Chiapas">Chiapas</option>
+                            <option value="Chihuahua">Chihuahua</option>
+                            <option value="Ciudad de México">Ciudad de México</option>
+                            <option value="Coahuila">Coahuila</option>
+                            <option value="Colima">Colima</option>
+                            <option value="Durango">Durango</option>
+                            <option value="Estado de México">Estado de México</option>
+                            <option value="Guanajuato">Guanajuato</option>
+                            <option value="Guerrero">Guerrero</option>
+                            <option value="Hidalgo">Hidalgo</option>
+                            <option value="Jalisco">Jalisco</option>
+                            <option value="Michoacán">Michoacán</option>
+                            <option value="Morelos">Morelos</option>
+                            <option value="Nayarit">Nayarit</option>
+                            <option value="Nuevo León">Nuevo León</option>
+                            <option value="Oaxaca">Oaxaca</option>
+                            <option value="Puebla">Puebla</option>
+                            <option value="Querétaro">Querétaro</option>
+                            <option value="Quintana Roo">Quintana Roo</option>
+                            <option value="San Luis Potosí">San Luis Potosí</option>
+                            <option value="Sinaloa">Sinaloa</option>
+                            <option value="Sonora">Sonora</option>
+                            <option value="Tabasco">Tabasco</option>
+                            <option value="Tamaulipas">Tamaulipas</option>
+                            <option value="Tlaxcala">Tlaxcala</option>
+                            <option value="Veracruz">Veracruz</option>
+                            <option value="Yucatán">Yucatán</option>
+                            <option value="Zacatecas">Zacatecas</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Abogado Responsable -->
+                    <div class="form-group">
+                        <label>Abogado Responsable*</label>
+                        <input type="text" id="na-abogado" required placeholder="Lic. Apellido Nombre">
+                    </div>
+                    
+                    <!-- Partes Procesales -->
+                    <div class="form-group">
+                        <label>Partes Procesales (Actor/Quejoso/Partes)*</label>
+                        <input type="text" id="na-partes" required placeholder="Actor vs. Demandado o partes involucradas">
+                    </div>
+                    
+                    <!-- Tipo de Asunto -->
+                    <div class="form-group">
+                        <label>Tipo de Asunto (Prestación/Procedimiento)*</label>
+                        <input type="text" id="na-tipo-asunto" required placeholder="Prestación solicitada o procedimiento aplicable">
+                    </div>
+                    
+                    <!-- Órgano Jurisdiccional -->
+                    <div class="form-group">
+                        <label>Órgano Jurisdiccional (Tribunal/Autoridad)*</label>
+                        <input type="text" id="na-organo-jurisdiccional" required placeholder="Tribunal o autoridad competente">
+                    </div>
+                    
+                    <!-- Prioridad del Asunto -->
+                    <div class="form-group">
+                        <label>Prioridad del Asunto*</label>
+                        <select id="na-prioridad" required>
+                            <option value="">Selecciona...</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="na-descripcion" rows="3" placeholder="Breve descripción del asunto"></textarea>
+                    </div>
+                    
+                    <!-- Campos específicos por materia -->
+                    <div class="materia-specific-fields-asunto">
+                        <!-- Campos para Unidad de Transparencia -->
+                        <div class="form-group field-transparencia-asunto" style="display: none;">
+                            <label>Solicitud (Unidad de Transparencia)*</label>
+                            <input type="text" id="na-solicitud" placeholder="Solicitud de transparencia">
+                        </div>
+                        
+                        <div class="form-group field-transparencia-asunto" style="display: none;">
+                            <label>Solicitante (Unidad de Transparencia)*</label>
+                            <input type="text" id="na-solicitante" placeholder="Nombre del solicitante">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn" id="cancelar-nuevo-asunto">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="guardar-nuevo-asunto">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    </div>
+                </form>
+                </div>
+            </div>
+            </div>
+
+
+    <!-- Scripts -->
+    <script src="js/asuntos.js"></script>
+    <script src="js/recordatorios.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initAsuntos === 'function') {
+                initAsuntos();
+            }
+            setupMateriaFieldsAsunto();
+        });
+        
+        function setupMateriaFieldsAsunto() {
+            const materiaSelect = document.getElementById('na-materia');
+            const transparenciaFields = document.querySelectorAll('.field-transparencia-asunto');
+            
+            if (materiaSelect) {
+                materiaSelect.addEventListener('change', function() {
+                    const selectedMateria = this.value;
+                    
+                    // Ocultar todos los campos específicos
+                    transparenciaFields.forEach(field => field.style.display = 'none');
+                    
+                    // Limpiar campos
+                    document.getElementById('na-solicitud').value = '';
+                    document.getElementById('na-solicitante').value = '';
+                    document.getElementById('na-solicitud').required = false;
+                    document.getElementById('na-solicitante').required = false;
+                    
+                    // Mostrar campos según materia
+                    if (selectedMateria === 'Transparencia') {
+                        transparenciaFields.forEach(field => field.style.display = 'block');
+                        document.getElementById('na-solicitud').required = true;
+                        document.getElementById('na-solicitante').required = true;
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

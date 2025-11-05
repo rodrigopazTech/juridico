@@ -219,6 +219,7 @@ h1 {
 .table-container {
     overflow-x: auto;
     margin-bottom: 20px;
+    width: 100%;
 }
 
 table {
@@ -245,9 +246,41 @@ tr:hover {
     background-color: #f9f9f9;
 }
 
+/* Estilos específicos para tabla de audiencias */
+#tabla-audiencias {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#tabla-audiencias th:nth-child(1) { width: 5%; }   /* Toggle expand */
+#tabla-audiencias th:nth-child(2) { width: 12%; }  /* Fecha */
+#tabla-audiencias th:nth-child(3) { width: 10%; }  /* Hora */
+#tabla-audiencias th:nth-child(4) { width: 25%; }  /* Tribunal */
+#tabla-audiencias th:nth-child(5) { width: 15%; }  /* Expediente */
+#tabla-audiencias th:nth-child(6) { width: 18%; }  /* Actor */
+#tabla-audiencias th:nth-child(7) { width: 15%; }  /* Acciones */
+
 .actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    min-width: 200px;
+    white-space: nowrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.actions .btn-sm {
+    padding: 6px 8px;
+    font-size: 0.875rem;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actions input[type="checkbox"] {
+    margin: 0 2px 0 5px;
 }
 
 .btn {
@@ -290,6 +323,17 @@ tr:hover {
 .btn-presentado {
     background-color: var(--presentado);
     color: white;
+}
+
+.btn-subir-acta.uploaded {
+    background-color: var(--success) !important;
+    animation: uploadSuccess 0.3s ease-in-out;
+}
+
+@keyframes uploadSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .btn:hover {

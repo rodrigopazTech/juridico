@@ -358,19 +358,11 @@ function loadAudiencias() {
         <td>${audiencia.expediente}</td>
         <td>${audiencia.actor}</td>
 
-        <td>
-          <div class="acuse-container">
-            <button class="btn btn-info btn-sm btn-subir-acta" title="Subir acta" data-id="${audiencia.id}">
-              <i class="fas fa-file-upload"></i>
-            </button>
-            <input type="file" class="input-acta" data-id="${audiencia.id}" accept=".pdf,.doc,.docx" style="display:none;">
-            <span class="acusa-nombre" id="acta-nombre-${audiencia.id}" style="font-size:.85rem; color:#555;">
-              ${audiencia.actaNombre ? audiencia.actaNombre : 'Sin archivo'}
-            </span>
-          </div>
-        </td>
-
         <td class="actions">
+          <button class="btn btn-info btn-sm btn-subir-acta" title="Subir acta" data-id="${audiencia.id}">
+            <i class="fas fa-file-upload"></i>
+          </button>
+          <input type="file" class="input-acta" data-id="${audiencia.id}" accept=".pdf,.doc,.docx" style="display:none;">
           <button class="btn btn-primary btn-sm edit-audiencia" data-id="${audiencia.id}" title="Editar">
             <i class="fas fa-edit"></i>
           </button>
@@ -381,7 +373,7 @@ function loadAudiencias() {
         </td>
       </tr>
       <tr class="expandable-row" id="expand-audiencia-${audiencia.id}">
-        <td colspan="8">
+        <td colspan="7">
           <div class="expandable-content">
             <table>
               <tr>
@@ -482,29 +474,35 @@ function setupActaUpload() {
     });
   });
 
-  // Al seleccionar archivo, mostramos el nombre y persistimos en AUDIENCIAS
+  // Al seleccionar archivo, persistimos en AUDIENCIAS
   document.querySelectorAll('.input-acta').forEach(input => {
     input.addEventListener('change', function () {
       const id = parseInt(this.getAttribute('data-id'), 10);
-      const spanNombre = document.getElementById(`acta-nombre-${id}`);
 
       if (this.files && this.files.length > 0) {
         const fileName = this.files[0].name;
-        if (spanNombre) spanNombre.textContent = fileName;
-
+        
         const idx = AUDIENCIAS.findIndex(a => a.id === id);
         if (idx !== -1) {
           AUDIENCIAS[idx].actaNombre = fileName;
           // Opcional: persistir en localStorage para que no se pierda al recargar
           // localStorage.setItem('AUDIENCIAS_DATA', JSON.stringify(AUDIENCIAS));
+          
+          // Mostrar confirmación visual del archivo subido
+          const btn = document.querySelector(`button[data-id="${id}"].btn-subir-acta`);
+          if (btn) {
+            btn.classList.add('uploaded');
+            btn.title = `Acta subida: ${fileName}`;
+            setTimeout(() => {
+              btn.classList.remove('uploaded');
+            }, 2000);
+          }
         }
 
         // Aquí podrías subir el archivo via fetch/FormData a tu API
         // const formData = new FormData();
         // formData.append('acta', this.files[0]);
         // fetch('/api/audiencias/' + id + '/acta', { method: 'POST', body: formData })
-      } else {
-        if (spanNombre) spanNombre.textContent = 'Sin archivo';
       }
     });
   });

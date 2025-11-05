@@ -54,9 +54,6 @@
           <button class="btn btn-outline-primary btn-ver-detalle" data-id="${asunto.id}">
             <i class="fas fa-eye"></i> Ver detalle
           </button>
-          <button class="btn btn-outline-secondary btn-sm" title="Vista 360">
-            <i class="fas fa-chart-pie"></i>
-          </button>
         </div>
       </div>
     `;
@@ -75,6 +72,70 @@
     } catch {
       return dateStr;
     }
+  }
+
+  /* --- PEQUEÑA FUNCIÓN DE AYUDA --- */
+// La ponemos junto a 'escapeHtml' y 'formatDate'
+function parsePartes(partesStr) {
+    if (!partesStr) return { actor: 'N/D', demandado: 'N/D' };
+    const partes = partesStr.split(/ vs\. /i); // Separa por " vs. "
+    return {
+        actor: partes[0] || 'N/D',
+        demandado: partes[1] || 'N/D'
+    };
+}
+
+/* ---------- Render: agrega UNA tarjeta sin tocar las existentes (MODIFICADA) ---------- */
+function addCardToGrid(asunto) {
+    const grid = document.getElementById('asuntos-grid') || document.querySelector('.asuntos-grid');
+    if (!grid) return;
+
+    // ----- CAMBIOS AQUÍ -----
+    // Leer de las claves NUEVAS
+    const prioridad = asunto.prioridadAsunto || 'Media';
+    const partes = parsePartes(asunto.partesProcesales);
+    const abogado = asunto.abogadoResponsable || 'Sin asignar';
+    const prioridadClass = prioridad.toLowerCase();
+    // ----- FIN DE CAMBIOS -----
+    
+    const cardHtml = `
+      <div class="asunto-card ${prioridadClass}" data-id="${asunto.id}">
+        <div class="priority-indicator ${prioridadClass}"></div>
+        
+        <div class="asunto-header">
+          <h3>${escapeHtml(asunto.expediente)} · ${escapeHtml(asunto.materia)}</h3>
+          <div class="asunto-badges">
+            <span class="badge badge-${(asunto.estado || 'Activo').toLowerCase().replace(' ', '-')}">${escapeHtml(asunto.estado || 'Activo')}</span>
+            <span class="badge badge-${prioridadClass}">${escapeHtml(prioridad)}</span>
+          </div>
+        </div>
+        
+        <div class="asunto-body">
+          <p><strong>Actor/Cliente:</strong> ${escapeHtml(partes.actor)}</p>
+          <p><strong>Demandado:</strong> ${escapeHtml(partes.demandado)}</p>
+          <p><strong>Abogado:</strong> ${escapeHtml(abogado)}</p>
+        </div>
+        
+        <div class="asunto-stats">
+          <span><i class="fas fa-file"></i> ${asunto.stats?.documentos || 0} Documentos</span>
+          <span><i class="fas fa-gavel"></i> ${asunto.stats?.audiencias || 0} Audiencias</span>
+          <span><i class="fas fa-clock"></i> ${asunto.stats?.terminos || 0} Términos</span>
+          <span><i class="fas fa-calendar"></i> ${asunto.stats?.dias || 0} Días activo</span>
+        </div>
+        
+        <div class="asunto-meta">
+          <small><i class="fas fa-calendar-plus"></i> Creado: ${formatDate(asunto.fechaCreacion)}</small>
+          <small><i class="fas fa-clock"></i> Última: ${formatDate(asunto.ultimaActividad)}</small>
+        </div>
+        
+        <div class="asunto-actions">
+          <button class="btn btn-outline-primary btn-ver-detalle" data-id="${asunto.id}">
+            <i class="fas fa-eye"></i> Ver detalle
+          </button>
+        </div>
+      </div>
+    `;
+    grid.insertAdjacentHTML('afterbegin', cardHtml);
   }
 
   function escapeHtml(s) {

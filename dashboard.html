@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
-    <!-- Chart.js para gráficas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ESTILO TEMPORAL PARA EL CALENDARIO */
@@ -72,10 +71,8 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar de navegación -->
     <div id="sidebar-container"></div>
     
-    <!-- Contenido principal -->
     <div class="main-content">
         <div class="container">
             <header>
@@ -87,26 +84,9 @@
                 </div>
             </header>
             
-            <!-- Dashboard -->
             <div class="tab-content active" id="dashboard">
                 <div class="dashboard">
-                    <div class="dashboard-card">
-                        <h3><i class="fas fa-chart-bar"></i> Resumen General</h3>
-                        <div class="stats-container">
-                            <div class="stat-card stat-audiencias">
-                                <div class="stat-value" id="total-audiencias">0</div>
-                                <div class="stat-label">Audiencias</div>
-                            </div>
-                            <div class="stat-card stat-terminos">
-                                <div class="stat-value" id="total-terminos">0</div>
-                                <div class="stat-label">Términos</div>
-                            </div>
-                               <div class="stat-card stat-presentado">
-                                <div class="stat-value" id="total-presentado">0</div>
-                                <div class="stat-label">Presentados</div>
-                            </div>
-                        </div>
-                    </div>
+                   
                     
                     <div class="dashboard-card">
                         <h3><i class="fas fa-chart-pie"></i> Distribución de Asuntos por Gerencia</h3>
@@ -128,7 +108,36 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-users"></i> Carga de Trabajo por Abogado</h3>
+                        <div class="chart-container" style="padding: 10px;">
+                            <canvas id="abogado-chart"></canvas>
+                        </div>
+                        <div class="chart-info">
+                            <h4>Asuntos Asignados</h4>
+                            <p><small><i class="fas fa-info-circle"></i> Asuntos activos asignados a cada abogado responsable</small></p>
+                        </div>
+                    </div>
+
+                     <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-bar"></i> Resumen General</h3>
+                        <div class="stats-container">
+                            <div class="stat-card stat-audiencias">
+                                <div class="stat-value" id="total-audiencias">0</div>
+                                <div class="stat-label">Audiencias</div>
+                            </div>
+                            <div class="stat-card stat-terminos">
+                                <div class="stat-value" id="total-terminos">0</div>
+                                <div class="stat-label">Términos</div>
+                            </div>
+                               <div class="stat-card stat-presentado">
+                                <div class="stat-value" id="total-presentado">0</div>
+                                <div class="stat-label">Presentados</div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
                 
                 <div class="dashboard-card">
                     <h3><i class="fas fa-calendar-alt"></i> Calendario de Eventos</h3>
@@ -167,7 +176,6 @@
         </div>
     </div>
     
-    <!-- SCRIPTS EN ORDEN CORRECTO -->
     <script src="js/components.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>

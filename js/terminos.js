@@ -482,6 +482,9 @@ function getSemaforoStatus(fechaVencimiento) {
 // Estado global simple
 let TERMINOS = [];
 
+// ===============================================
+// ===== FUNCIÓN MODIFICADA (loadTerminos) =====
+// ===============================================
 function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     
@@ -582,11 +585,15 @@ function loadTerminos() {
                             <i class="fas fa-file-upload"></i>
                         </button>
                         <input type="file" class="input-acuse" data-id="${termino.id}" accept=".pdf,.doc,.docx" style="display:none;">
-                        <input type="checkbox" class="presentar-termino" data-id="${termino.id}"> Presentar` : 
+                        
+                        <button class="btn btn-warning btn-sm presentar-termino" data-id="${termino.id}" title="Presentar término">
+                            <i class="fas fa-check"></i>Liberar
+                        </button>
+                        ` : 
                         `<button class="btn btn-success btn-sm" title="Descargar acuse" onclick="descargarAcuse('${termino.expediente}')">
                             <i class="fas fa-download"></i>
                         </button>
-                        <span class="status-presentado"><i class="fas fa-check-circle"></i> Presentado</span>`}
+                        <span class="status-presentado"><i class="fas fa-check-circle"></i> Liberar</span>`}
                 </td>
             </tr>
         `;
@@ -598,6 +605,9 @@ function loadTerminos() {
     setupActionButtons();
 }
 
+// ===============================================
+// ===== FUNCIÓN MODIFICADA (setupActionButtons) =====
+// ===============================================
 function setupActionButtons() {
     // Botones de edición
     document.querySelectorAll('.edit-termino').forEach(button => {
@@ -618,22 +628,23 @@ function setupActionButtons() {
         });
     });
     
-    // Checkboxes para presentar término
-    document.querySelectorAll('.presentar-termino').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                const id = this.getAttribute('data-id');
-                abrirModalPresentarTermino(id);
-                
-                // Desmarcar el checkbox temporalmente hasta que se confirme
-                this.checked = false;
-            }
+    // ==== CAMBIO AQUÍ ====
+    // Botones para presentar término (antes eran checkboxes)
+    document.querySelectorAll('.presentar-termino').forEach(button => {
+        // Se cambió de 'change' a 'click'
+        button.addEventListener('click', function() {
+            // Se eliminó la lógica de 'if (this.checked)'
+            const id = this.getAttribute('data-id');
+            abrirModalPresentarTermino(id);
+            // Se eliminó 'this.checked = false'
         });
     });
+    // ==== FIN DEL CAMBIO ====
     
     // Configurar subida de acuses
     setupAcuseUpload();
 }
+
 
 function setupSearchTerminos() {
     const searchInput = document.getElementById('search-terminos');
@@ -1150,5 +1161,10 @@ function descargarAcuse(expediente) {
     enlace.click();
     
     // Mostrar mensaje de confirmación
-    mostrarMensaje(`Descargando acuse: ${nombreArchivo}`, 'success');
+    // (Asumiendo que tienes una función `mostrarMensaje` en notificaciones.js)
+    if (typeof mostrarMensaje === 'function') {
+        mostrarMensaje(`Descargando acuse: ${nombreArchivo}`, 'success');
+    } else {
+        console.log(`Descargando acuse: ${nombreArchivo}`);
+    }
 }

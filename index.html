@@ -11,42 +11,7 @@
 </head>
 <body>
     <!-- Sidebar de navegación -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-gavel fa-2x"></i>
-            <h2>Agenda Legal</h2>
-        </div>
-        <div class="sidebar-nav">
-            <a href="index.html" class="nav-item active">
-                <i class="fas fa-home"></i>
-                <span>Inicio</span>
-            </a>
-            <a href="dashboard.html" class="nav-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="audiencias.html" class="nav-item">
-                <i class="fas fa-gavel"></i>
-                <span>Audiencias</span>
-            </a>
-            <a href="terminos.html" class="nav-item">
-                <i class="fas fa-clock"></i>
-                <span>Términos</span>
-            </a>
-            <a href="asuntos.html" class="nav-item">
-                <i class="fas fa-folder-open"></i>
-                <span>Asuntos</span>
-            </a>
-            <a href="agenda-general.html" class="nav-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Agenda General</span>
-            </a>
-            <a href="notificaciones.html" class="nav-item">
-                <i class="fas fa-bell"></i>
-                <span>Notificaciones</span>
-            </a>
-        </div>
-    </div>
+    <div id="sidebar-container"></div>
         
         
     <!-- Contenido principal -->
@@ -72,5 +37,17 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
     <script src="js/main.js"></script>
+    
+    <!-- Cargar componentes -->
+    <script src="js/components.js"></script>
+    <script>
+        // Configurar página actual para el sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('index.html');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -9,43 +9,8 @@
     <link rel="stylesheet" href="css/agenda-general.css">
 </head>
 <body>
-    <!-- Sidebar de navegación ACTUALIZADO -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-gavel fa-2x"></i>
-            <h2>Agenda Legal</h2>
-        </div>
-        <div class="sidebar-nav">
-            <a href="index.html" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span>Inicio</span>
-            </a>
-            <a href="dashboard.html" class="nav-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="audiencias.html" class="nav-item">
-                <i class="fas fa-gavel"></i>
-                <span>Audiencias</span>
-            </a>
-            <a href="terminos.html" class="nav-item">
-                <i class="fas fa-clock"></i>
-                <span>Términos</span>
-            </a>
-            <a href="asuntos.html" class="nav-item">
-                <i class="fas fa-folder-open"></i>
-                <span>Asuntos</span>
-            </a>
-            <a href="agenda-general.html" class="nav-item active">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Agenda General</span>
-            </a>
-            <a href="notificaciones.html" class="nav-item">
-                <i class="fas fa-bell"></i>
-                <span>Notificaciones</span>
-            </a>
-        </div>
-    </div>
+    <!-- Sidebar de navegación -->
+    <div id="sidebar-container"></div>
     
     <!-- Contenido principal -->
     <div class="main-content">
@@ -63,119 +28,112 @@
             <div class="toolbar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="search-agenda" placeholder="Buscar en agenda...">
+                    <input type="text" id="search-agenda" placeholder="Buscar en agenda general...">
                 </div>
-                <div class="view-controls">
-                    <button class="btn btn-primary active" data-view="todos">
-                        <i class="fas fa-list"></i> Todos
+                <div class="time-filters">
+                    <button class="btn btn-primary active" data-period="hoy">
+                        <i class="fas fa-calendar-day"></i> Hoy
                     </button>
-                    <button class="btn btn-secondary" data-view="audiencias">
-                        <i class="fas fa-gavel"></i> Solo Audiencias
+                    <button class="btn btn-secondary" data-period="semana">
+                        <i class="fas fa-calendar-week"></i> Esta Semana
                     </button>
-                    <button class="btn btn-secondary" data-view="terminos">
-                        <i class="fas fa-clock"></i> Solo Términos
+                    <button class="btn btn-secondary" data-period="mes">
+                        <i class="fas fa-calendar"></i> Este Mes
                     </button>
+                    <button class="btn btn-secondary" id="btn-otro-mes">
+                        <i class="fas fa-calendar-alt"></i> Otro Mes
+                    </button>
+                    <select id="select-mes" class="form-control" style="display: none;">
+                        <option value="">Seleccionar Mes</option>
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
                 </div>
+
             </div>
 
-            <!-- Filtros -->
-            <div class="filters">
-                <div class="filters-title">
-                    <i class="fas fa-filter"></i> Filtros de Agenda
-                </div>
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="filter-fecha">Fecha</label>
-                        <select id="filter-fecha">
-                            <option value="">Todas las fechas</option>
-                            <option value="hoy">Hoy</option>
-                            <option value="semana">Esta semana</option>
-                            <option value="mes">Este mes</option>
-                            <option value="proximos">Próximos 7 días</option>
-                            <option value="pasados">Pasados</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-prioridad">Prioridad</label>
-                        <select id="filter-prioridad">
-                            <option value="">Todas las prioridades</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Media">Media</option>
-                            <option value="Baja">Baja</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-materia">Materia</label>
-                        <select id="filter-materia">
-                            <option value="">Todas las materias</option>
-                            <option value="Laboral">Laboral</option>
-                            <option value="Penal">Penal</option>
-                            <option value="Mercantil">Mercantil</option>
-                            <option value="Civil">Civil</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-estado">Estado</label>
-                        <select id="filter-estado">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="completado">Completado</option>
-                            <option value="vencido">Vencido</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Estadísticas rápidas -->
-            <div class="agenda-stats">
-                <div class="stat-item">
-                    <div class="stat-icon audiencia">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-audiencias">0</div>
-                        <div class="stat-label">Audiencias</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon termino">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-terminos">0</div>
-                        <div class="stat-label">Términos</div>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon completado ">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number" id="total-pendientes">0</div>
-                        <div class="stat-label">Presentados</div>
-                    </div>
-                </div>
-            </div>
 
-          
-            <!-- Eventos del día de hoy -->
-            <div class="hoy-section">
-                <div class="section-header">
-                    <h3><i class="fas fa-sun"></i> Eventos de Hoy</h3>
-                    <span class="badge badge-primary" id="hoy-count">0</span>
+            <!-- Contenido principal con pestañas -->
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="audiencias-desahogadas">
+                        <i class="fas fa-gavel"></i> Audiencias Desahogadas
+                    </button>
+                    <button class="tab-button" data-tab="terminos-presentados">
+                        <i class="fas fa-clock"></i> Términos Presentados
+                    </button>
                 </div>
-                <div class="hoy-events" id="hoy-events">
-                    <!-- Eventos de hoy se cargarán dinámicamente -->
+
+                <!-- Audiencias Desahogadas -->
+                <div class="tab-content active" id="audiencias-desahogadas">
+                    <div class="section-header">
+                        <h3><i class="fas fa-gavel"></i> Audiencias Desahogadas</h3>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table id="tabla-audiencias-desahogadas">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Expediente</th>
+                                    <th>Tipo</th>
+                                    <th>Partes</th>
+                                    <th>Abogado</th>
+                                    <th>Acta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audiencias-desahogadas-body">
+                                <!-- Los datos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <div class="dashboard-card">
-                    <h3><i class="fas fa-file-contract"></i> Términos Presentados</h3>
-                    <div class="terminos-presentado-container">
-                        <div class="terminos-presentado-list" id="terminos-presentado-list">
-                            <!-- Los términos presentados se cargarán dinámicamente -->
+
+                <!-- Términos Presentados -->
+                <div class="tab-content" id="terminos-presentados">
+                    <div class="section-header">
+                        <h3><i class="fas fa-clock"></i> Términos Presentados</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" onclick="window.location.href='terminos.html'">
+                                <i class="fas fa-plus"></i> Nuevo Término
+                            </button>
                         </div>
                     </div>
+                    
+                    <div class="table-container">
+                        <table id="tabla-terminos-presentados">
+                            <thead>
+                                <tr>
+                                    <th>F. Presentación</th>
+                                    <th>F. Vencimiento</th>
+                                    <th>Expediente</th>
+                                    <th>Actuación</th>
+                                    <th>Partes</th>
+                                    <th>Abogado</th>
+                                    <th>Acuse</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="terminos-presentados-body">
+                                <!-- Los datos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+            </div>
         </div>
     </div>
 
@@ -197,9 +155,6 @@
                 <button class="btn btn-primary" id="btn-ir-expediente">
                     <i class="fas fa-folder-open"></i> Ir al Expediente
                 </button>
-                <button class="btn btn-success" onclick="window.location.href='audiencias.html'">
-                    <i class="fas fa-gavel"></i> Nueva Audiencia
-                </button>
                 <button class="btn btn-warning" onclick="window.location.href='terminos.html'">
                     <i class="fas fa-clock"></i> Nuevo Término
                 </button>
@@ -214,8 +169,16 @@
      <script src="js/dashboard.js"></script>
     <script src="js/agenda-general.js"></script>
     
+    <!-- Cargar componentes -->
+    <script src="js/components.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('agenda-general.html');
+            }
+            
+            // Inicializar agenda
             if (typeof initAgendaGeneral === 'function') {
                 initAgendaGeneral();
             }

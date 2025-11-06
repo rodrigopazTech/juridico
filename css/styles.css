@@ -219,6 +219,7 @@ h1 {
 .table-container {
     overflow-x: auto;
     margin-bottom: 20px;
+    width: 100%;
 }
 
 table {
@@ -245,9 +246,41 @@ tr:hover {
     background-color: #f9f9f9;
 }
 
+/* Estilos específicos para tabla de audiencias */
+#tabla-audiencias {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#tabla-audiencias th:nth-child(1) { width: 5%; }   /* Toggle expand */
+#tabla-audiencias th:nth-child(2) { width: 12%; }  /* Fecha */
+#tabla-audiencias th:nth-child(3) { width: 10%; }  /* Hora */
+#tabla-audiencias th:nth-child(4) { width: 25%; }  /* Tribunal */
+#tabla-audiencias th:nth-child(5) { width: 15%; }  /* Expediente */
+#tabla-audiencias th:nth-child(6) { width: 18%; }  /* Actor */
+#tabla-audiencias th:nth-child(7) { width: 15%; }  /* Acciones */
+
 .actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    min-width: 200px;
+    white-space: nowrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.actions .btn-sm {
+    padding: 6px 8px;
+    font-size: 0.875rem;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actions input[type="checkbox"] {
+    margin: 0 2px 0 5px;
 }
 
 .btn {
@@ -292,6 +325,17 @@ tr:hover {
     color: white;
 }
 
+.btn-subir-acta.uploaded {
+    background-color: var(--success) !important;
+    animation: uploadSuccess 0.3s ease-in-out;
+}
+
+@keyframes uploadSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
 .btn:hover {
     opacity: 0.9;
     transform: translateY(-2px);
@@ -300,9 +344,16 @@ tr:hover {
 .toolbar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .search-box {
@@ -1725,4 +1776,203 @@ tr:hover {
 .file-name.has-file {
     color: #28a745;
     font-style: normal;
+}
+
+/* Estilos para pestañas */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 20px;
+    gap: 0;
+}
+
+.tab-button {
+    padding: 12px 20px;
+    border: none;
+    background: #f8f9fa;
+    color: #495057;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-button:hover {
+    background: #e9ecef;
+}
+
+.tab-button.active {
+    background: #007bff;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Estilos para badges de estado */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-primary {
+    background: #007bff;
+    color: white;
+}
+
+.badge-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.badge-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+/* Estados de usuario */
+.status-active {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.status-inactive {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Estilos específicos para Agenda General */
+.time-filters {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.time-filters .btn {
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.month-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.month-filters .btn {
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: auto;
+    white-space: nowrap;
+}
+
+.tabs-container {
+    margin-top: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px 0;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-header h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #495057;
+}
+
+.section-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.agenda-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid transparent;
+}
+
+.stat-item .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.5em;
+}
+
+.stat-icon.audiencia {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.stat-icon.termino {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: white;
+}
+
+.stat-icon.completado {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+}
+
+.stat-info .stat-number {
+    font-size: 2em;
+    font-weight: bold;
+    color: #495057;
+    line-height: 1;
+}
+
+.stat-info .stat-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 5px;
 }

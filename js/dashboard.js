@@ -32,6 +32,9 @@ function initBasicComponents() {
     document.getElementById('total-audiencias').textContent = '12';
     document.getElementById('total-terminos').textContent = '8';
     document.getElementById('total-presentado').textContent = '10';
+    
+    // Inicializar gráfica de gerencias
+    initGerenciaChart();
 }
 
 function initCalendar() {
@@ -150,8 +153,194 @@ function setupEventListeners() {
     }
 }
 
+function initGerenciaChart() {
+    console.log('📈 Inicializando gráfica de gerencias...');
+    
+    const ctx = document.getElementById('gerencia-chart');
+    if (!ctx) {
+        console.error('❌ ERROR: Elemento gerencia-chart no encontrado');
+        return;
+    }
+    
+    if (typeof Chart === 'undefined') {
+        console.error('❌ ERROR: Chart.js no está disponible');
+        return;
+    }
+    
+    // Obtener datos de asuntos por gerencia
+    const datosGerencia = obtenerDatosGerencia();
+    
+    try {
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: datosGerencia.labels,
+                datasets: [{
+                    label: 'Asuntos por Gerencia',
+                    data: datosGerencia.values,
+                    backgroundColor: [
+                        '#2c5aa0', // Azul institucional - Civil, Mercantil, Fiscal y Administrativo
+                        '#ffc107', // Amarillo dorado - Jurídica Financiera
+                        '#28a745', // Verde profesional - Laboral y Penal
+                        '#dc3545', // Rojo para más gerencias
+                        '#6f42c1', // Púrpura
+                        '#fd7e14', // Naranja
+                        '#20c997', // Verde azulado
+                        '#6c757d', // Gris
+                        '#e83e8c', // Rosa
+                        '#17a2b8'  // Cian
+                    ],
+                    borderColor: [
+                        '#1e3d6f', // Civil, Mercantil, Fiscal y Administrativo
+                        '#d39e00', // Jurídica Financiera
+                        '#1e7e34', // Laboral y Penal
+                        '#bd2130',
+                        '#59359a',
+                        '#dc6307',
+                        '#1a9c87',
+                        '#545b62',
+                        '#d91a72',
+                        '#138496'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            font: {
+                                size: 11
+                            },
+                            boxWidth: 12,
+                            generateLabels: function(chart) {
+                                const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                                const labels = original.call(this, chart);
+                                
+                                // Acortar nombres muy largos para la leyenda
+                                labels.forEach(label => {
+                                    if (label.text.length > 35) {
+                                        const parts = label.text.split(',');
+                                        if (parts.length > 1) {
+                                            label.text = parts[0] + '...';
+                                        } else {
+                                            label.text = label.text.substring(0, 32) + '...';
+                                        }
+                                    }
+                                });
+                                
+                                return labels;
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value} asuntos (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('✅ Gráfica de gerencias creada exitosamente');
+        
+        // Actualizar estadísticas
+        actualizarEstadisticasChart(datosGerencia);
+        
+        return chart;
+        
+    } catch (error) {
+        console.error('💥 ERROR al crear la gráfica de gerencias:', error);
+        return null;
+    }
+}
+
+function obtenerDatosGerencia() {
+    console.log('📊 Obteniendo datos de asuntos por gerencia...');
+    
+    // Intentar obtener datos reales del localStorage
+    let asuntos = [];
+    try {
+        asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
+    } catch (error) {
+        console.warn('⚠️ No se pudieron cargar asuntos del localStorage:', error);
+    }
+    
+    // Si no hay datos reales, usar datos de ejemplo
+    if (asuntos.length === 0) {
+        console.log('📋 Usando datos de ejemplo para la gráfica');
+        return {
+            labels: [
+                'Gerencia de Civil, Mercantil, Fiscal y Administrativo',
+                'Gerencia Jurídica Financiera',
+                'Gerencia Laboral y Penal'
+            ],
+            values: [25, 18, 12]
+        };
+    }
+    
+    // Procesar datos reales
+    const gerenciaCounts = {};
+    
+    asuntos.forEach(asunto => {
+        const gerencia = asunto.gerencia || asunto.gerenciaEstado || 'Sin Gerencia';
+        gerenciaCounts[gerencia] = (gerenciaCounts[gerencia] || 0) + 1;
+    });
+    
+    // Convertir a arrays para Chart.js
+    const labels = Object.keys(gerenciaCounts);
+    const values = Object.values(gerenciaCounts);
+    
+    // Ordenar por cantidad (mayor a menor)
+    const sortedData = labels.map((label, index) => ({
+        label: label,
+        value: values[index]
+    })).sort((a, b) => b.value - a.value);
+    
+    console.log('📈 Datos procesados:', sortedData);
+    
+    return {
+        labels: sortedData.map(item => item.label),
+        values: sortedData.map(item => item.value)
+    };
+}
+
+function actualizarEstadisticasChart(datosGerencia) {
+    console.log('📊 Actualizando estadísticas de la gráfica...');
+    
+    // Calcular totales
+    const totalAsuntos = datosGerencia.values.reduce((sum, value) => sum + value, 0);
+    const totalGerencias = datosGerencia.labels.length;
+    
+    // Actualizar elementos del DOM
+    const totalAsuntosEl = document.getElementById('total-asuntos');
+    const totalGerenciasEl = document.getElementById('total-gerencias');
+    
+    if (totalAsuntosEl) {
+        totalAsuntosEl.textContent = totalAsuntos;
+    }
+    
+    if (totalGerenciasEl) {
+        totalGerenciasEl.textContent = totalGerencias;
+    }
+    
+    console.log(`📈 Estadísticas actualizadas: ${totalAsuntos} asuntos en ${totalGerencias} gerencias`);
+}
+
 // Hacer disponible globalmente
 window.initDashboard = initDashboard;
 window.initCalendar = initCalendar;
+window.initGerenciaChart = initGerenciaChart;
 
 console.log('✅ dashboard.js completamente cargado y listo');

@@ -126,6 +126,8 @@ class ComponentLoader {
             'terminos.html': 'terminos',
             'asuntos.html': 'asuntos',
             'agenda-general.html': 'agenda-general',
+            'usuarios.html': 'usuarios',
+            'notificaciones.html': 'notificaciones',
             'index.html': 'dashboard'
         };
         

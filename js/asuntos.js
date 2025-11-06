@@ -335,4 +335,134 @@
     guardar: guardarNuevoAsunto,
     addCardToGrid
   };
+
+  /* ---------- Funciones de Filtrado ---------- */
+  function initFilters() {
+    // Obtener elementos de filtros
+    const filterMateria = document.getElementById('filter-materia-asunto');
+    const filterEstado = document.getElementById('filter-estado-asunto');
+    const filterPrioridad = document.getElementById('filter-prioridad-asunto');
+    const filterAbogado = document.getElementById('filter-abogado-asunto');
+    const filterMes = document.getElementById('filter-mes-asunto');
+    const buscadorGlobal = document.getElementById('buscador-global');
+
+    // Agregar event listeners
+    if (filterMateria) filterMateria.addEventListener('change', applyFilters);
+    if (filterEstado) filterEstado.addEventListener('change', applyFilters);
+    if (filterPrioridad) filterPrioridad.addEventListener('change', applyFilters);
+    if (filterAbogado) filterAbogado.addEventListener('change', applyFilters);
+    if (filterMes) filterMes.addEventListener('change', applyFilters);
+    if (buscadorGlobal) buscadorGlobal.addEventListener('input', applyFilters);
+  }
+
+  function applyFilters() {
+    const filterMateria = document.getElementById('filter-materia-asunto')?.value || '';
+    const filterEstado = document.getElementById('filter-estado-asunto')?.value || '';
+    const filterPrioridad = document.getElementById('filter-prioridad-asunto')?.value || '';
+    const filterAbogado = document.getElementById('filter-abogado-asunto')?.value || '';
+    const filterMes = document.getElementById('filter-mes-asunto')?.value || '';
+    const searchTerm = document.getElementById('buscador-global')?.value.toLowerCase() || '';
+
+    const cards = document.querySelectorAll('.asunto-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const cardId = card.getAttribute('data-id');
+      const asuntos = getAsuntos();
+      const asunto = asuntos.find(a => a.id == cardId);
+      
+      if (!asunto) {
+        // Si no encuentra el asunto en localStorage, usar datos de la tarjeta HTML
+        const shouldShow = filterByCardContent(card, {
+          filterMateria,
+          filterEstado,
+          filterPrioridad,
+          filterAbogado,
+          filterMes,
+          searchTerm
+        });
+        
+        if (shouldShow) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+        return;
+      }
+
+      // Aplicar filtros
+      const matchesMateria = !filterMateria || asunto.materia === filterMateria;
+      const matchesEstado = !filterEstado || asunto.estado === filterEstado;
+      const matchesPrioridad = !filterPrioridad || asunto.prioridadAsunto === filterPrioridad;
+      const matchesAbogado = !filterAbogado || asunto.abogadoResponsable.includes(filterAbogado);
+      
+      // Filtro por mes de creación
+      const matchesMes = !filterMes || (asunto.fechaCreacion && 
+        asunto.fechaCreacion.substring(5, 7) === filterMes);
+      
+      // Búsqueda global
+      const matchesSearch = !searchTerm || [
+        asunto.expediente,
+        asunto.materia,
+        asunto.partesProcesales,
+        asunto.abogadoResponsable,
+        asunto.descripcion,
+        asunto.tipoAsunto,
+        asunto.organoJurisdiccional
+      ].some(field => field && field.toLowerCase().includes(searchTerm));
+
+      if (matchesMateria && matchesEstado && matchesPrioridad && matchesAbogado && matchesMes && matchesSearch) {
+        card.style.display = '';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Mostrar mensaje de no resultados si no hay tarjetas visibles
+    const noResultados = document.getElementById('no-resultados');
+    if (noResultados) {
+      noResultados.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  }
+
+  function filterByCardContent(card, filters) {
+    const cardText = card.textContent.toLowerCase();
+    const headerText = card.querySelector('.asunto-header h3')?.textContent || '';
+    
+    // Extraer información de la tarjeta
+    const materia = headerText.split(' · ')[1] || '';
+    const badges = Array.from(card.querySelectorAll('.badge')).map(b => b.textContent);
+    const estado = badges.find(b => ['activo', 'archivado', 'espera', 'finalizado'].some(e => b.toLowerCase().includes(e))) || '';
+    const prioridad = badges.find(b => ['alta', 'media', 'baja'].includes(b.toLowerCase())) || '';
+    
+    // Obtener abogado del contenido
+    const abogadoMatch = cardText.match(/abogado:\s*([^\\n]+)/i);
+    const abogado = abogadoMatch ? abogadoMatch[1].trim() : '';
+    
+    // Obtener fecha de creación para filtro de mes
+    const fechaMatch = cardText.match(/creado:\s*(\d{2})\/(\d{2})\/(\d{4})/i);
+    const mesTarjeta = fechaMatch ? fechaMatch[2] : '';
+
+    // Aplicar filtros
+    const matchesMateria = !filters.filterMateria || materia.includes(filters.filterMateria);
+    const matchesEstado = !filters.filterEstado || estado.toLowerCase().includes(filters.filterEstado.toLowerCase());
+    const matchesPrioridad = !filters.filterPrioridad || prioridad.toLowerCase() === filters.filterPrioridad.toLowerCase();
+    const matchesAbogado = !filters.filterAbogado || abogado.includes(filters.filterAbogado);
+    const matchesMes = !filters.filterMes || mesTarjeta === filters.filterMes;
+    const matchesSearch = !filters.searchTerm || cardText.includes(filters.searchTerm);
+
+    return matchesMateria && matchesEstado && matchesPrioridad && matchesAbogado && matchesMes && matchesSearch;
+  }
+
+  /* ---------- Inicializar filtros al cargar la página ---------- */
+  document.addEventListener('DOMContentLoaded', function () {
+    // ... código existente ...
+    initFilters();
+  });
+
+  // Exponer función para uso externo
+  window.applyAsuntosFilters = applyFilters;
+
 })();

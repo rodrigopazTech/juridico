@@ -1,5 +1,139 @@
 /* ===== ESTILOS ESPECÍFICOS PARA AGENDA GENERAL ===== */
 
+/* Filtros de tiempo mejorados */
+.time-filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.time-filters .btn {
+    padding: 10px 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.time-filters .btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.time-filters .btn:not(.active) {
+    background: white;
+    border-color: #e0e0e0;
+    color: var(--dark);
+}
+
+.time-filters .btn:not(.active):hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+}
+
+.time-filters select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    background: white;
+    color: var(--dark);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.time-filters select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* ===== ESTILOS DE PESTAÑAS ===== */
+.tabs-container {
+    margin-top: 20px;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 3px solid #e0e0e0;
+    margin-bottom: 20px;
+    gap: 0;
+}
+
+.tab-button {
+    padding: 15px 25px;
+    border: none;
+    background: #f8f9fa;
+    color: #6c757d;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 2px;
+    position: relative;
+}
+
+.tab-button:hover {
+    background: #e9ecef;
+    color: var(--primary);
+}
+
+.tab-button.active {
+    background: white;
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: -3px;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-actions {
+    display: flex;
+    gap: 10px;
+}
+
+
 /* Controles de vista */
 .view-controls {
     display: flex;

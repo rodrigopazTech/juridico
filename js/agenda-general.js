@@ -1,573 +1,636 @@
 // Lógica para la página de Agenda General
 class AgendaGeneralManager {
     constructor() {
-        this.eventos = [];
-        this.filtrosActivos = {};
-        this.vistaActual = 'todos';
-        this.semanaActual = new Date();
+        this.audienciasDesahogadas = [];
+        this.terminosPresentados = [];
+        this.periodoActual = 'hoy';
+        this.pestañaActiva = 'audiencias-desahogadas';
+        this.mesSeleccionado = '';
         this.init();
     }
 
     init() {
-        this.cargarEventos();
+        this.cargarDatos();
         this.inicializarEventos();
-        this.mostrarVistaSemana();
+        this.configurarPestañas();
+        this.configurarFiltrosTiempo();
+        this.configurarFiltroOtroMes();
+        this.actualizarVista();
         this.actualizarEstadisticas();
     }
 
-    cargarEventos() {
-        // Datos de ejemplo - en producción vendrían de una API
-        this.eventos = [
-            {
-                id: 1,
-                tipo: 'audiencia',
-                titulo: 'Audiencia Inicial - Ortega Ibarra',
-                fecha: '2025-01-20',
-                hora: '10:00',
-                expediente: '2375/2025',
-                materia: 'Laboral',
-                tribunal: 'Primer Tribunal Colegiado',
-                prioridad: 'Alta',
-                estado: 'pendiente',
-                descripcion: 'Primera audiencia para fijar posturas'
-            },
-            {
-                id: 2,
-                tipo: 'termino',
-                titulo: 'Término para Pruebas - Valdez Sánchez',
-                fecha: '2025-01-20',
-                hora: '14:00',
-                expediente: '2012/2025',
-                materia: 'Penal',
-                tribunal: 'Segundo Tribunal',
-                prioridad: 'Media',
-                estado: 'pendiente',
-                descripcion: 'Vencimiento para presentar pruebas documentales'
-            },
-            {
-                id: 3,
-                tipo: 'audiencia',
-                titulo: 'Audiencia Intermedia - Sosa Uc',
-                fecha: '2025-01-22',
-                hora: '09:30',
-                expediente: '1595/2025',
-                materia: 'Mercantil',
-                tribunal: 'Tercer Tribunal',
-                prioridad: 'Alta',
-                estado: 'pendiente',
-                descripcion: 'Audiencia para presentación de testigos'
-            },
-            {
-                id: 4,
-                tipo: 'termino',
-                titulo: 'Término de Alegatos - Rodríguez Pérez',
-                fecha: '2025-01-18',
-                hora: '16:00',
-                expediente: '2890/2025',
-                materia: 'Civil',
-                tribunal: 'Cuarto Tribunal',
-                prioridad: 'Baja',
-                estado: 'vencido',
-                descripcion: 'Plazo para presentar alegatos finales'
-            },
-            {
-                id: 5,
-                tipo: 'audiencia',
-                titulo: 'Audiencia de Conciliación - García López',
-                fecha: '2025-01-25',
-                hora: '11:00',
-                expediente: '3124/2025',
-                materia: 'Laboral',
-                tribunal: 'Primer Tribunal Colegiado',
-                prioridad: 'Media',
-                estado: 'pendiente',
-                descripcion: 'Intento de conciliación entre las partes'
-            }
-        ];
+    cargarDatos() {
+        // Cargar audiencias desahogadas (atendidas = true)
+        const todasAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
+        this.audienciasDesahogadas = todasAudiencias.filter(audiencia => audiencia.atendida === true);
+        
+        // Si no hay datos, crear algunos de ejemplo
+        if (this.audienciasDesahogadas.length === 0) {
+            this.audienciasDesahogadas = [
+                // Noviembre 2025 - Datos actuales
+                {
+                    id: 1,
+                    fechaAudiencia: '2025-11-05',
+                    horaAudiencia: '10:00',
+                    expediente: '3485/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Herrera Campos María Elena vs. Transportes del Golfo S.A.',
+                    abogado: 'Lic. María González Ruiz',
+                    actaDocumento: 'ACTA-3485-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-05'
+                },
+                {
+                    id: 2,
+                    fechaAudiencia: '2025-11-05',
+                    horaAudiencia: '14:30',
+                    expediente: '3521/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Pech Martínez Carlos vs. Constructora Peninsular S.C.',
+                    abogado: 'Lic. Carlos Hernández López',
+                    actaDocumento: 'ACTA-3521-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-05'
+                },
+                {
+                    id: 3,
+                    fechaAudiencia: '2025-11-04',
+                    horaAudiencia: '09:30',
+                    expediente: '2890/2025',
+                    tipoAudiencia: 'Intermedia',
+                    partes: 'Ramírez Torres Patricia vs. Textiles del Golfo S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    actaDocumento: 'ACTA-2890-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-04'
+                },
+                {
+                    id: 4,
+                    fechaAudiencia: '2025-11-04',
+                    horaAudiencia: '16:00',
+                    expediente: '3241/2025',
+                    tipoAudiencia: 'Desahogo de Pruebas',
+                    partes: 'López Méndez Ricardo vs. Transportes Peninsulares S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    actaDocumento: 'ACTA-3241-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-04'
+                },
+                {
+                    id: 5,
+                    fechaAudiencia: '2025-11-03',
+                    horaAudiencia: '11:45',
+                    expediente: '3697/2025',
+                    tipoAudiencia: 'Alegatos',
+                    partes: 'Tec Pool Francisco Javier vs. Servicios Turísticos del Caribe S.A.',
+                    abogado: 'Lic. Ana Patricia Morales',
+                    actaDocumento: 'ACTA-3697-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-03'
+                },
+                // Octubre 2025
+                {
+                    id: 5,
+                    fechaAudiencia: '2025-10-30',
+                    horaAudiencia: '11:00',
+                    expediente: '2156/2025',
+                    tipoAudiencia: 'Ratificación',
+                    partes: 'González Martín Luis vs. Inmobiliaria Central S.C.',
+                    abogado: 'Lic. Ana Patricia Morales',
+                    actaDocumento: 'ACTA-2156-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-10-30'
+                },
+                {
+                    id: 6,
+                    fechaAudiencia: '2025-10-28',
+                    horaAudiencia: '15:30',
+                    expediente: '1987/2025',
+                    tipoAudiencia: 'Alegatos',
+                    partes: 'Herrera Campos José vs. Manufacturas Industriales S.A.',
+                    abogado: 'Lic. Roberto Silva Martínez',
+                    actaDocumento: 'ACTA-1987-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-10-28'
+                },
+                {
+                    id: 7,
+                    fechaAudiencia: '2025-10-25',
+                    horaAudiencia: '12:00',
+                    expediente: '2674/2025',
+                    tipoAudiencia: 'Testimonial',
+                    partes: 'Pérez Canul Carmen vs. Hoteles del Caribe S.A.',
+                    abogado: 'Lic. Diego Alejandro Castillo',
+                    actaDocumento: 'ACTA-2674-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-10-25'
+                },
+                // Septiembre 2025
+                {
+                    id: 8,
+                    fechaAudiencia: '2025-09-30',
+                    horaAudiencia: '10:30',
+                    expediente: '2013/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Tun May Alberto vs. Servicios Logísticos del Sureste S.C.',
+                    abogado: 'Lic. Mónica Isabel Vázquez',
+                    actaDocumento: 'ACTA-2013-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-09-30'
+                },
+                {
+                    id: 9,
+                    fechaAudiencia: '2025-09-27',
+                    horaAudiencia: '14:00',
+                    expediente: '1789/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Cauich Pool María vs. Grupo Comercial Peninsular S.A.',
+                    abogado: 'Lic. Alejandro Domínguez Cruz',
+                    actaDocumento: 'ACTA-1789-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-09-27'
+                },
+                // Agosto 2025
+                {
+                    id: 10,
+                    fechaAudiencia: '2025-08-29',
+                    horaAudiencia: '11:30',
+                    expediente: '1456/2025',
+                    tipoAudiencia: 'Intermedia',
+                    partes: 'Mukul Chan Jorge vs. Constructora Peninsular S.A.',
+                    abogado: 'Lic. Sandra Jiménez Castro',
+                    actaDocumento: 'ACTA-1456-2025.pdf',
+                    atendida: true,
+                    fechaDesahogo: '2025-08-29'
+                }
+            ];
+        }
 
-        this.mostrarEventos();
+        // Cargar términos presentados (etapaRevision = 'Presentado')
+        const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
+        this.terminosPresentados = todosTerminos.filter(termino => termino.etapaRevision === 'Presentado');
+        
+        // Si no hay datos, crear algunos de ejemplo
+        if (this.terminosPresentados.length === 0) {
+            this.terminosPresentados = [
+                // Noviembre 2025 - Datos actuales
+                {
+                    id: 1,
+                    fechaIngreso: '2025-11-03',
+                    fechaVencimiento: '2025-11-18',
+                    expediente: '3485/2025',
+                    actuacion: 'Contestación de demanda laboral por despido injustificado',
+                    partes: 'Herrera Campos María Elena vs. Transportes del Golfo S.A.',
+                    abogado: 'Lic. María González Ruiz',
+                    acuseDocumento: 'ACUSE-3485-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-05'
+                },
+                {
+                    id: 2,
+                    fechaIngreso: '2025-11-02',
+                    fechaVencimiento: '2025-11-15',
+                    expediente: '3521/2025',
+                    actuacion: 'Alegatos finales en amparo directo',
+                    partes: 'Pech Martínez Carlos vs. Constructora Peninsular S.C.',
+                    abogado: 'Lic. Carlos Hernández López',
+                    acuseDocumento: 'ACUSE-3521-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-05'
+                },
+                {
+                    id: 3,
+                    fechaIngreso: '2025-11-01',
+                    fechaVencimiento: '2025-11-12',
+                    expediente: '3697/2025',
+                    actuacion: 'Solicitud de medidas cautelares en materia mercantil',
+                    partes: 'Tec Pool Francisco Javier vs. Servicios Turísticos del Caribe S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    acuseDocumento: 'ACUSE-3697-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-04'
+                },
+                {
+                    id: 4,
+                    fechaIngreso: '2025-10-31',
+                    fechaVencimiento: '2025-11-14',
+                    expediente: '3241/2025',
+                    actuacion: 'Escrito de ofrecimiento y preparación de pruebas',
+                    partes: 'López Méndez Ricardo vs. Transportes Peninsulares S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    acuseDocumento: 'ACUSE-3241-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-04'
+                },
+                {
+                    id: 5,
+                    fechaIngreso: '2025-10-30',
+                    fechaVencimiento: '2025-11-13',
+                    expediente: '2890/2025',
+                    actuacion: 'Promoción de incidente de nulidad de actuaciones',
+                    partes: 'Ramírez Torres Patricia vs. Textiles del Golfo S.A.',
+                    abogado: 'Lic. Ana Patricia Morales',
+                    acuseDocumento: 'ACUSE-2890-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-11-03'
+                },
+                // Octubre 2025
+                {
+                    id: 5,
+                    fechaIngreso: '2025-10-28',
+                    fechaVencimiento: '2025-11-08',
+                    expediente: '2413/2025',
+                    actuacion: 'Promoción de rescisión laboral',
+                    partes: 'García López Ana María vs. Servicios Administrativos S.C.',
+                    abogado: 'Lic. Sandra Jiménez Castro',
+                    acuseDocumento: 'ACUSE-2413-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-10-30'
+                },
+                {
+                    id: 6,
+                    fechaIngreso: '2025-10-25',
+                    fechaVencimiento: '2025-11-05',
+                    expediente: '2674/2025',
+                    actuacion: 'Demanda de amparo indirecto',
+                    partes: 'Pech Martín Roberto vs. Autotransportes Yucatecos S.A.',
+                    abogado: 'Lic. Diego Alejandro Castillo',
+                    acuseDocumento: 'ACUSE-2674-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-10-28'
+                },
+                {
+                    id: 7,
+                    fechaIngreso: '2025-10-22',
+                    fechaVencimiento: '2025-11-02',
+                    expediente: '2156/2025',
+                    actuacion: 'Contestación a vista de traslado',
+                    partes: 'Uc Kauil Marina vs. Inmobiliaria del Centro S.C.',
+                    abogado: 'Lic. Ana Patricia Morales',
+                    acuseDocumento: 'ACUSE-2156-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-10-25'
+                },
+                // Septiembre 2025
+                {
+                    id: 8,
+                    fechaIngreso: '2025-09-28',
+                    fechaVencimiento: '2025-10-10',
+                    expediente: '2013/2025',
+                    actuacion: 'Promoción de nulidad de actuaciones',
+                    partes: 'Caamal Tun Eduardo vs. Constructora Peninsular S.A.',
+                    abogado: 'Lic. Mónica Isabel Vázquez',
+                    acuseDocumento: 'ACUSE-2013-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-09-30'
+                },
+                {
+                    id: 9,
+                    fechaIngreso: '2025-09-25',
+                    fechaVencimiento: '2025-10-08',
+                    expediente: '1789/2025',
+                    actuacion: 'Incidente de acumulación de autos',
+                    partes: 'May Poot Cristina vs. Hoteles y Restaurantes del Golfo S.A.',
+                    abogado: 'Lic. Alejandro Domínguez Cruz',
+                    acuseDocumento: 'ACUSE-1789-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-09-27'
+                },
+                // Agosto 2025
+                {
+                    id: 10,
+                    fechaIngreso: '2025-08-26',
+                    fechaVencimiento: '2025-09-08',
+                    expediente: '1456/2025',
+                    actuacion: 'Escrito de desistimiento parcial',
+                    partes: 'Pool Canché Jorge vs. Servicios Especializados del Sureste S.C.',
+                    abogado: 'Lic. Sandra Jiménez Castro',
+                    acuseDocumento: 'ACUSE-1456-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-08-29'
+                },
+                // Julio 2025
+                {
+                    id: 11,
+                    fechaIngreso: '2025-07-30',
+                    fechaVencimiento: '2025-08-12',
+                    expediente: '1123/2025',
+                    actuacion: 'Recurso de revisión laboral',
+                    partes: 'Dzul Herrera Carmen vs. Grupo Industrial Yucateco S.A.',
+                    abogado: 'Lic. Fernando Gutiérrez Vega',
+                    acuseDocumento: 'ACUSE-1123-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-07-31'
+                },
+                {
+                    id: 12,
+                    fechaIngreso: '2025-07-25',
+                    fechaVencimiento: '2025-08-06',
+                    expediente: '987/2025',
+                    actuacion: 'Promoción de excepciones y defensas',
+                    partes: 'Balam Cocom Luis vs. Transportes Metropolitanos S.C.',
+                    abogado: 'Lic. Claudia Esperanza Ruiz',
+                    acuseDocumento: 'ACUSE-987-2025.pdf',
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: '2025-07-27'
+                }
+            ];
+        }
     }
 
-    inicializarEventos() {
-        // Controles de vista
-        document.querySelectorAll('.view-controls .btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.cambiarVista(e.target.getAttribute('data-view'));
+    configurarPestañas() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // Remover clase active de todos los botones y contenidos
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Agregar clase active al botón y contenido seleccionado
+                button.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+                
+                this.pestañaActiva = targetTab;
+                this.actualizarVista();
             });
         });
-
-        // Navegación de semanas
-        document.getElementById('prev-week').addEventListener('click', () => {
-            this.cambiarSemana(-7);
-        });
-
-        document.getElementById('next-week').addEventListener('click', () => {
-            this.cambiarSemana(7);
-        });
-
-        // Filtros
-        this.configurarFiltros();
-
-        // Búsqueda
-        document.getElementById('search-agenda').addEventListener('input', (e) => {
-            this.filtrosActivos.busqueda = e.target.value;
-            this.mostrarEventos();
-        });
-
-        // Modal
-        this.configurarModal();
     }
 
-    cambiarVista(vista) {
-        this.vistaActual = vista;
-        
-        // Actualizar botones activos
-        document.querySelectorAll('.view-controls .btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-view') === vista) {
-                btn.classList.add('active');
-            }
-        });
+    configurarFiltrosTiempo() {
+        const timeFilters = document.querySelectorAll('.time-filters .btn[data-period]');
 
-        this.mostrarEventos();
-    }
-
-    cambiarSemana(dias) {
-        this.semanaActual.setDate(this.semanaActual.getDate() + dias);
-        this.mostrarVistaSemana();
-        this.mostrarEventos();
-    }
-
-    mostrarVistaSemana() {
-        const grid = document.getElementById('days-grid');
-        const inicioSemana = this.getInicioSemana(this.semanaActual);
-        
-        let html = '';
-        
-        for (let i = 0; i < 7; i++) {
-            const fecha = new Date(inicioSemana);
-            fecha.setDate(inicioSemana.getDate() + i);
-            
-            const esHoy = this.esMismoDia(fecha, new Date());
-            const eventosDia = this.obtenerEventosDia(fecha);
-            
-            html += `
-                <div class="day-column ${esHoy ? 'day-today' : ''}">
-                    <div class="day-header">
-                        <div class="day-name">${this.getNombreDia(fecha)}</div>
-                        <div class="day-number">${fecha.getDate()}</div>
-                    </div>
-                    <div class="day-events">
-                        ${eventosDia.length > 0 ? 
-                            eventosDia.map(evento => this.generarEventoHTML(evento)).join('') :
-                            '<div class="empty-day"><i class="fas fa-calendar-plus"></i><p>Sin eventos</p></div>'
-                        }
-                    </div>
-                </div>
-            `;
-        }
-        
-        grid.innerHTML = html;
-        this.actualizarTituloSemana(inicioSemana);
-    }
-
-    mostrarEventos() {
-        const eventosFiltrados = this.aplicarFiltros(this.eventos);
-        
-        // Actualizar vista de días
-        this.mostrarVistaSemana();
-        
-        // Actualizar vista de lista
-        this.mostrarVistaLista(eventosFiltrados);
-        
-        // Actualizar eventos de hoy
-        this.mostrarEventosHoy();
-        
-        // Actualizar estadísticas
-        this.actualizarEstadisticas();
-    }
-
-    mostrarVistaLista(eventos) {
-        const lista = document.getElementById('agenda-list');
-        
-        // Agrupar eventos por fecha
-        const eventosPorFecha = this.agruparPorFecha(eventos);
-        
-        let html = '';
-        
-        Object.keys(eventosPorFecha).sort().forEach(fecha => {
-            const eventosDia = eventosPorFecha[fecha];
-            const fechaObj = new Date(fecha);
-            const esHoy = this.esMismoDia(fechaObj, new Date());
-            
-            html += `
-                <div class="agenda-day-group">
-                    <div class="agenda-day-header ${esHoy ? 'hoy' : ''}">
-                        <div class="agenda-date">
-                            ${this.formatFechaCompleta(fechaObj)}
-                            ${esHoy ? ' - <strong>HOY</strong>' : ''}
-                        </div>
-                        <div class="agenda-day-count">${eventosDia.length} eventos</div>
-                    </div>
-                    <div class="agenda-events">
-                        ${eventosDia.map(evento => this.generarEventoListaHTML(evento)).join('')}
-                    </div>
-                </div>
-            `;
-        });
-        
-        lista.innerHTML = html || '<div class="empty-state">No hay eventos que coincidan con los filtros</div>';
-    }
-
-    mostrarEventosHoy() {
-        const hoy = new Date();
-        const eventosHoy = this.obtenerEventosDia(hoy);
-        const container = document.getElementById('hoy-events');
-        const count = document.getElementById('hoy-count');
-        
-        count.textContent = eventosHoy.length;
-        
-        if (eventosHoy.length === 0) {
-            container.innerHTML = `
-                <div class="hoy-empty">
-                    <i class="fas fa-sun"></i>
-                    <h4>¡Día despejado!</h4>
-                    <p>No tienes eventos programados para hoy</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = eventosHoy.map(evento => this.generarEventoHoyHTML(evento)).join('');
-        container.innerHTML = html;
-    }
-
-    generarEventoHTML(evento) {
-        const esUrgente = this.esEventoUrgente(evento);
-        const estaVencido = evento.estado === 'vencido';
-        
-        return `
-            <div class="evento-item ${evento.tipo} ${esUrgente ? 'urgente' : ''} ${estaVencido ? 'vencido' : ''}" 
-                 data-id="${evento.id}">
-                <div class="evento-hora">
-                    <i class="fas fa-clock"></i> ${evento.hora}
-                </div>
-                <div class="evento-titulo">${evento.titulo}</div>
-                <div class="evento-meta">
-                    <span>${evento.expediente}</span>
-                    <span>${evento.tribunal}</span>
-                </div>
-                <div class="evento-prioridad prioridad-${evento.prioridad.toLowerCase()}">
-                    ${evento.prioridad}
-                </div>
-            </div>
-        `;
-    }
-
-    generarEventoListaHTML(evento) {
-        const esUrgente = this.esEventoUrgente(evento);
-        const estaVencido = evento.estado === 'vencido';
-        
-        return `
-            <div class="evento-item ${evento.tipo} ${esUrgente ? 'urgente' : ''} ${estaVencido ? 'vencido' : ''}" 
-                 data-id="${evento.id}">
-                <div class="evento-hora">
-                    <i class="fas fa-clock"></i> ${evento.hora}
-                    <span class="evento-tipo-badge">${evento.tipo === 'audiencia' ? 'Audiencia' : 'Término'}</span>
-                </div>
-                <div class="evento-titulo">${evento.titulo}</div>
-                <div class="evento-meta">
-                    <span><strong>Expediente:</strong> ${evento.expediente}</span>
-                    <span><strong>Tribunal:</strong> ${evento.tribunal}</span>
-                    <span><strong>Materia:</strong> ${evento.materia}</span>
-                </div>
-                <div class="evento-prioridad prioridad-${evento.prioridad.toLowerCase()}">
-                    ${evento.prioridad}
-                </div>
-            </div>
-        `;
-    }
-
-    generarEventoHoyHTML(evento) {
-        const esUrgente = this.esEventoUrgente(evento);
-        
-        return `
-            <div class="evento-item ${evento.tipo} ${esUrgente ? 'urgente' : ''}" data-id="${evento.id}">
-                <div class="evento-hora">
-                    <i class="fas fa-clock"></i> ${evento.hora}
-                </div>
-                <div class="evento-titulo">${evento.titulo}</div>
-                <div class="evento-meta">
-                    <span>${evento.expediente} - ${evento.tribunal}</span>
-                </div>
-                <div class="evento-prioridad prioridad-${evento.prioridad.toLowerCase()}">
-                    ${evento.prioridad}
-                </div>
-            </div>
-        `;
-    }
-
-    configurarFiltros() {
-        const filtros = ['filter-fecha', 'filter-prioridad', 'filter-materia', 'filter-estado'];
-        
-        filtros.forEach(filtroId => {
-            const filtro = document.getElementById(filtroId);
-            if (filtro) {
-                filtro.addEventListener('change', (e) => {
-                    const campo = filtroId.replace('filter-', '');
-                    this.filtrosActivos[campo] = e.target.value || null;
-                    this.mostrarEventos();
+        timeFilters.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover active de todos los botones de tiempo
+                timeFilters.forEach(btn => {
+                    btn.classList.remove('btn-primary', 'active');
+                    btn.classList.add('btn-secondary');
                 });
-            }
+
+                // Desactivar filtro de mes
+                this.mesSeleccionado = '';
+                document.getElementById('select-mes').style.display = 'none';
+                document.getElementById('btn-otro-mes').classList.remove('btn-primary', 'active');
+                document.getElementById('btn-otro-mes').classList.add('btn-secondary');
+
+                // Activar el botón seleccionado
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-primary', 'active');
+
+                this.periodoActual = button.getAttribute('data-period');
+                this.actualizarVista();
+                this.actualizarEstadisticas();
+            });
         });
     }
 
-    configurarModal() {
-        const modal = document.getElementById('modal-evento');
-        const closeBtn = document.getElementById('close-modal-evento');
-        const cerrarBtn = document.getElementById('btn-cerrar-evento');
 
-        // Cerrar modal
-        [closeBtn, cerrarBtn].forEach(btn => {
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    modal.style.display = 'none';
-                });
-            }
+
+    configurarFiltroOtroMes() {
+        const btnOtroMes = document.getElementById('btn-otro-mes');
+        const selectMes = document.getElementById('select-mes');
+
+        btnOtroMes.addEventListener('click', () => {
+            // Remover active de todos los botones de tiempo
+            const timeFilters = document.querySelectorAll('.time-filters .btn[data-period]');
+            timeFilters.forEach(btn => {
+                btn.classList.remove('btn-primary', 'active');
+                btn.classList.add('btn-secondary');
+            });
+
+            // Activar el botón Otro Mes
+            btnOtroMes.classList.remove('btn-secondary');
+            btnOtroMes.classList.add('btn-primary', 'active');
+
+            // Mostrar el select
+            selectMes.style.display = 'inline-block';
+
+            this.periodoActual = 'otro-mes';
+            this.actualizarVista();
+            this.actualizarEstadisticas();
         });
 
-        // Cerrar al hacer clic fuera
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-
-        // Configurar eventos para abrir modal
-        document.addEventListener('click', (e) => {
-            const eventoItem = e.target.closest('.evento-item');
-            if (eventoItem) {
-                const eventoId = parseInt(eventoItem.getAttribute('data-id'));
-                this.mostrarDetallesEvento(eventoId);
-            }
+        selectMes.addEventListener('change', () => {
+            this.mesSeleccionado = selectMes.value;
+            this.actualizarVista();
+            this.actualizarEstadisticas();
         });
     }
 
-    mostrarDetallesEvento(eventoId) {
-        const evento = this.eventos.find(e => e.id === eventoId);
-        if (!evento) return;
-
-        const modal = document.getElementById('modal-evento');
-        const titulo = document.getElementById('modal-evento-title');
-        const detalles = document.getElementById('evento-detalles');
-
-        titulo.textContent = evento.titulo;
-
-        detalles.innerHTML = `
-            <div class="detalle-item">
-                <div class="detalle-label">Tipo:</div>
-                <div class="detalle-value">
-                    <span class="badge ${evento.tipo === 'audiencia' ? 'badge-audiencia' : 'badge-termino'}">
-                        ${evento.tipo === 'audiencia' ? 'Audiencia' : 'Término'}
-                    </span>
-                </div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Fecha y Hora:</div>
-                <div class="detalle-value">${this.formatFechaCompleta(new Date(evento.fecha))} a las ${evento.hora}</div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Expediente:</div>
-                <div class="detalle-value">${evento.expediente}</div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Tribunal:</div>
-                <div class="detalle-value">${evento.tribunal}</div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Materia:</div>
-                <div class="detalle-value">${evento.materia}</div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Prioridad:</div>
-                <div class="detalle-value">
-                    <span class="evento-prioridad prioridad-${evento.prioridad.toLowerCase()}">
-                        ${evento.prioridad}
-                    </span>
-                </div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Estado:</div>
-                <div class="detalle-value">
-                    <span class="badge ${evento.estado === 'pendiente' ? 'badge-warning' : 'badge-secondary'}">
-                        ${evento.estado === 'pendiente' ? 'Pendiente' : 'Vencido'}
-                    </span>
-                </div>
-            </div>
-            <div class="detalle-item">
-                <div class="detalle-label">Descripción:</div>
-                <div class="detalle-value">${evento.descripcion}</div>
-            </div>
-        `;
-
-        modal.style.display = 'flex';
-    }
-
-    aplicarFiltros(eventos) {
-        let filtrados = eventos;
-
-        // Filtrar por tipo de vista
-        if (this.vistaActual !== 'todos') {
-            filtrados = filtrados.filter(evento => evento.tipo === this.vistaActual);
-        }
-
-        // Filtrar por fecha
-        if (this.filtrosActivos.fecha) {
-            filtrados = this.filtrarPorFecha(filtrados, this.filtrosActivos.fecha);
-        }
-
-        // Filtrar por prioridad
-        if (this.filtrosActivos.prioridad) {
-            filtrados = filtrados.filter(evento => evento.prioridad === this.filtrosActivos.prioridad);
-        }
-
-        // Filtrar por materia
-        if (this.filtrosActivos.materia) {
-            filtrados = filtrados.filter(evento => evento.materia === this.filtrosActivos.materia);
-        }
-
-        // Filtrar por estado
-        if (this.filtrosActivos.estado) {
-            filtrados = filtrados.filter(evento => evento.estado === this.filtrosActivos.estado);
-        }
-
-        // Filtrar por búsqueda
-        if (this.filtrosActivos.busqueda) {
-            const termino = this.filtrosActivos.busqueda.toLowerCase();
-            filtrados = filtrados.filter(evento => 
-                evento.titulo.toLowerCase().includes(termino) ||
-                evento.expediente.toLowerCase().includes(termino) ||
-                evento.tribunal.toLowerCase().includes(termino) ||
-                evento.materia.toLowerCase().includes(termino)
-            );
-        }
-
-        return filtrados;
-    }
-
-    filtrarPorFecha(eventos, filtro) {
+    filtrarPorPeriodo(datos, fechaCampo) {
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
-        switch (filtro) {
-            case 'hoy':
-                return eventos.filter(evento => this.esMismoDia(new Date(evento.fecha), hoy));
-            case 'semana':
-                const inicioSemana = this.getInicioSemana(hoy);
-                const finSemana = new Date(inicioSemana);
-                finSemana.setDate(inicioSemana.getDate() + 6);
-                return eventos.filter(evento => {
-                    const fechaEvento = new Date(evento.fecha);
-                    return fechaEvento >= inicioSemana && fechaEvento <= finSemana;
-                });
-            case 'mes':
-                return eventos.filter(evento => {
-                    const fechaEvento = new Date(evento.fecha);
-                    return fechaEvento.getMonth() === hoy.getMonth() && 
-                           fechaEvento.getFullYear() === hoy.getFullYear();
-                });
-            case 'proximos':
-                const en7Dias = new Date(hoy);
-                en7Dias.setDate(hoy.getDate() + 7);
-                return eventos.filter(evento => {
-                    const fechaEvento = new Date(evento.fecha);
-                    return fechaEvento >= hoy && fechaEvento <= en7Dias;
-                });
-            case 'pasados':
-                return eventos.filter(evento => new Date(evento.fecha) < hoy);
-            default:
-                return eventos;
+        return datos.filter(item => {
+            const fechaItem = new Date(item[fechaCampo]);
+            fechaItem.setHours(0, 0, 0, 0);
+
+            // Aplicar filtro por mes específico si está seleccionado
+            if (this.mesSeleccionado && this.mesSeleccionado !== '') {
+                const mesItem = (fechaItem.getMonth() + 1).toString().padStart(2, '0');
+                if (mesItem !== this.mesSeleccionado) {
+                    return false;
+                }
+            }
+
+            switch (this.periodoActual) {
+                case 'hoy':
+                    return fechaItem.getTime() === hoy.getTime();
+
+                case 'semana':
+                    const inicioSemana = new Date(hoy);
+                    inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+                    const finSemana = new Date(inicioSemana);
+                    finSemana.setDate(inicioSemana.getDate() + 6);
+                    return fechaItem >= inicioSemana && fechaItem <= finSemana;
+
+                case 'mes':
+                    return fechaItem.getMonth() === hoy.getMonth() &&
+                           fechaItem.getFullYear() === hoy.getFullYear();
+
+                case 'otro-mes':
+                    // Solo filtrar por mes seleccionado
+                    return true;
+
+                default:
+                    return true;
+            }
+        });
+    }
+
+    actualizarVista() {
+        if (this.pestañaActiva === 'audiencias-desahogadas') {
+            this.mostrarAudienciasDesahogadas();
+        } else {
+            this.mostrarTerminosPresentados();
         }
     }
 
-    obtenerEventosDia(fecha) {
-        return this.eventos.filter(evento => 
-            this.esMismoDia(new Date(evento.fecha), fecha) &&
-            this.aplicarFiltros([evento]).length > 0
-        );
+    mostrarAudienciasDesahogadas() {
+        const tbody = document.getElementById('audiencias-desahogadas-body');
+        if (!tbody) return;
+
+        const audienciasFiltradas = this.filtrarPorPeriodo(this.audienciasDesahogadas, 'fechaDesahogo');
+        
+        if (audienciasFiltradas.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center" style="padding: 40px; color: #6c757d;">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <div>No hay audiencias desahogadas ${this.getPeriodoTexto()}</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let html = '';
+        audienciasFiltradas.forEach(audiencia => {
+            html += `
+                <tr>
+                    <td>${this.formatDate(audiencia.fechaAudiencia)}</td>
+                    <td>${audiencia.horaAudiencia}</td>
+                    <td><strong>${audiencia.expediente}</strong></td>
+                    <td>
+                        <span class="badge badge-primary">${audiencia.tipoAudiencia}</span>
+                    </td>
+                    <td>${audiencia.partes}</td>
+                    <td>${audiencia.abogado}</td>
+                    <td>
+                        ${audiencia.actaDocumento ? 
+                            `<a href="#" class="btn btn-sm btn-success">
+                                <i class="fas fa-download"></i> ${audiencia.actaDocumento}
+                            </a>` : 
+                            '<span class="text-muted">Sin acta</span>'}
+                    </td>
+                    <td class="actions">
+                        <button class="btn btn-primary btn-sm" onclick="verDetalleAudiencia(${audiencia.id})" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="editarAudiencia(${audiencia.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    mostrarTerminosPresentados() {
+        const tbody = document.getElementById('terminos-presentados-body');
+        if (!tbody) return;
+
+        const terminosFiltrados = this.filtrarPorPeriodo(this.terminosPresentados, 'fechaPresentacion');
+        
+        if (terminosFiltrados.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center" style="padding: 40px; color: #6c757d;">
+                        <i class="fas fa-clock fa-3x mb-3"></i>
+                        <div>No hay términos presentados ${this.getPeriodoTexto()}</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let html = '';
+        terminosFiltrados.forEach(termino => {
+            html += `
+                <tr>
+                    <td>${this.formatDate(termino.fechaPresentacion)}</td>
+                    <td>${this.formatDate(termino.fechaVencimiento)}</td>
+                    <td><strong>${termino.expediente}</strong></td>
+                    <td>${termino.actuacion}</td>
+                    <td>${termino.partes}</td>
+                    <td>${termino.abogado}</td>
+                    <td>
+                        ${termino.acuseDocumento ? 
+                            `<a href="#" class="btn btn-sm btn-success">
+                                <i class="fas fa-download"></i> ${termino.acuseDocumento}
+                            </a>` : 
+                            '<span class="text-muted">Sin acuse</span>'}
+                    </td>
+                    <td class="actions">
+                        <button class="btn btn-primary btn-sm" onclick="verDetalleTermino(${termino.id})" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="editarTermino(${termino.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    getPeriodoTexto() {
+        switch (this.periodoActual) {
+            case 'hoy': return 'hoy';
+            case 'semana': return 'esta semana';
+            case 'mes': return 'este mes';
+            default: return '';
+        }
     }
 
     actualizarEstadisticas() {
-        const audiencias = this.eventos.filter(e => e.tipo === 'audiencia').length;
-        const terminos = this.eventos.filter(e => e.tipo === 'termino').length;
-        const pendientes = this.eventos.filter(e => e.estado === 'pendiente').length;
-        const urgentes = this.eventos.filter(e => this.esEventoUrgente(e)).length;
-
-        document.getElementById('total-audiencias').textContent = audiencias;
-        document.getElementById('total-terminos').textContent = terminos;
-        document.getElementById('total-pendientes').textContent = pendientes;
-        document.getElementById('total-urgentes').textContent = urgentes;
-    }
-
-    esEventoUrgente(evento) {
-        if (evento.estado === 'vencido') return false;
+        const audienciasFiltradas = this.filtrarPorPeriodo(this.audienciasDesahogadas, 'fechaDesahogo');
+        const terminosFiltrados = this.filtrarPorPeriodo(this.terminosPresentados, 'fechaPresentacion');
         
-        const fechaEvento = new Date(evento.fecha);
-        const hoy = new Date();
-        const diferenciaDias = Math.ceil((fechaEvento - hoy) / (1000 * 60 * 60 * 24));
+        // Elementos de estadísticas opcionales - solo si existen en el DOM
+        const elemAudiencias = document.getElementById('total-audiencias-desahogadas');
+        const elemTerminos = document.getElementById('total-terminos-presentados');
+        const elemTotal = document.getElementById('total-completados');
         
-        return evento.prioridad === 'Alta' && diferenciaDias <= 3;
-    }
-
-    // Utilidades
-    getInicioSemana(fecha) {
-        const inicio = new Date(fecha);
-        const dia = inicio.getDay();
-        const diff = inicio.getDate() - dia + (dia === 0 ? -6 : 1);
-        inicio.setDate(diff);
-        inicio.setHours(0, 0, 0, 0);
-        return inicio;
-    }
-
-    esMismoDia(fecha1, fecha2) {
-        return fecha1.toDateString() === fecha2.toDateString();
-    }
-
-    getNombreDia(fecha) {
-        const dias = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-        return dias[fecha.getDay()];
-    }
-
-    agruparPorFecha(eventos) {
-        return eventos.reduce((grupos, evento) => {
-            const fecha = evento.fecha;
-            if (!grupos[fecha]) {
-                grupos[fecha] = [];
-            }
-            grupos[fecha].push(evento);
-            return grupos;
-        }, {});
-    }
-
-    actualizarTituloSemana(inicioSemana) {
-        const finSemana = new Date(inicioSemana);
-        finSemana.setDate(inicioSemana.getDate() + 6);
+        if (elemAudiencias) elemAudiencias.textContent = audienciasFiltradas.length;
+        if (elemTerminos) elemTerminos.textContent = terminosFiltrados.length;
+        if (elemTotal) elemTotal.textContent = audienciasFiltradas.length + terminosFiltrados.length;
         
-        const titulo = `Semana del ${this.formatFechaCorta(inicioSemana)} al ${this.formatFechaCorta(finSemana)}`;
-        document.getElementById('current-week').textContent = titulo;
+        console.log(`Estadísticas actualizadas: ${audienciasFiltradas.length} audiencias, ${terminosFiltrados.length} términos`);
     }
 
-    formatFechaCorta(fecha) {
-        return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+    formatDate(dateString) {
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return new Date(dateString).toLocaleDateString('es-ES', options);
     }
+}
 
-    formatFechaCompleta(fecha) {
-        return fecha.toLocaleDateString('es-ES', { 
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+// Funciones globales para manejar eventos desde los botones
+function verDetalleAudiencia(id) {
+    if (agendaGeneral) {
+        const audiencia = agendaGeneral.audienciasDesahogadas.find(a => a.id === id);
+        if (audiencia) {
+            alert(`Detalles de audiencia ${audiencia.expediente}:\n${audiencia.partes}`);
+        }
+    }
+}
+
+function editarAudiencia(id) {
+    if (agendaGeneral) {
+        alert('Funcionalidad de edición próximamente disponible');
+    }
+}
+
+function verDetalleTermino(id) {
+    if (agendaGeneral) {
+        const termino = agendaGeneral.terminosPresentados.find(t => t.id === id);
+        if (termino) {
+            alert(`Detalles del término ${termino.expediente}:\n${termino.actuacion}`);
+        }
+    }
+}
+
+function editarTermino(id) {
+    if (agendaGeneral) {
+        alert('Funcionalidad de edición próximamente disponible');
     }
 }
 

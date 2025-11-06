@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar de navegación -->
+    <div id="sidebar-container"></div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-users"></i> Gestión de Usuarios - Agenda Legal</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Subdirector
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Pestañas -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="usuarios">
+                    <i class="fas fa-users"></i> Usuarios
+                </button>
+                <button class="tab-button" data-tab="materias">
+                    <i class="fas fa-tags"></i> Materias
+                </button>
+            </div>
+
+            <!-- Contenido de Usuarios -->
+            <div class="tab-content active" id="usuarios">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-usuarios" placeholder="Buscar usuarios...">
+                    </div>
+                    <button class="btn btn-primary" id="add-usuario">
+                        <i class="fas fa-plus"></i> Nuevo Usuario
+                    </button>
+                </div>
+                
+                <!-- Filtros para usuarios -->
+                <div class="filters">
+                    <div class="filters-title">
+                        <i class="fas fa-filter"></i> Filtros de Usuarios
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-rol">Rol</label>
+                            <select id="filter-rol">
+                                <option value="">Todos los roles</option>
+                                <option value="SUBDIRECTOR">Subdirector</option>
+                                <option value="GERENTE">Gerente</option>
+                                <option value="ABOGADO">Abogado</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-activo">Estado</label>
+                            <select id="filter-activo">
+                                <option value="">Todos los estados</option>
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="tabla-usuarios">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Fecha de Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-body">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Contenido de Materias -->
+            <div class="tab-content" id="materias">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-materias" placeholder="Buscar materias...">
+                    </div>
+                    <button class="btn btn-primary" id="add-materia">
+                        <i class="fas fa-plus"></i> Nueva Materia
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="tabla-materias">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materias-body">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Usuarios -->
+    <div class="modal" id="modal-usuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-usuario-title">Nuevo Usuario</h2>
+                <button class="btn btn-danger" id="close-modal-usuario">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-usuario">
+                    <input type="hidden" id="usuario-id">
+
+                    <div class="form-group">
+                        <label for="usuario-nombre">Nombre Completo *</label>
+                        <input type="text" id="usuario-nombre" required placeholder="Ej. Lic. María González Ruiz">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario-correo">Correo Electrónico *</label>
+                        <input type="email" id="usuario-correo" required placeholder="usuario@empresa.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario-contraseña">Contraseña *</label>
+                        <input type="password" id="usuario-contraseña" required placeholder="Mínimo 8 caracteres">
+                        <small>La contraseña debe tener al menos 8 caracteres</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario-rol">Rol *</label>
+                        <select id="usuario-rol" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="SUBDIRECTOR">Subdirector</option>
+                            <option value="GERENTE">Gerente</option>
+                            <option value="ABOGADO">Abogado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario-gerencia">Gerencia *</label>
+                        <select id="usuario-gerencia" required>
+                            <option value="">Seleccione una gerencia</option>
+                            <option value="Gerencia de Civil, Mercantil, Fiscal y Administrativo">Gerencia de Civil, Mercantil, Fiscal y Administrativo</option>
+                            <option value="Gerencia Jurídica y Financiera">Gerencia Jurídica y Financiera</option>
+                            <option value="Gerencia Laboral y Penal">Gerencia Laboral y Penal</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario-activo">Estado</label>
+                        <select id="usuario-activo">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-usuario">Cancelar</button>
+                <button class="btn btn-success" id="save-usuario">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Materias -->
+    <div class="modal" id="modal-materia">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-materia-title">Nueva Materia</h2>
+                <button class="btn btn-danger" id="close-modal-materia">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-materia">
+                    <input type="hidden" id="materia-id">
+
+                    <div class="form-group">
+                        <label for="materia-nombre">Nombre de la Materia *</label>
+                        <input type="text" id="materia-nombre" required placeholder="Ej. Laboral, Civil, Penal">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="materia-descripcion">Descripción</label>
+                        <textarea id="materia-descripcion" rows="3" placeholder="Descripción de la materia (opcional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-materia">Cancelar</button>
+                <button class="btn btn-success" id="save-materia">Guardar Materia</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/usuarios.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initUsuarios === 'function') {
+                initUsuarios();
+            }
+            initTabs();
+            initModalUsuarios();
+            initModalMaterias();
+        });
+
+        // Función para inicializar las pestañas
+        function initTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Remover clase active de todos los botones y contenidos
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Agregar clase active al botón y contenido seleccionado
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Cargar datos según la pestaña activa
+                    if (targetTab === 'usuarios') {
+                        loadUsuarios();
+                    } else if (targetTab === 'materias') {
+                        loadMaterias();
+                    }
+                });
+            });
+        }
+
+        // Función para inicializar modal de usuarios
+        function initModalUsuarios() {
+            const modal = document.getElementById('modal-usuario');
+            const btnOpen = document.getElementById('add-usuario');
+            const btnClose = document.getElementById('close-modal-usuario');
+            const btnCancel = document.getElementById('cancel-usuario');
+            const btnSave = document.getElementById('save-usuario');
+
+            if (btnOpen) {
+                btnOpen.addEventListener('click', function() {
+                    openUsuarioModal();
+                });
+            }
+
+            if (btnClose) {
+                btnClose.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+
+            if (btnCancel) {
+                btnCancel.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+
+            if (btnSave) {
+                btnSave.addEventListener('click', function() {
+                    saveUsuario();
+                });
+            }
+
+            // Cerrar modal al hacer clic fuera
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para inicializar modal de materias
+        function initModalMaterias() {
+            const modal = document.getElementById('modal-materia');
+            const btnOpen = document.getElementById('add-materia');
+            const btnClose = document.getElementById('close-modal-materia');
+            const btnCancel = document.getElementById('cancel-materia');
+            const btnSave = document.getElementById('save-materia');
+
+            if (btnOpen) {
+                btnOpen.addEventListener('click', function() {
+                    openMateriaModal();
+                });
+            }
+
+            if (btnClose) {
+                btnClose.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+
+            if (btnCancel) {
+                btnCancel.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+            }
+
+            if (btnSave) {
+                btnSave.addEventListener('click', function() {
+                    saveMateria();
+                });
+            }
+
+            // Cerrar modal al hacer clic fuera
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        function openUsuarioModal(usuario = null) {
+            const modal = document.getElementById('modal-usuario');
+            const title = document.getElementById('modal-usuario-title');
+            const form = document.getElementById('form-usuario');
+            
+            if (usuario) {
+                title.textContent = 'Editar Usuario';
+                document.getElementById('usuario-id').value = usuario.id;
+                document.getElementById('usuario-nombre').value = usuario.nombre;
+                document.getElementById('usuario-correo').value = usuario.correo;
+                document.getElementById('usuario-contraseña').required = false;
+                document.getElementById('usuario-rol').value = usuario.rol;
+                document.getElementById('usuario-activo').value = usuario.activo.toString();
+            } else {
+                title.textContent = 'Nuevo Usuario';
+                form.reset();
+                document.getElementById('usuario-contraseña').required = true;
+                document.getElementById('usuario-activo').value = 'true';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function openMateriaModal(materia = null) {
+            const modal = document.getElementById('modal-materia');
+            const title = document.getElementById('modal-materia-title');
+            const form = document.getElementById('form-materia');
+            
+            if (materia) {
+                title.textContent = 'Editar Materia';
+                document.getElementById('materia-id').value = materia.id;
+                document.getElementById('materia-nombre').value = materia.nombre;
+                document.getElementById('materia-descripcion').value = materia.descripcion || '';
+            } else {
+                title.textContent = 'Nueva Materia';
+                form.reset();
+            }
+            
+            modal.style.display = 'flex';
+        }
+    </script>
+    
+    <!-- Cargar componentes -->
+    <script src="js/components.js"></script>
+    <script>
+        // Configurar página actual para el sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('usuarios.html');
+            }
+        });
+    </script>
+</body>
+</html>

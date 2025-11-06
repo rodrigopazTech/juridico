@@ -359,17 +359,16 @@ function loadAudiencias() {
         <td>${audiencia.actor}</td>
 
         <td class="actions">
-          <button class="btn btn-info btn-sm btn-subir-acta" title="Subir acta" data-id="${audiencia.id}">
-            <i class="fas fa-file-upload"></i>
-          </button>
-          <input type="file" class="input-acta" data-id="${audiencia.id}" accept=".pdf,.doc,.docx" style="display:none;">
-          <button class="btn btn-primary btn-sm edit-audiencia" data-id="${audiencia.id}" title="Editar">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-presentado btn-sm comment-audiencia" data-id="${audiencia.id}" title="Agregar comentario">
-            <i class="fas fa-comment-dots"></i>
-          </button>
-          <input type="checkbox" class="delete-audiencia" data-id="${audiencia.id}" title="Finalizar audiencia"> Desahogado
+            <button class="btn btn-secondary btn-sm view-changes" data-id="${audiencia.id}" title="Ver cambios">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-primary btn-sm edit-audiencia" data-id="${audiencia.id}" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-presentado btn-sm comment-audiencia" data-id="${audiencia.id}" title="Agregar comentario">
+              <i class="fas fa-comment-dots"></i>
+            </button>
+            <input type="checkbox" class="delete-audiencia" data-id="${audiencia.id}" title="Finalizar audiencia"> Desahogado
         </td>
       </tr>
       <tr class="expandable-row" id="expand-audiencia-${audiencia.id}">
@@ -441,6 +440,14 @@ function setupActionButtons() {
       }
       openAudienciaModal(audiencia); // ya tienes esta función y soporta modo edición
     });
+    // Ver cambios (abre modal demostrativo)
+  document.querySelectorAll('.view-changes').forEach(button => {
+    button.addEventListener('click', function () {
+      const id = this.getAttribute('data-id');
+      openHistorialCambiosModal(id);
+    });
+});
+
   });
 
   // Comentarios (ya lo tenías)

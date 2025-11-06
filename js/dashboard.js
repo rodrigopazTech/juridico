@@ -35,10 +35,6 @@ function initBasicComponents() {
     
     // Inicializar gráfica de gerencias
     initGerenciaChart();
-
-    // ===== ⬇️ AQUÍ ESTÁ LA LÍNEA AÑADIDA ⬇️ =====
-    initAbogadoChart();
-    // ===== ⬆️ FIN DE LA LÍNEA AÑADIDA ⬆️ =====
 }
 
 function initCalendar() {
@@ -298,8 +294,7 @@ function obtenerDatosGerencia() {
     const gerenciaCounts = {};
     
     asuntos.forEach(asunto => {
-        // Usamos la clave correcta 'gerencia' del formulario de 'asuntos.js'
-        const gerencia = asunto.gerencia || 'Sin Gerencia';
+        const gerencia = asunto.gerencia || asunto.gerenciaEstado || 'Sin Gerencia';
         gerenciaCounts[gerencia] = (gerenciaCounts[gerencia] || 0) + 1;
     });
     
@@ -342,123 +337,6 @@ function actualizarEstadisticasChart(datosGerencia) {
     
     console.log(`📈 Estadísticas actualizadas: ${totalAsuntos} asuntos en ${totalGerencias} gerencias`);
 }
-
-// ===============================================
-// ===== ⬇️ NUEVAS FUNCIONES AÑADIDAS ⬇️ =====
-// ===============================================
-
-/**
- * Procesa los datos de localStorage para la gráfica de abogados.
- */
-function obtenerDatosAbogado() {
-    console.log('📊 Obteniendo datos de asuntos por abogado...');
-    
-    let asuntos = [];
-    try {
-        asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-    } catch (error) {
-        console.warn('⚠️ No se pudieron cargar asuntos del localStorage:', error);
-    }
-    
-    // Si no hay datos reales, usar datos de ejemplo
-    if (asuntos.length === 0) {
-        console.log('📋 Usando datos de ejemplo para la gráfica de abogados');
-        return {
-            labels: ['Lic. María González', 'Lic. Ana Morales', 'Lic. Sandra Jiménez'],
-            values: [5, 3, 4]
-        };
-    }
-    
-    // Procesar datos reales
-    const abogadoCounts = {};
-    
-    asuntos.forEach(asunto => {
-        // Usamos la clave correcta: 'abogadoResponsable'
-        const abogado = asunto.abogadoResponsable || 'Sin Asignar';
-        abogadoCounts[abogado] = (abogadoCounts[abogado] || 0) + 1;
-    });
-    
-    // Convertir a arrays para Chart.js
-    const labels = Object.keys(abogadoCounts);
-    const values = Object.values(abogadoCounts);
-    
-    // Ordenar por cantidad (mayor a menor)
-    const sortedData = labels.map((label, index) => ({
-        label: label,
-        value: values[index]
-    })).sort((a, b) => b.value - a.value);
-    
-    console.log('📈 Datos de abogados procesados:', sortedData);
-    
-    return {
-        labels: sortedData.map(item => item.label),
-        values: sortedData.map(item => item.value)
-    };
-}
-
-
-/**
- * Inicializa la gráfica de barras "Carga por Abogado".
- */
-function initAbogadoChart() {
-    console.log('📈 Inicializando gráfica de abogados...');
-    
-    const ctx = document.getElementById('abogado-chart');
-    if (!ctx) {
-        console.error('❌ ERROR: Elemento abogado-chart no encontrado');
-        return;
-    }
-    
-    if (typeof Chart === 'undefined') {
-        console.error('❌ ERROR: Chart.js no está disponible');
-        return;
-    }
-    
-    const datosAbogado = obtenerDatosAbogado();
-    
-    try {
-        new Chart(ctx, {
-            type: 'bar', // Gráfica de Barras (más legible para esta data)
-            data: {
-                labels: datosAbogado.labels,
-                datasets: [{
-                    label: 'Asuntos Activos',
-                    data: datosAbogado.values,
-                    backgroundColor: 'rgba(44, 90, 160, 0.8)', // Azul institucional
-                    borderColor: 'rgba(30, 61, 111, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                // indexAxis: 'y', // Descomenta esto si prefieres barras horizontales
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1 // Asegura que la cuenta sea en enteros (1, 2, 3...)
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false // No es necesaria con una sola barra
-                    }
-                }
-            }
-        });
-        
-        console.log('✅ Gráfica de abogados creada exitosamente');
-        
-    } catch (error) {
-        console.error('💥 ERROR al crear la gráfica de abogados:', error);
-    }
-}
-
-// ===============================================
-// ===== ⬆️ FIN DE LAS FUNCIONES NUEVAS ⬆️ =====
-// ===============================================
 
 // Hacer disponible globalmente
 window.initDashboard = initDashboard;

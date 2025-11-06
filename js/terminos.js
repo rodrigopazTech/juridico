@@ -482,9 +482,6 @@ function getSemaforoStatus(fechaVencimiento) {
 // Estado global simple
 let TERMINOS = [];
 
-// ===============================================
-// ===== FUNCIÓN MODIFICADA (loadTerminos) =====
-// ===============================================
 function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     

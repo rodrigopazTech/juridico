@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
+    <!-- Chart.js para gráficas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ESTILO TEMPORAL PARA EL CALENDARIO */
@@ -137,7 +138,28 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-pie"></i> Distribución de Asuntos por Gerencia</h3>
+                        <div class="chart-container">
+                            <canvas id="gerencia-chart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="chart-info">
+                            <h4>Distribución por Gerencia</h4>
+                            <p><small><i class="fas fa-info-circle"></i> Distribución basada en los asuntos registrados por cada gerencia estatal</small></p>
+                            <div class="chart-stats" id="chart-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total de Asuntos:</span>
+                                    <span class="stat-value" id="total-asuntos">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Gerencias Activas:</span>
+                                    <span class="stat-value" id="total-gerencias">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
                 
                 <div class="dashboard-card">
                     <h3><i class="fas fa-calendar-alt"></i> Calendario de Eventos</h3>

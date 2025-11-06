@@ -223,19 +223,17 @@
                         
                         <div class="form-group">
                             <label for="tipo-audiencia">Tipo de Audiencia *</label>
-                            <select id="tipo-audiencia" required>
-                                <option value="">Seleccione un tipo</option>
-                                <option value="Inicial">Inicial</option>
-                                <option value="Intermedia">Intermedia</option>
-                                <option value="Ratificación">Ratificación</option>
-                                <option value="Admisión">Admisión</option>
-                                <option value="Confesional">Confesional</option>
-                                <option value="Reanudacion">Reanudación</option>
-                                <option value="Incidental">Incidental</option>
-                                <option value="Constitucional">Constitucional</option>
-                            </select>
-                        </div>
-
+                            <div style="display:flex; gap:8px; align-items:center;">
+                              <select id="tipo-audiencia" required style="flex:1;">
+                                <!-- Las opciones se inyectan por JS -->
+                              </select>
+                              <button type="button" class="btn btn-info btn-sm" id="manage-tipos-btn" title="Gestionar tipos">
+                                <i class="fas fa-tags"></i>
+                              </button>
+                            </div>
+                            <small>Si no encuentras el tipo, añádelo con “Gestionar tipos”.</small>
+                          </div>
+                          
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="fecha-audiencia">Fecha de Audiencia *</label>
@@ -336,7 +334,40 @@
             </div>
         </div>
     </div>
-
+    <!-- Modal Gestionar Tipos de Audiencia -->
+    <div class="modal" id="modal-tipos-audiencia">
+        <div class="modal-content" style="max-width: 650px;">
+        <div class="modal-header">
+            <h2>Gestionar tipos de audiencia</h2>
+            <button class="btn btn-danger" id="close-modal-tipos"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row" style="grid-template-columns: 1fr auto;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label for="nuevo-tipo-audiencia">Nuevo tipo</label>
+                <input type="text" id="nuevo-tipo-audiencia" placeholder="Ej. Audiencia de conciliación">
+            </div>
+            <div class="form-group" style="margin-bottom:0; align-self:end;">
+                <button class="btn btn-success" id="add-tipo-btn"><i class="fas fa-plus"></i> Agregar</button>
+            </div>
+            </div>
+    
+            <hr style="margin:16px 0;">
+    
+            <h3 style="margin:0 0 10px 0;">Lista de tipos</h3>
+            <ul id="lista-tipos-audiencia" style="list-style:none; padding-left:0; margin:0;">
+            <!-- Se llena por JS -->
+            </ul>
+            <small style="color:#666; display:block; margin-top:10px;">
+            </small>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="cancel-tipos">Cerrar</button>
+            <button class="btn btn-success" id="save-tipos">Guardar cambios</button>
+        </div>
+        </div>
+    </div>
+    
     <!-- Modal Finalizar Audiencia -->
     <div class="modal" id="modal-finalizar-audiencia">
         <div class="modal-content" style="max-width: 600px;">
@@ -367,17 +398,52 @@
         </div>
     </div>
 
+    <!-- Modal Historial de Cambios (Demostrativo) -->
+<div class="modal" id="modal-historial-cambios">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h2>Historial de cambios</h2>
+        <button class="btn btn-danger" id="close-modal-historial">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Audiencia</label>
+          <input type="text" class="readonly-field" readonly value="(Demo) ID seleccionado">
+        </div>
+        <hr>
+        <ul style="list-style:none; padding-left:0; margin:0;">
+          <li style="padding:8px 0; border-bottom:1px solid #eee;">
+            <strong>Pedrito Sola</strong> cambió <em>Hora</em> de <code>10:00</code> a <code>11:30</code> — <small>2025-11-03 14:22</small>
+          </li>
+          <li style="padding:8px 0; border-bottom:1px solid #eee;">
+            <strong>Lic. Carlos H. López</strong> adjuntó <em>Acta de audiencia</em> — <small>2025-11-02 09:10</small>
+          </li>
+          <li style="padding:8px 0;">
+            <strong>Admin</strong> creó la audiencia — <small>2025-11-01 16:05</small>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="cancel-historial">Cerrar</button>
+      </div>
+    </div>
+  </div>
+  
+
     <!-- Scripts -->
     <script src="js/notificaciones.js"></script>
     <script src="js/audiencias.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initAudiencias === 'function') {
-                initAudiencias();
-            }
-            initModalAudiencias();
-            initModalComentarios();
-            initModalFinalizarAudiencia();
+        if (typeof initAudiencias === 'function') {
+            initAudiencias();
+        }
+        initModalAudiencias();
+        initModalComentarios();
+        initModalFinalizarAudiencia();
+        initModalHistorialCambios();  // <-- agregar
         });
 
         function initModalAudiencias() {
@@ -506,7 +572,30 @@
             document.getElementById('observaciones-finales').value = '';
             modal.style.display = 'flex';
         }
+        function openHistorialCambiosModal(audienciaId) {
+        const modal = document.getElementById('modal-historial-cambios');
+        // Actualiza el campo de solo lectura para mostrar el ID seleccionado (solo demo)
+        const input = modal.querySelector('.readonly-field');
+        if (input) input.value = `Audiencia ${audienciaId}`;
+        modal.style.display = 'flex';
+        }
 
+        function initModalHistorialCambios() {
+        const modal = document.getElementById('modal-historial-cambios');
+        const btnClose = document.getElementById('close-modal-historial');
+        const btnCancel = document.getElementById('cancel-historial');
+
+        if (btnClose) {
+            btnClose.addEventListener('click', () => modal.style.display = 'none');
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener('click', () => modal.style.display = 'none');
+        }
+        // Cerrar al hacer clic fuera
+        window.addEventListener('click', function (e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        }
         function openAudienciaModal(audiencia = null) {
             const modal = document.getElementById('modal-audiencia');
             const title = document.getElementById('modal-audiencia-title');
@@ -534,6 +623,185 @@
             
             modal.style.display = 'flex';
         }
+
+                const DEFAULT_TIPOS_AUDIENCIA = [
+        'Inicial','Intermedia','Ratificación','Admisión',
+        'Confesional','Reanudación','Incidental','Constitucional'
+        ];
+
+        function getTiposAudiencia() {
+        try {
+            const raw = localStorage.getItem('tiposAudiencia');
+            if (raw) {
+            const arr = JSON.parse(raw);
+            // Limpieza básica
+            return Array.from(new Set(arr.filter(Boolean))).sort(caseInsensitiveSort);
+            }
+        } catch (e) {}
+        // Si no hay en storage, guardamos defaults y devolvemos copia
+        setTiposAudiencia(DEFAULT_TIPOS_AUDIENCIA);
+        return [...DEFAULT_TIPOS_AUDIENCIA].sort(caseInsensitiveSort);
+        }
+
+        function setTiposAudiencia(arr) {
+        const clean = Array.from(new Set((arr || []).map(s => (s || '').trim()).filter(Boolean)));
+        localStorage.setItem('tiposAudiencia', JSON.stringify(clean));
+        }
+
+        function caseInsensitiveSort(a, b) {
+        return a.localeCompare(b, 'es', { sensitivity: 'base' });
+        }
+
+        // Inyecta los tipos en el select del formulario y en el filtro
+        function renderTipoOptions() {
+        const tipos = getTiposAudiencia();
+
+        // Formulario
+        const selForm = document.getElementById('tipo-audiencia');
+        if (selForm) {
+            selForm.innerHTML = '<option value="">Seleccione un tipo</option>' +
+            tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
+        }
+
+        // Filtro
+        const selFiltro = document.getElementById('filter-tipo');
+        if (selFiltro) {
+            const current = selFiltro.value; // intenta conservar selección
+            selFiltro.innerHTML = '<option value="">Todos los tipos</option>' +
+            tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
+            // restaurar selección si aplica
+            if ([...selFiltro.options].some(o => o.value === current)) selFiltro.value = current;
+        }
+        }
+
+        // Modal gestión
+        function initGestionTiposAudiencia() {
+        const modal = document.getElementById('modal-tipos-audiencia');
+        const btnOpen = document.getElementById('manage-tipos-btn');
+        const btnClose = document.getElementById('close-modal-tipos');
+        const btnCancel = document.getElementById('cancel-tipos');
+        const btnSave = document.getElementById('save-tipos');
+        const btnAdd = document.getElementById('add-tipo-btn');
+        const inputNuevo = document.getElementById('nuevo-tipo-audiencia');
+        const ul = document.getElementById('lista-tipos-audiencia');
+
+        let workingList = getTiposAudiencia();
+
+        function open() {
+            workingList = getTiposAudiencia();
+            renderList();
+            modal.style.display = 'flex';
+            inputNuevo.value = '';
+            inputNuevo.focus();
+        }
+
+        function close() {
+            modal.style.display = 'none';
+        }
+
+        function renderList() {
+            if (!ul) return;
+            if (!workingList.length) {
+            ul.innerHTML = `<li style="color:#666;">Sin tipos registrados.</li>`;
+            return;
+            }
+            ul.innerHTML = workingList.map((t, idx) => `
+            <li style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #eee;">
+                <span style="flex:1;" data-idx="${idx}" class="tipo-text">${escapeHTML(t)}</span>
+                <button class="btn btn-info btn-sm edit-tipo" data-idx="${idx}" title="Editar"><i class="fas fa-pen"></i></button>
+                <button class="btn btn-danger btn-sm del-tipo" data-idx="${idx}" title="Eliminar"><i class="fas fa-trash"></i></button>
+            </li>
+            `).join('');
+
+            // Wire up acciones
+            ul.querySelectorAll('.edit-tipo').forEach(b => {
+            b.addEventListener('click', () => {
+                const i = parseInt(b.getAttribute('data-idx'), 10);
+                const actual = workingList[i] || '';
+                const nuevo = prompt('Editar tipo de audiencia:', actual);
+                if (nuevo === null) return; // cancelado
+                const normalized = (nuevo || '').trim();
+                if (!normalized) return alert('El tipo no puede estar vacío.');
+                if (existsIgnoringCase(workingList, normalized, i)) {
+                return alert('Ya existe un tipo con ese nombre.');
+                }
+                workingList[i] = normalized;
+                workingList.sort(caseInsensitiveSort);
+                renderList();
+            });
+            });
+
+            ul.querySelectorAll('.del-tipo').forEach(b => {
+            b.addEventListener('click', () => {
+                const i = parseInt(b.getAttribute('data-idx'), 10);
+                const nombre = workingList[i];
+                if (!confirm(`¿Eliminar el tipo "${nombre}"?`)) return;
+                workingList.splice(i, 1);
+                renderList();
+            });
+            });
+        }
+
+        function existsIgnoringCase(arr, value, ignoreIndex = -1) {
+            return arr.some((x, idx) => idx !== ignoreIndex && x.localeCompare(value, 'es', { sensitivity: 'base' }) === 0);
+        }
+
+        // Abrir / cerrar
+        if (btnOpen) btnOpen.addEventListener('click', open);
+        if (btnClose) btnClose.addEventListener('click', close);
+        if (btnCancel) btnCancel.addEventListener('click', close);
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) close();
+        });
+
+        // Agregar nuevo
+        if (btnAdd) btnAdd.addEventListener('click', () => {
+            const val = (inputNuevo.value || '').trim();
+            if (!val) return alert('Escribe un nombre para el nuevo tipo.');
+            if (existsIgnoringCase(workingList, val)) return alert('Ese tipo ya existe.');
+            workingList.push(val);
+            workingList.sort(caseInsensitiveSort);
+            inputNuevo.value = '';
+            renderList();
+        });
+
+        // Guardar cambios
+        if (btnSave) btnSave.addEventListener('click', () => {
+            setTiposAudiencia(workingList);
+            renderTipoOptions(); // refresca selects
+            close();
+        });
+        }
+
+        // Asegura que los selects se pueblen al cargar
+        document.addEventListener('DOMContentLoaded', function () {
+        try {
+            // Si no existe la lista en localStorage, se crea
+            if (!localStorage.getItem('tiposAudiencia')) {
+            setTiposAudiencia(DEFAULT_TIPOS_AUDIENCIA);
+            }
+            renderTipoOptions();
+            initGestionTiposAudiencia();
+        } catch (e) {
+            console.warn('No se pudieron inicializar los tipos de audiencia:', e);
+        }
+        });
+
+        // Valida antes de guardar audiencia que el tipo exista (por si el usuario manipuló el DOM)
+        (function patchGuardarAudienciaParaValidarTipo() {
+        if (typeof guardarAudiencia !== 'function') return; // si no existe, no parchamos
+        const _orig = guardarAudiencia;
+        window.guardarAudiencia = function() {
+            const tipo = (document.getElementById('tipo-audiencia')?.value || '').trim();
+            const tipos = getTiposAudiencia();
+            const existe = tipos.some(t => t.localeCompare(tipo, 'es', { sensitivity: 'base' }) === 0);
+            if (!existe) {
+            alert('El tipo seleccionado no es válido. Por favor, elige uno de la lista o crea uno nuevo en “Gestionar tipos”.');
+            return;
+            }
+            _orig(); // ejecutar flujo original
+        }
+        })();
 
         
     </script>

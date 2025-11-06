@@ -6,14 +6,11 @@
     <title>Audiencias - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Librería XLSX para exportar a Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- Sidebar de navegación -->
     <div id="sidebar-container"></div>
     
-    <!-- Contenido principal -->
     <div class="main-content">
         <div class="container">
             <header>
@@ -25,7 +22,6 @@
                 </div>
             </header>
             
-            <!-- Tabla de Audiencias -->
             <div class="tab-content active" id="audiencias">
                 <div class="toolbar">
                     <div class="search-box">
@@ -42,7 +38,6 @@
                     </div>
                 </div>
                 
-                <!-- Filtros para audiencias -->
                 <div class="filters">
                     <div class="filters-title">
                         <i class="fas fa-filter"></i> Filtros de Audiencias
@@ -71,8 +66,7 @@
                                        placeholder="Buscar estado..."
                                        autocomplete="off">
                                 <div class="gerencia-suggestions" id="gerencia-suggestions">
-                                    <!-- Las sugerencias aparecerán aquí -->
-                                </div>
+                                    </div>
                                 <button type="button" class="btn-clear-gerencia" id="clear-gerencia" title="Limpiar filtro">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -121,15 +115,13 @@
                             </tr>
                         </thead>    
                     <tbody id="audiencias-body">
-                            <!-- Los datos se cargarán dinámicamente -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Modal para Audiencias -->
     <div class="modal" id="modal-audiencia">
         <div class="modal-content">
             <div class="modal-header">
@@ -142,7 +134,6 @@
                 <form id="form-audiencia">
                     <input type="hidden" id="audiencia-id">
 
-                    <!-- Selector de Asunto -->
                     <div class="form-group">
                         <label for="asunto-selector-audiencia">Asunto *</label>
                         <select id="asunto-selector-audiencia" required>
@@ -150,7 +141,6 @@
                         </select>
                     </div>
 
-                    <!-- Datos Auto-llenados del Asunto -->
                     <fieldset class="auto-filled-section">
                         <legend>Datos del Asunto (Auto-llenados)</legend>
                         
@@ -193,7 +183,6 @@
                         </div>
                     </fieldset>
 
-                    <!-- Datos Específicos de la Audiencia -->
                     <fieldset class="user-input-section">
                         <legend>Datos Específicos de la Audiencia</legend>
                         
@@ -285,7 +274,6 @@
         </div>
     </div>
 
-    <!-- Modal Comentarios -->
     <div class="modal" id="modal-comentarios">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
@@ -309,13 +297,11 @@
                 <div>
                     <h3 style="margin-top: 0;">Historial</h3>
                     <ul id="lista-comentarios" class="comment-list" style="list-style: none; padding-left: 0; margin: 0;">
-                        <!-- Se llena dinámicamente -->
-                    </ul>
+                        </ul>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Modal Gestionar Tipos de Audiencia -->
     <div class="modal" id="modal-tipos-audiencia">
         <div class="modal-content" style="max-width: 650px;">
         <div class="modal-header">
@@ -337,10 +323,9 @@
     
             <h3 style="margin:0 0 10px 0;">Lista de tipos</h3>
             <ul id="lista-tipos-audiencia" style="list-style:none; padding-left:0; margin:0;">
-            <!-- Se llena por JS -->
             </ul>
             <small style="color:#666; display:block; margin-top:10px;">
-            </small>
+            </Dsmall>
         </div>
         <div class="modal-footer">
             <button class="btn btn-danger" id="cancel-tipos">Cerrar</button>
@@ -349,7 +334,6 @@
         </div>
     </div>
     
-    <!-- Modal Finalizar Audiencia -->
     <div class="modal" id="modal-finalizar-audiencia">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -379,8 +363,7 @@
         </div>
     </div>
 
-    <!-- Modal Historial de Cambios (Demostrativo) -->
-<div class="modal" id="modal-historial-cambios">
+    <div class="modal" id="modal-historial-cambios">
     <div class="modal-content" style="max-width: 700px;">
       <div class="modal-header">
         <h2>Historial de cambios</h2>
@@ -413,7 +396,6 @@
   </div>
   
 
-    <!-- Scripts -->
     <script src="js/notificaciones.js"></script>
     <script src="js/excel-export.js"></script>
     <script src="js/audiencias.js"></script>
@@ -530,13 +512,19 @@
                     modalFinalizar.style.display = 'none';
                     document.getElementById('observaciones-finales').value = '';
                     
-                    // Aquí se podría actualizar el estado de la audiencia en la tabla
-                    // y desmarcar el checkbox
-                    const checkbox = document.querySelector(`.delete-audiencia[data-id="${audienciaId}"]`);
-                    if (checkbox) {
-                        checkbox.checked = false;
+                    
+                    // Ocultar la fila de la tabla
+                    const boton = document.querySelector(`.finalizar-audiencia[data-id="${audienciaId}"]`);
+                    if (boton) {
+                        // 1. Encontrar la fila principal (TR)
+                        const fila = boton.closest('tr');
+                        // 2. Encontrar la fila expandible (la que sigue)
+                        const filaExpandible = fila.nextElementSibling;
+
+                        if (fila) fila.style.display = 'none';
+                        if (filaExpandible) filaExpandible.style.display = 'none';
                     }
-                });
+                    });
             }
 
             // Cerrar modal al hacer clic fuera
@@ -824,7 +812,6 @@
         
     </script>
     
-    <!-- Cargar componentes -->
     <script src="js/components.js"></script>
     <script>
         // Configurar página actual para el sidebar

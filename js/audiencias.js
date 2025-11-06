@@ -368,8 +368,11 @@ function loadAudiencias() {
             <button class="btn btn-presentado btn-sm comment-audiencia" data-id="${audiencia.id}" title="Agregar comentario">
               <i class="fas fa-comment-dots"></i>
             </button>
-            <input type="checkbox" class="delete-audiencia" data-id="${audiencia.id}" title="Finalizar audiencia"> Desahogado
-        </td>
+            
+            <button class="btn btn-success btn-sm finalizar-audiencia" data-id="${audiencia.id}" title="Finalizar audiencia">
+                <i class="fas fa-check"></i> Desahogar
+            </button>
+            </td>
       </tr>
       <tr class="expandable-row" id="expand-audiencia-${audiencia.id}">
         <td colspan="7">
@@ -458,16 +461,16 @@ function setupActionButtons() {
     });
   });
 
-  // Finalizar audiencia (checkbox)
-  document.querySelectorAll('.delete-audiencia').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-      if (this.checked) {
-        const id = this.getAttribute('data-id');
-        // Abrir modal para finalizar audiencia
-        openFinalizarAudienciaModal(id);
-      }
+  // ===== INICIO DEL CAMBIO 2 ===== -->
+  // Finalizar audiencia (botón)
+  document.querySelectorAll('.finalizar-audiencia').forEach(button => {
+    button.addEventListener('click', function() {
+      const id = this.getAttribute('data-id');
+      // Abrir modal para finalizar audiencia
+      openFinalizarAudienciaModal(id);
     });
   });
+  // ===== FIN DEL CAMBIO 2 ===== -->
 }
 
 
@@ -983,5 +986,3 @@ function escapeHTML(str) {
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[m]));
 }
-
-

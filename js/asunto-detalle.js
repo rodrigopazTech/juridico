@@ -120,9 +120,6 @@ class AsuntoDetalleManager {
                 <div class="timeline-caso">
                     <div class="timeline-header">
                         <h3>Línea de Tiempo del Caso</h3>
-                        <button class="btn btn-sm btn-primary" id="btn-agregar-evento">
-                            <i class="fas fa-plus"></i> Agregar Evento
-                        </button>
                     </div>
                     <div class="timeline">
                         ${this.asunto.timeline && this.asunto.timeline.length > 0 ? 

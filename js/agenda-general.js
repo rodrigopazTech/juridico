@@ -163,7 +163,127 @@ class AgendaGeneralManager {
                     atendida: true,
                     fechaDesahogo: '2025-08-29'
                 }
+                ,
+                // Ejemplos adicionales
+                {
+                    id: 11,
+                    fechaAudiencia: '2025-11-06',
+                    horaAudiencia: '09:00',
+                    expediente: '4012/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'García Pérez Laura vs. Servicios Integrales del Norte S.A.',
+                    abogado: 'Lic. José Arturo Méndez',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-06'
+                },
+                {
+                    id: 12,
+                    fechaAudiencia: '2025-11-07',
+                    horaAudiencia: '13:30',
+                    expediente: '4020/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Ramírez López Ana vs. Comercial del Sur S.A.',
+                    abogado: 'Lic. Patricia Ortega',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-07'
+                },
+                {
+                    id: 13,
+                    fechaAudiencia: '2025-11-08',
+                    horaAudiencia: '15:00',
+                    expediente: '4033/2025',
+                    tipoAudiencia: 'Testimonial',
+                    partes: 'Sánchez Ruiz Pedro vs. Logística Caribe S.C.',
+                    abogado: 'Lic. Mariana Castillo',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-08'
+                },
+                {
+                    id: 14,
+                    fechaAudiencia: '2025-11-09',
+                    horaAudiencia: '10:45',
+                    expediente: '4047/2025',
+                    tipoAudiencia: 'Desahogo de Pruebas',
+                    partes: 'López Mendoza Carla vs. Servicios Financieros del Golfo S.A.',
+                    abogado: 'Lic. Enrique Martínez',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-09'
+                },
+                {
+                    id: 15,
+                    fechaAudiencia: '2025-11-10',
+                    horaAudiencia: '08:30',
+                    expediente: '4055/2025',
+                    tipoAudiencia: 'Alegatos',
+                    partes: 'Vega Cruz Susana vs. Industrias del Sureste S.A.',
+                    abogado: 'Lic. Raúl Hernández',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-10'
+                }
+                ,
+                // Cinco ejemplos nuevos añadidos bajo pedido
+                {
+                    id: 16,
+                    fechaAudiencia: '2025-11-11',
+                    horaAudiencia: '09:15',
+                    expediente: '4101/2025',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Martínez Gómez Laura vs. Servicios Portuarios S.A.',
+                    abogado: 'Lic. Sofía Ramírez',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-11'
+                },
+                {
+                    id: 17,
+                    fechaAudiencia: '2025-11-12',
+                    horaAudiencia: '11:00',
+                    expediente: '4112/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Pérez Díaz Carlos vs. Telecomunicaciones del Norte S.C.',
+                    abogado: 'Lic. Andrés Molina',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-12'
+                },
+                {
+                    id: 18,
+                    fechaAudiencia: '2025-11-13',
+                    horaAudiencia: '14:30',
+                    expediente: '4120/2025',
+                    tipoAudiencia: 'Testimonial',
+                    partes: 'Ruiz Ortega Ana vs. Constructora del Sur S.A.',
+                    abogado: 'Lic. Jorge Castillo',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-13'
+                },
+                {
+                    id: 19,
+                    fechaAudiencia: '2025-11-14',
+                    horaAudiencia: '16:00',
+                    expediente: '4135/2025',
+                    tipoAudiencia: 'Desahogo de Pruebas',
+                    partes: 'Hernández Cruz María vs. Servicios Financieros del Golfo S.A.',
+                    abogado: 'Lic. Daniela Torres',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-14'
+                },
+                {
+                    id: 20,
+                    fechaAudiencia: '2025-11-15',
+                    horaAudiencia: '08:00',
+                    expediente: '4140/2025',
+                    tipoAudiencia: 'Alegatos',
+                    partes: 'Gómez López Roberto vs. Industrias Peninsulares S.A.',
+                    abogado: 'Lic. Carla Medina',
+                    atendida: true,
+                    fechaDesahogo: '2025-11-15'
+                }
             ];
+            // Persistir ejemplos en localStorage para facilitar pruebas
+            try {
+                localStorage.setItem('audiencias', JSON.stringify(this.audienciasDesahogadas));
+            } catch (e) {
+                // ignorar errores de almacenamiento
+            }
         }
 
         // Cargar términos presentados (etapaRevision = 'Presentado')
@@ -479,7 +599,7 @@ class AgendaGeneralManager {
         if (audienciasFiltradas.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center" style="padding: 40px; color: #6c757d;">
+                    <td colspan="6" class="text-center" style="padding: 40px; color: #6c757d;">
                         <i class="fas fa-calendar-times fa-3x mb-3"></i>
                         <div>No hay audiencias desahogadas ${this.getPeriodoTexto()}</div>
                     </td>
@@ -500,21 +620,7 @@ class AgendaGeneralManager {
                     </td>
                     <td>${audiencia.partes}</td>
                     <td>${audiencia.abogado}</td>
-                    <td>
-                        ${audiencia.actaDocumento ? 
-                            `<a href="#" class="btn btn-sm btn-success">
-                                <i class="fas fa-download"></i> ${audiencia.actaDocumento}
-                            </a>` : 
-                            '<span class="text-muted">Sin acta</span>'}
-                    </td>
-                    <td class="actions">
-                        <button class="btn btn-primary btn-sm" onclick="verDetalleAudiencia(${audiencia.id})" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editarAudiencia(${audiencia.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
+                    
                 </tr>
             `;
         });
@@ -531,7 +637,7 @@ class AgendaGeneralManager {
         if (terminosFiltrados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center" style="padding: 40px; color: #6c757d;">
+                    <td colspan="6" class="text-center" style="padding: 40px; color: #6c757d;">
                         <i class="fas fa-clock fa-3x mb-3"></i>
                         <div>No hay términos presentados ${this.getPeriodoTexto()}</div>
                     </td>
@@ -550,21 +656,7 @@ class AgendaGeneralManager {
                     <td>${termino.actuacion}</td>
                     <td>${termino.partes}</td>
                     <td>${termino.abogado}</td>
-                    <td>
-                        ${termino.acuseDocumento ? 
-                            `<a href="#" class="btn btn-sm btn-success">
-                                <i class="fas fa-download"></i> ${termino.acuseDocumento}
-                            </a>` : 
-                            '<span class="text-muted">Sin acuse</span>'}
-                    </td>
-                    <td class="actions">
-                        <button class="btn btn-primary btn-sm" onclick="verDetalleTermino(${termino.id})" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editarTermino(${termino.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
+                    
                 </tr>
             `;
         });
@@ -600,6 +692,76 @@ class AgendaGeneralManager {
     formatDate(dateString) {
         const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
         return new Date(dateString).toLocaleDateString('es-ES', options);
+    }
+
+    // Inicializar listeners globales adicionales
+    inicializarEventos() {
+        // Si existe el botón de restablecer, vincularlo
+        try {
+            const btnReset = document.getElementById('btn-reset-audiencias');
+            if (btnReset) {
+                btnReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    try { localStorage.removeItem('audiencias'); } catch (_) {}
+                    window.location.reload();
+                });
+            }
+            // Conectar búsqueda rápida
+            const inputSearch = document.getElementById('search-agenda');
+            if (inputSearch) {
+                inputSearch.addEventListener('input', (ev) => {
+                    const q = ev.target.value.trim();
+                    if (q === '') {
+                        // restaurar vista filtrada por periodo
+                        this.actualizarVista();
+                    } else {
+                        this.buscarEnAgenda(q);
+                    }
+                });
+            }
+        } catch (e) {
+            // no bloquear la inicialización por errores en el DOM
+            console.warn('Inicializar eventos: ', e);
+        }
+    }
+
+    // Buscar en audienciasDesahogadas por expediente, partes o abogado
+    buscarEnAgenda(query) {
+        const q = query.toLowerCase();
+        const resultados = this.audienciasDesahogadas.filter(a => {
+            return (a.expediente && a.expediente.toLowerCase().includes(q));
+        });
+
+        const tbody = document.getElementById('audiencias-desahogadas-body');
+        if (!tbody) return;
+
+        if (resultados.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center" style="padding: 40px; color: #6c757d;">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <div>No se encontraron resultados para "${query}"</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let html = '';
+        resultados.forEach(audiencia => {
+            html += `
+                <tr>
+                    <td>${this.formatDate(audiencia.fechaAudiencia)}</td>
+                    <td>${audiencia.horaAudiencia}</td>
+                    <td><strong>${audiencia.expediente}</strong></td>
+                    <td><span class="badge badge-primary">${audiencia.tipoAudiencia}</span></td>
+                    <td>${audiencia.partes}</td>
+                    <td>${audiencia.abogado}</td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
     }
 }
 

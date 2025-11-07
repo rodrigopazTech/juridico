@@ -13,74 +13,106 @@
     return max + 1;
   }
 
+  /* ---------- Helpers ---------- */
+  function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  }
+  function escapeHtml(s) {
+    return (s ?? '').toString()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+  function slugify(txt) {
+    return (txt || '')
+      .toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
   /* ---------- Render: agrega UNA tarjeta sin tocar las existentes ---------- */
-  function addCardToGrid(asunto) {
+  function addCardToGrid(asuntoRaw) {
     const grid = document.getElementById('asuntos-grid') || document.querySelector('.asuntos-grid');
     if (!grid) return;
 
-    const prioridadClass = (asunto.prioridad || 'Media').toLowerCase();
-    
+    // Normalización de campos
+    const asunto = {
+      id: asuntoRaw.id,
+      expediente: asuntoRaw.expediente || '',
+      estado: asuntoRaw.estado || 'Activo',
+      prioridad: asuntoRaw.prioridadAsunto || asuntoRaw.prioridad || 'Media',
+      materia: asuntoRaw.materia || '',
+
+      // Gerencia (corporativa) y Sede (estado)
+      gerencia: asuntoRaw.gerencia || asuntoRaw.gerenciaCorporativa || '',
+      sede: asuntoRaw.sede || asuntoRaw.gerenciaEstatal || '',
+
+      abogado: asuntoRaw.abogadoResponsable || asuntoRaw.abogado || 'Sin asignar',
+      partes: asuntoRaw.partesProcesales || asuntoRaw.partes || (
+        (asuntoRaw.nombre ? asuntoRaw.nombre : '') +
+        (asuntoRaw.demandado ? ` vs ${asuntoRaw.demandado}` : '')
+      ).trim() || 'N/D',
+      fechaCreacion: asuntoRaw.fechaCreacion || '',
+      organoJurisdiccional: asuntoRaw.organoJurisdiccional || '',
+      tipoAsunto: asuntoRaw.tipoAsunto || '',
+      descripcion: asuntoRaw.descripcion || ''
+    };
+
+    const prioridadClass = asunto.prioridad.toLowerCase();
+    const gerenciaSlug = slugify(asunto.gerencia);
+
     const cardHtml = `
-      <div class="asunto-card ${prioridadClass}" data-id="${asunto.id}">
+      <div class="asunto-card ${prioridadClass} gerencia-${gerenciaSlug}"
+           data-id="${escapeHtml(asunto.id)}"
+           data-expediente="${escapeHtml(asunto.expediente)}"
+           data-estado="${escapeHtml(asunto.estado)}"
+           data-prioridad="${escapeHtml(asunto.prioridad)}"
+           data-materia="${escapeHtml(asunto.materia)}"
+           data-gerencia="${escapeHtml(asunto.gerencia)}"
+           data-abogado="${escapeHtml(asunto.abogado)}"
+           data-partes="${escapeHtml(asunto.partes)}"
+           data-fecha-creacion="${escapeHtml(asunto.fechaCreacion)}"
+           data-organo="${escapeHtml(asunto.organoJurisdiccional)}"
+           data-tipo-asunto="${escapeHtml(asunto.tipoAsunto)}"
+           data-sede="${escapeHtml(asunto.sede)}">
+        
         <div class="priority-indicator ${prioridadClass}"></div>
         
         <div class="asunto-header">
-          <h3>${escapeHtml(asunto.expediente)} · ${escapeHtml(asunto.materia)}</h3>
+          <h3>${escapeHtml(asunto.expediente)}</h3>
           <div class="asunto-badges">
-            <span class="badge badge-${(asunto.estado || 'Activo').toLowerCase().replace(' ', '-')}">${escapeHtml(asunto.estado || 'Activo')}</span>
-            <span class="badge badge-${prioridadClass}">${escapeHtml(asunto.prioridad || 'Media')}</span>
+            <span class="badge badge-${asunto.estado.toLowerCase().replace(/\s+/g, '-')}">${escapeHtml(asunto.estado)}</span>
+            <span class="badge badge-${prioridadClass}">${escapeHtml(asunto.prioridad)}</span>
+          
           </div>
         </div>
         
         <div class="asunto-body">
-          <p><strong>Actor/Cliente:</strong> ${escapeHtml(asunto.nombre)}</p>
-          <p><strong>Demandado:</strong> ${escapeHtml(asunto.demandado || 'N/D')}</p>
-          <p><strong>Abogado:</strong> ${escapeHtml(asunto.abogado || 'Sin asignar')}</p>
+          <p><strong>Gerencia:</strong> ${escapeHtml(asunto.gerencia || 'N/D')}</p>
+          <p><strong>Abogado Responsable:</strong> ${escapeHtml(asunto.abogado)}</p>
+          <p><strong>Partes procesales:</strong> ${escapeHtml(asunto.partes)}</p>
         </div>
-        
-        <div class="asunto-stats">
-          <span><i class="fas fa-file"></i> ${asunto.stats?.documentos || 0} Documentos</span>
-          <span><i class="fas fa-gavel"></i> ${asunto.stats?.audiencias || 0} Audiencias</span>
-          <span><i class="fas fa-clock"></i> ${asunto.stats?.terminos || 0} Términos</span>
-          <span><i class="fas fa-calendar"></i> ${asunto.stats?.dias || 0} Días activo</span>
-        </div>
-        
+                
         <div class="asunto-meta">
           <small><i class="fas fa-calendar-plus"></i> Creado: ${formatDate(asunto.fechaCreacion)}</small>
-          <small><i class="fas fa-clock"></i> Última: ${formatDate(asunto.ultimaActividad)}</small>
+          <small><i class="fas fa-clock"></i> Materia: ${escapeHtml(asunto.materia)}</small>
         </div>
         
         <div class="asunto-actions">
-          <button class="btn btn-outline-primary btn-ver-detalle" data-id="${asunto.id}">
+          <button class="btn btn-outline-primary btn-ver-detalle" data-id="${escapeHtml(asunto.id)}">
             <i class="fas fa-eye"></i> Ver detalle
-          </button>
-          <button class="btn btn-outline-secondary btn-sm" title="Vista 360">
-            <i class="fas fa-chart-pie"></i>
           </button>
         </div>
       </div>
     `;
     grid.insertAdjacentHTML('afterbegin', cardHtml);
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return 'N/A';
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
-      });
-    } catch {
-      return dateStr;
-    }
-  }
-
-  function escapeHtml(s) {
-    return (s ?? '').toString()
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
   /* ---------- Modal: abrir / guardar ---------- */
@@ -94,7 +126,6 @@
     if (prio) prio.value = 'Media';
 
     modal.style.display = 'flex';
-
     const cerrar = () => (modal.style.display = 'none');
 
     const btnCerrar = document.getElementById('cerrar-modal-nuevo-asunto');
@@ -119,7 +150,11 @@
   function guardarNuevoAsunto() {
     const expediente = (document.getElementById('na-expediente')?.value || '').trim();
     const materia   = (document.getElementById('na-materia')?.value || '').trim();
-    const gerencia  = (document.getElementById('na-gerencia')?.value || '').trim();
+
+    // Gerencia corporativa (oficial) y sede (estado)
+    const gerenciaCorporativa = (document.getElementById('na-gerencia-corporativa')?.value || '').trim();
+    const sede      = (document.getElementById('na-gerencia')?.value || '').trim();
+
     const abogado   = (document.getElementById('na-abogado')?.value || '').trim();
     const partes    = (document.getElementById('na-partes')?.value || '').trim();
     const tipoAsunto = (document.getElementById('na-tipo-asunto')?.value || '').trim();
@@ -129,12 +164,10 @@
     const solicitud = (document.getElementById('na-solicitud')?.value || '').trim();
     const solicitante = (document.getElementById('na-solicitante')?.value || '').trim();
 
-    if (!expediente || !materia || !gerencia || !abogado || !partes || !tipoAsunto || !organoJurisdiccional || !prioridad) {
+    if (!expediente || !materia || !gerenciaCorporativa || !sede || !abogado || !partes || !tipoAsunto || !organoJurisdiccional || !prioridad) {
       alert('Por favor completa todos los campos obligatorios.');
       return;
     }
-    
-    // Validar campos específicos de Transparencia
     if (materia === 'Transparencia' && (!solicitud || !solicitante)) {
       alert('Los campos Solicitud y Solicitante son obligatorios para Unidad de Transparencia.');
       return;
@@ -146,7 +179,8 @@
       id,
       expediente,
       materia,
-      gerencia,
+      gerencia: gerenciaCorporativa, // guardamos la corporativa
+      sede,                          // guardamos la sede/estado
       abogadoResponsable: abogado,
       partesProcesales: partes,
       tipoAsunto,
@@ -161,15 +195,12 @@
       ultimaActividad: hoyISO
     };
 
-    // Persistir
     const lista = getAsuntos();
     lista.unshift(nuevoAsunto);
     setAsuntos(lista);
 
-    // Pintar SOLO la nueva card, sin tocar tus ejemplos
     addCardToGrid(nuevoAsunto);
 
-    // Cerrar modal
     const modal = document.getElementById('modal-nuevo-asunto');
     if (modal) modal.style.display = 'none';
   }
@@ -197,7 +228,7 @@
     }
   }
 
-  /* ---------- Delegación: botón "Ver detalle" en TODAS las cards (demo + nuevas) ---------- */
+  /* ---------- Delegación: "Ver detalle" en TODAS las cards ---------- */
   function wireDelegationVerDetalle() {
     const grid = document.getElementById('asuntos-grid') || document.querySelector('.asuntos-grid') || document;
     grid.addEventListener('click', function (e) {
@@ -217,23 +248,22 @@
     if (!grid) return;
 
     const asuntos = getAsuntos();
-    
-    // Si no hay asuntos en localStorage, crear algunos de ejemplo
+
+    // Si no hay asuntos en localStorage, crear algunos de ejemplo (usando TUS 3 gerencias)
     if (asuntos.length === 0) {
       const ejemplosAsuntos = [
         {
           id: 1,
           expediente: '2375/2025',
           materia: 'Laboral',
-          gerencia: 'Ciudad de México',
+          gerencia: 'Gerencia Laboral y Penal',
+          sede: 'Ciudad de México',
           abogadoResponsable: 'Lic. María González Ruiz',
           partesProcesales: 'Juan Carlos Ortega Ibarra vs. Empresa Constructora S.A. de C.V.',
           tipoAsunto: 'Reinstalación y pago de salarios vencidos',
           organoJurisdiccional: 'Junta Local de Conciliación y Arbitraje',
           prioridadAsunto: 'Alta',
           descripcion: 'Demanda laboral por despido injustificado y prestaciones',
-          solicitud: '',
-          solicitante: '',
           estado: 'Activo',
           fechaCreacion: '2025-10-15',
           stats: { documentos: 3, audiencias: 2, terminos: 1, dias: 17 },
@@ -243,15 +273,14 @@
           id: 2,
           expediente: '1595/2025',
           materia: 'Penal',
-          gerencia: 'Yucatán',
+          gerencia: 'Gerencia Laboral y Penal',
+          sede: 'Yucatán',
           abogadoResponsable: 'Lic. Ana Patricia Morales',
           partesProcesales: 'Roberto Sosa Uc vs. Comercializadora del Sureste S.A.',
           tipoAsunto: 'Procedimiento penal por fraude',
           organoJurisdiccional: 'Juzgado Segundo Penal',
           prioridadAsunto: 'Media',
           descripcion: 'Proceso penal por fraude comercial',
-          solicitud: '',
-          solicitante: '',
           estado: 'Activo',
           fechaCreacion: '2025-10-20',
           stats: { documentos: 5, audiencias: 1, terminos: 2, dias: 12 },
@@ -261,15 +290,14 @@
           id: 3,
           expediente: '2156/2025',
           materia: 'Civil',
-          gerencia: 'Jalisco',
+          gerencia: 'Gerencia de Civil Mercantil, Fiscal y Administrativo',
+          sede: 'Jalisco',
           abogadoResponsable: 'Lic. Sandra Jiménez Castro',
           partesProcesales: 'Luis González Martín vs. Inmobiliaria Central S.C.',
           tipoAsunto: 'Cumplimiento de contrato y daños',
           organoJurisdiccional: 'Juzgado Primero Civil',
           prioridadAsunto: 'Alta',
           descripcion: 'Demanda civil por incumplimiento de contrato de compraventa',
-          solicitud: '',
-          solicitante: '',
           estado: 'Activo',
           fechaCreacion: '2025-10-25',
           stats: { documentos: 4, audiencias: 1, terminos: 0, dias: 7 },
@@ -279,79 +307,50 @@
           id: 4,
           expediente: '1842/2025',
           materia: 'Mercantil',
-          gerencia: 'Nuevo León',
+          gerencia: 'Gerencia Jurídica y Financiera',
+          sede: 'Nuevo León',
           abogadoResponsable: 'Lic. Carmen Delgado Vázquez',
           partesProcesales: 'María Hernández Silva vs. Distribuidora Nacional S.A.',
           tipoAsunto: 'Procedimiento mercantil por incumplimiento',
           organoJurisdiccional: 'Tribunal Superior de Justicia',
           prioridadAsunto: 'Baja',
           descripcion: 'Conflicto mercantil por breach de contrato de distribución',
-          solicitud: '',
-          solicitante: '',
           estado: 'Activo',
           fechaCreacion: '2025-10-10',
           stats: { documentos: 2, audiencias: 1, terminos: 1, dias: 22 },
           ultimaActividad: '2025-10-25'
         }
       ];
-      
-      // Guardar ejemplos en localStorage
       setAsuntos(ejemplosAsuntos);
     }
 
     // Cargar todos los asuntos (ejemplos + creados por usuario)
     const todosAsuntos = getAsuntos();
-    
+
     if (todosAsuntos.length === 0) {
-      // Mostrar mensaje de no resultados
       grid.innerHTML = '';
       if (noResultados) noResultados.style.display = 'block';
     } else {
-      // Mostrar asuntos
       if (noResultados) noResultados.style.display = 'none';
       grid.innerHTML = '';
-      
-      todosAsuntos.forEach(asunto => {
-        addCardToGrid(asunto);
-      });
+      todosAsuntos.forEach(asunto => addCardToGrid(asunto));
     }
   }
 
-  /* ---------- Init ---------- */
-  document.addEventListener('DOMContentLoaded', function () {
-    wireButtons();
-    wireDelegationVerDetalle();
-    loadExistingAsuntos();
-  });
-
-  // Función global para inicializar (llamada desde HTML)
-  window.initAsuntos = function() {
-    loadExistingAsuntos();
-  };
-
-  // Exponer por si lo necesitas
-  window._nuevoAsuntoModal = {
-    abrir: abrirModalNuevoAsunto,
-    guardar: guardarNuevoAsunto,
-    addCardToGrid
-  };
-
-  /* ---------- Funciones de Filtrado ---------- */
+  /* ---------- Filtros (basados en data-* de las tarjetas) ---------- */
   function initFilters() {
-    // Obtener elementos de filtros
     const filterMateria = document.getElementById('filter-materia-asunto');
     const filterEstado = document.getElementById('filter-estado-asunto');
     const filterPrioridad = document.getElementById('filter-prioridad-asunto');
     const filterAbogado = document.getElementById('filter-abogado-asunto');
-    const filterMes = document.getElementById('filter-mes-asunto');
+    const filterGerencia = document.getElementById('filter-gerencia-asunto');
     const buscadorGlobal = document.getElementById('buscador-global');
 
-    // Agregar event listeners
     if (filterMateria) filterMateria.addEventListener('change', applyFilters);
     if (filterEstado) filterEstado.addEventListener('change', applyFilters);
     if (filterPrioridad) filterPrioridad.addEventListener('change', applyFilters);
     if (filterAbogado) filterAbogado.addEventListener('change', applyFilters);
-    if (filterMes) filterMes.addEventListener('change', applyFilters);
+    if (filterGerencia) filterGerencia.addEventListener('change', applyFilters);
     if (buscadorGlobal) buscadorGlobal.addEventListener('input', applyFilters);
   }
 
@@ -360,109 +359,59 @@
     const filterEstado = document.getElementById('filter-estado-asunto')?.value || '';
     const filterPrioridad = document.getElementById('filter-prioridad-asunto')?.value || '';
     const filterAbogado = document.getElementById('filter-abogado-asunto')?.value || '';
-    const filterMes = document.getElementById('filter-mes-asunto')?.value || '';
+    const filterGerencia = document.getElementById('filter-gerencia-asunto')?.value || '';
     const searchTerm = document.getElementById('buscador-global')?.value.toLowerCase() || '';
 
     const cards = document.querySelectorAll('.asunto-card');
     let visibleCount = 0;
 
     cards.forEach(card => {
-      const cardId = card.getAttribute('data-id');
-      const asuntos = getAsuntos();
-      const asunto = asuntos.find(a => a.id == cardId);
-      
-      if (!asunto) {
-        // Si no encuentra el asunto en localStorage, usar datos de la tarjeta HTML
-        const shouldShow = filterByCardContent(card, {
-          filterMateria,
-          filterEstado,
-          filterPrioridad,
-          filterAbogado,
-          filterMes,
-          searchTerm
-        });
-        
-        if (shouldShow) {
-          card.style.display = '';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-        return;
-      }
+      const materia = (card.getAttribute('data-materia') || '').toLowerCase();
+      const estado = (card.getAttribute('data-estado') || '').toLowerCase();
+      const prioridad = (card.getAttribute('data-prioridad') || '').toLowerCase();
+      const abogado = (card.getAttribute('data-abogado') || '').toLowerCase();
+      const gerencia = (card.getAttribute('data-gerencia') || '').toLowerCase();
+      const partes = (card.getAttribute('data-partes') || '').toLowerCase();
+      const expediente = (card.getAttribute('data-expediente') || '').toLowerCase();
+      const tipoAsunto = (card.getAttribute('data-tipo-asunto') || '').toLowerCase();
+      const organo = (card.getAttribute('data-organo') || '').toLowerCase();
 
-      // Aplicar filtros
-      const matchesMateria = !filterMateria || asunto.materia === filterMateria;
-      const matchesEstado = !filterEstado || asunto.estado === filterEstado;
-      const matchesPrioridad = !filterPrioridad || asunto.prioridadAsunto === filterPrioridad;
-      const matchesAbogado = !filterAbogado || asunto.abogadoResponsable.includes(filterAbogado);
-      
-      // Filtro por mes de creación
-      const matchesMes = !filterMes || (asunto.fechaCreacion && 
-        asunto.fechaCreacion.substring(5, 7) === filterMes);
-      
-      // Búsqueda global
-      const matchesSearch = !searchTerm || [
-        asunto.expediente,
-        asunto.materia,
-        asunto.partesProcesales,
-        asunto.abogadoResponsable,
-        asunto.descripcion,
-        asunto.tipoAsunto,
-        asunto.organoJurisdiccional
-      ].some(field => field && field.toLowerCase().includes(searchTerm));
+      const matchesMateria = !filterMateria || materia === filterMateria.toLowerCase();
+      const matchesEstado = !filterEstado || estado === filterEstado.toLowerCase();
+      const matchesPrioridad = !filterPrioridad || prioridad === filterPrioridad.toLowerCase();
+      const matchesAbogado = !filterAbogado || abogado.includes(filterAbogado.toLowerCase());
+      const matchesGerencia = !filterGerencia || gerencia === filterGerencia.toLowerCase();
 
-      if (matchesMateria && matchesEstado && matchesPrioridad && matchesAbogado && matchesMes && matchesSearch) {
-        card.style.display = '';
-        visibleCount++;
-      } else {
-        card.style.display = 'none';
-      }
+      const cardText = `${expediente} ${materia} ${partes} ${abogado} ${organo} ${tipoAsunto} ${gerencia}`.toLowerCase();
+      const matchesSearch = !searchTerm || cardText.includes(searchTerm);
+
+      const show = matchesMateria && matchesEstado && matchesPrioridad && matchesAbogado && matchesGerencia && matchesSearch;
+      card.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
     });
 
-    // Mostrar mensaje de no resultados si no hay tarjetas visibles
     const noResultados = document.getElementById('no-resultados');
-    if (noResultados) {
-      noResultados.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
+    if (noResultados) noResultados.style.display = visibleCount === 0 ? 'block' : 'none';
   }
 
-  function filterByCardContent(card, filters) {
-    const cardText = card.textContent.toLowerCase();
-    const headerText = card.querySelector('.asunto-header h3')?.textContent || '';
-    
-    // Extraer información de la tarjeta
-    const materia = headerText.split(' · ')[1] || '';
-    const badges = Array.from(card.querySelectorAll('.badge')).map(b => b.textContent);
-    const estado = badges.find(b => ['activo', 'archivado', 'espera', 'finalizado'].some(e => b.toLowerCase().includes(e))) || '';
-    const prioridad = badges.find(b => ['alta', 'media', 'baja'].includes(b.toLowerCase())) || '';
-    
-    // Obtener abogado del contenido
-    const abogadoMatch = cardText.match(/abogado:\s*([^\\n]+)/i);
-    const abogado = abogadoMatch ? abogadoMatch[1].trim() : '';
-    
-    // Obtener fecha de creación para filtro de mes
-    const fechaMatch = cardText.match(/creado:\s*(\d{2})\/(\d{2})\/(\d{4})/i);
-    const mesTarjeta = fechaMatch ? fechaMatch[2] : '';
-
-    // Aplicar filtros
-    const matchesMateria = !filters.filterMateria || materia.includes(filters.filterMateria);
-    const matchesEstado = !filters.filterEstado || estado.toLowerCase().includes(filters.filterEstado.toLowerCase());
-    const matchesPrioridad = !filters.filterPrioridad || prioridad.toLowerCase() === filters.filterPrioridad.toLowerCase();
-    const matchesAbogado = !filters.filterAbogado || abogado.includes(filters.filterAbogado);
-    const matchesMes = !filters.filterMes || mesTarjeta === filters.filterMes;
-    const matchesSearch = !filters.searchTerm || cardText.includes(filters.searchTerm);
-
-    return matchesMateria && matchesEstado && matchesPrioridad && matchesAbogado && matchesMes && matchesSearch;
-  }
-
-  /* ---------- Inicializar filtros al cargar la página ---------- */
+  /* ---------- Init ---------- */
   document.addEventListener('DOMContentLoaded', function () {
-    // ... código existente ...
+    wireButtons();
+    wireDelegationVerDetalle();
+    loadExistingAsuntos();
     initFilters();
   });
 
-  // Exponer función para uso externo
-  window.applyAsuntosFilters = applyFilters;
+  // Función global para inicializar (llamada desde HTML)
+  window.initAsuntos = function() {
+    loadExistingAsuntos();
+    applyFilters();
+  };
 
+  // Exponer por si lo necesitas en consola
+  window._nuevoAsuntoModal = {
+    abrir: abrirModalNuevoAsunto,
+    guardar: guardarNuevoAsunto,
+    addCardToGrid
+  };
 })();

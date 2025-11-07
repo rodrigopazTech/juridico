@@ -3,6 +3,7 @@ class AsuntoDetalleManager {
     constructor() {
         this.asunto = null;
         this.asuntoId = null;
+        this.partes = null; // Guardará { actor: '...', demandado: '...' }
         this.init();
     }
 
@@ -14,7 +15,8 @@ class AsuntoDetalleManager {
 
     obtenerIdAsunto() {
         const urlParams = new URLSearchParams(window.location.search);
-        this.asuntoId = parseInt(urlParams.get('id'));
+        // Usar parseInt() es bueno, pero como lo guardas como número, está bien
+        this.asuntoId = parseInt(urlParams.get('id')); 
         
         if (!this.asuntoId) {
             this.mostrarError('No se especificó un ID de asunto válido');
@@ -24,6 +26,8 @@ class AsuntoDetalleManager {
 
     cargarAsunto() {
         const asuntosGuardados = JSON.parse(localStorage.getItem('asuntos') || '[]');
+        
+        // El ID de localStorage es un número, así que comparamos números
         this.asunto = asuntosGuardados.find(a => a.id === this.asuntoId);
 
         if (!this.asunto) {
@@ -31,9 +35,25 @@ class AsuntoDetalleManager {
             return;
         }
 
+        // --- ¡CAMBIO IMPORTANTE! ---
+        // Parseamos las partes procesales aquí para usarlas en toda la clase
+        this.partes = this.parsePartes(this.asunto.partesProcesales);
+        // --- FIN DEL CAMBIO ---
+
         this.mostrarVista360();
         this.actualizarTitulo();
         this.cargarDatosAdicionales();
+    }
+    
+    /* --- NUEVA FUNCIÓN DE AYUDA --- */
+    parsePartes(partesStr) {
+        if (!partesStr) return { actor: 'N/D', demandado: 'N/D' };
+        // Separa por " vs. " (con o sin mayúsculas)
+        const partes = partesStr.split(/ vs\. /i); 
+        return {
+            actor: partes[0] || 'N/D',
+            demandado: partes[1] || 'N/D'
+        };
     }
 
     mostrarVista360() {
@@ -48,28 +68,32 @@ class AsuntoDetalleManager {
         this.configurarEventosVista360();
     }
 
+    /* --- FUNCIÓN MODIFICADA --- */
     generarVista360HTML() {
+        // Leemos de las claves de datos NUEVAS
+        const prioridad = this.asunto.prioridadAsunto || 'Media';
+        const abogado = this.asunto.abogadoResponsable || 'Sin asignar';
+        // this.partes fue definido en cargarAsunto()
+        
         return `
             <div class="vista-360">
-                <!-- Header del caso -->
                 <div class="caso-header">
                     <div class="caso-info">
                         <h2>Expediente: ${this.asunto.expediente}</h2>
                         <div class="caso-estado">
                             <span class="badge badge-${this.asunto.materia.toLowerCase()}">${this.asunto.materia}</span>
-                            <span class="badge badge-${this.asunto.prioridad.toLowerCase()}">${this.asunto.prioridad} Prioridad</span>
+                            <span class="badge badge-${prioridad.toLowerCase()}">${prioridad} Prioridad</span>
                             <span class="badge badge-activo">${this.asunto.estado}</span>
                         </div>
                     </div>
                     <div class="caso-meta">
-                        <p><strong>Abogado:</strong> ${this.asunto.abogado}</p>
-                        <p><strong>Demandado:</strong> ${this.asunto.demandado}</p>
+                        <p><strong>Abogado:</strong> ${abogado}</p>
+                        <p><strong>Demandado:</strong> ${this.partes.demandado}</p>
                         <p><strong>Fecha creación:</strong> ${this.formatDate(this.asunto.fechaCreacion)}</p>
-                        <p><strong>Cliente:</strong> ${this.asunto.nombre}</p>
+                        <p><strong>Cliente:</strong> ${this.partes.actor}</p>
                     </div>
                 </div>
                 
-                <!-- Estadísticas -->
                 <div class="caso-stats">
                     <div class="stat-card">
                         <i class="fas fa-clock"></i>
@@ -93,13 +117,9 @@ class AsuntoDetalleManager {
                     </div>
                 </div>
                 
-                <!-- Línea de tiempo -->
                 <div class="timeline-caso">
                     <div class="timeline-header">
                         <h3>Línea de Tiempo del Caso</h3>
-                        <button class="btn btn-sm btn-primary" id="btn-agregar-evento">
-                            <i class="fas fa-plus"></i> Agregar Evento
-                        </button>
                     </div>
                     <div class="timeline">
                         ${this.asunto.timeline && this.asunto.timeline.length > 0 ? 
@@ -109,7 +129,6 @@ class AsuntoDetalleManager {
                     </div>
                 </div>
 
-                <!-- Documentos por fase -->
                 <div class="documentos-section">
                     <div class="documentos-header">
                         <h3>Documentos del asunto</h3>
@@ -246,6 +265,16 @@ class AsuntoDetalleManager {
                 this.cerrarModalCambioEstado();
             });
         }
+        
+        // --- CORRECCIÓN: Tu HTML usa btn-danger para cerrar, vamos a añadirlo ---
+        const btnCerrarModalIcono = document.getElementById('close-modal-estado');
+        if (btnCerrarModalIcono) {
+            btnCerrarModalIcono.addEventListener('click', () => {
+                this.cerrarModalCambioEstado();
+            });
+        }
+        // --- FIN DE CORRECCIÓN ---
+
 
         // Evento para confirmar cambio de estado
         const btnConfirmar = document.querySelector('#modal-cambio-estado .btn-primary');
@@ -266,11 +295,15 @@ class AsuntoDetalleManager {
         }
     }
 
+    /* --- FUNCIÓN MODIFICADA --- */
     actualizarTitulo() {
         if (this.asunto) {
+            // Usamos 'this.partes.actor' que ya parseamos
             document.getElementById('titulo-asunto').textContent = 
-                `Detalles de asunto - ${this.asunto.expediente} - ${this.asunto.nombre}`;
-            document.title = `Detalles de asunto - ${this.asunto.expediente} - Agenda Legal`;
+                `Detalles de asunto - ${this.asunto.expediente} - ${this.partes.actor}`;
+            
+            // Actualizamos también el título de la pestaña del navegador
+            document.title = `Detalles - ${this.asunto.expediente} (${this.partes.actor}) - Agenda Legal`;
         }
     }
 
@@ -312,13 +345,24 @@ class AsuntoDetalleManager {
         const container = document.getElementById('actividad-reciente-list');
         if (!container) return;
 
+        // --- Muestra el historial de cambios de estado ---
+        const historial = this.asunto.historialActividad || [];
+        
         const actividad = [
             { accion: 'Documento agregado', usuario: 'Lic. Martínez', fecha: '2025-01-20 14:30' },
             { accion: 'Evento programado', usuario: 'Sistema', fecha: '2025-01-18 16:45' }
         ];
+        
+        // Combinar historial con actividad de ejemplo (en un futuro, todo vendrá del historial)
+        const actividadCompleta = historial.map(item => ({
+            accion: item.descripcion,
+            usuario: item.usuario,
+            fecha: item.fecha
+        })).concat(actividad);
+
 
         let html = '';
-        actividad.forEach(item => {
+        actividadCompleta.forEach(item => {
             html += `
                 <div class="actividad-item">
                     <div class="actividad-icon">
@@ -329,7 +373,7 @@ class AsuntoDetalleManager {
                         <div class="actividad-meta">
                             <span>por ${item.usuario}</span>
                             <span>•</span>
-                            <span>${item.fecha}</span>
+                            <span>${this.formatDate(item.fecha)}</span>
                         </div>
                     </div>
                 </div>
@@ -354,7 +398,9 @@ class AsuntoDetalleManager {
 
     mostrarError(mensaje) {
         const container = document.getElementById('vista-360-container');
-        container.innerHTML = this.generarHTMLerror(mensaje);
+        if (container) {
+             container.innerHTML = this.generarHTMLerror(mensaje);
+        }
     }
 
     generarHTMLerror(mensaje = 'Error al cargar el asunto') {
@@ -443,8 +489,8 @@ class AsuntoDetalleManager {
         this.guardarAsunto();
 
         // Actualizar la vista
-        this.actualizarVistaDetalle();
-        this.cargarActividadReciente();
+        this.actualizarVistaDetalle(); // Esta función recargará la vista
+        this.cargarActividadReciente(); // Y esta recargará la lista de actividad
 
         // Cerrar modal
         this.cerrarModalCambioEstado();
@@ -457,18 +503,12 @@ class AsuntoDetalleManager {
         if (!this.asunto) return;
 
         // Actualizar el badge de estado en la vista principal
-        const badgeEstado = document.querySelector('.badge');
-        if (badgeEstado) {
-            badgeEstado.textContent = this.capitalize(this.asunto.estado);
-            
-            // Actualizar las clases del badge basado en el estado
-            badgeEstado.className = 'badge badge-' + this.asunto.estado.replace(' ', '-');
-        }
-
-        // Actualizar el contenedor completo si es necesario
+        // Esta es la forma más simple de actualizar, recargando el HTML principal
         const container = document.getElementById('vista-360-container');
         if (container) {
-            container.innerHTML = this.generarHTML();
+            container.innerHTML = this.generarVista360HTML();
+            // Re-conectar eventos después de recargar el HTML
+            this.configurarEventosVista360(); 
         }
     }
 
@@ -536,10 +576,12 @@ class AsuntoDetalleManager {
     formatDate(dateString) {
         if (!dateString) return 'N/A';
         const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('es-ES', options);
+        const date = new Date(dateString + 'T00:00:00'); // Evitar desfase de zona horaria
+        return date.toLocaleDateString('es-ES', options);
     }
 
     capitalize(str) {
+        if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }

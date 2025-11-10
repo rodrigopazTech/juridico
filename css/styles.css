@@ -284,6 +284,61 @@ tr:hover {
     justify-content: center;
 }
 
+/* ===== NUEVO: Estilos para el Menú de Acciones (3 puntos) ===== */
+.action-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.action-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 100;
+    overflow: hidden;
+    padding: 5px 0;
+}
+
+.action-menu.show {
+    display: block;
+}
+
+.action-item {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 0.875rem;
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border: none;
+    text-align: left;
+}
+
+.action-item:hover {
+    background-color: #f4f4f4;
+    color: #0056b3;
+}
+
+.action-item i {
+    margin-right: 10px;
+    width: 16px;
+    text-align: center;
+    color: #555;
+}
+
+.action-item:hover i {
+    color: #0056b3;
+}
+/* ===== FIN NUEVO ===== */
+
 .actions input[type="checkbox"] {
     margin: 0 2px 0 5px;
 }
@@ -1549,6 +1604,18 @@ tr:hover {
     background-color: #28a745;
 }
 
+/* ===== NUEVO: Colores de Semáforo Adicionales ===== */
+.semaforo-vencido {
+    background-color: #6c757d; /* Gris para vencidos */
+    border-color: #5a6268;
+}
+
+.semaforo-azul {
+    background-color: #17a2b8; /* Azul/Cian para > 1 mes */
+    border-color: #138496;
+}
+/* ===== FIN NUEVO ===== */
+
 /* Animaciones para estados críticos */
 @keyframes pulse-red {
     0% { opacity: 1; }
@@ -1980,4 +2047,35 @@ tr:hover {
     font-size: 0.9em;
     color: #6c757d;
     margin-top: 5px;
+}
+
+/* ===== NUEVO: Clase utilitaria para input oculto ===== */
+.input-acuse-hidden {
+    display: none;
+}
+/* ... (todo tu CSS anterior) ... */
+
+/* ===== NUEVO: Estilos para acciones peligrosas y separadores ===== */
+
+.action-item.danger-action {
+    color: var(--danger); /* Tu variable de color de peligro */
+}
+
+.action-item.danger-action i {
+    color: var(--danger);
+}
+
+.action-item.danger-action:hover {
+    background-color: #fff0f0; /* Un fondo rojo muy claro */
+    color: #b02a37; /* Un rojo más oscuro */
+}
+
+.action-item.danger-action:hover i {
+    color: #b02a37;
+}
+
+.action-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 5px 0;
 }

@@ -186,244 +186,27 @@
         </div>
     </div>
     
-    <!-- Scripts -->
-    <script src="js/excel-export.js"></script>
-    <script src="js/terminos.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initTerminos === 'function') {
-                initTerminos();
-            }
-        });
-    </script>
-    <!-- Modal para Términos -->
-    <div class="modal" id="modal-termino">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-termino-title">Nuevo Término</h2>
-                <button class="btn btn-danger" id="close-modal-termino">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="form-termino">
-                    <input type="hidden" id="termino-id">
-                    <input type="hidden" id="termino-asunto-id">
-                    
-                    <!-- SELECTOR DE ASUNTO -->
-                    <fieldset class="asunto-selector-section">
-                        <legend>Seleccionar Asunto</legend>
-                        
-                        <div class="form-group">
-                            <label for="asunto-selector">Asunto*</label>
-                            <select id="asunto-selector" required>
-                                <option value="">Seleccionar Asunto</option>
-                            </select>
-                            <small class="form-text">Selecciona el asunto al que pertenece este término. Los datos se llenarán automáticamente.</small>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- DATOS AUTO-LLENADOS DEL ASUNTO (Solo lectura) -->
-                    <fieldset class="auto-filled-section">
-                        <legend>Datos del Asunto (Auto-llenados)</legend>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="termino-expediente">Expediente</label>
-                                <input type="text" id="termino-expediente" readonly class="readonly-field">
-                            </div>
-                            <div class="form-group">
-                                <label for="termino-materia">Materia</label>
-                                <input type="text" id="termino-materia" readonly class="readonly-field">
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="termino-gerencia">Gerencia (Estado)</label>
-                                <input type="text" id="termino-gerencia" readonly class="readonly-field">
-                            </div>
-                            <div class="form-group">
-                                <label for="termino-abogado">Abogado Responsable</label>
-                                <input type="text" id="termino-abogado" readonly class="readonly-field">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="termino-partes">Partes Procesales</label>
-                            <input type="text" id="termino-partes" readonly class="readonly-field">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="termino-tipo-asunto">Tipo de Asunto (Prestación/Procedimiento)</label>
-                            <input type="text" id="termino-tipo-asunto" readonly class="readonly-field">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="termino-organo">Órgano Jurisdiccional</label>
-                                <input type="text" id="termino-organo" placeholder="Puede editarse si es necesario">
-                            </div>
-                            <div class="form-group">
-                                <label for="termino-prioridad">Prioridad del Asunto</label>
-                                <input type="text" id="termino-prioridad" readonly class="readonly-field">
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <!-- DATOS ESPECÍFICOS DEL TÉRMINO (Usuario llena) -->
-                    <fieldset class="user-input-section">
-                        <legend>Datos Específicos del Término</legend>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="fecha-ingreso">Fecha de Ingreso*</label>
-                                <input type="date" id="fecha-ingreso" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="fecha-vencimiento">Fecha de Vencimiento*</label>
-                                <input type="date" id="fecha-vencimiento" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
-                            <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="etapa-revision">Etapa de Revisión*</label>
-                                <select id="etapa-revision" required>
-                                    <option value="">Seleccione etapa</option>
-                                    <option value="Proyectista">Proyectista</option>
-                                    <option value="Liberado">Liberado</option>
-                                    <option value="Revisión">Revisión</option>
-                                    <option value="Presentado">Presentado</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="atendido">¿Atendido?</label>
-                                <select id="atendido">
-                                    <option value="false">No</option>
-                                    <option value="true">Sí</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="acuse-documento">Acuse (Subir Documento)</label>
-                            <div class="file-upload-container">
-                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
-                                <label for="acuse-documento" class="file-upload-btn">
-                                    <i class="fas fa-file-upload"></i>
-                                    Subir Acuse del Término
-                                </label>
-                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="observaciones">Observaciones</label>
-                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="recordatorio-dias">Recordatorio Días Antes</label>
-                                <input type="number" id="recordatorio-dias" min="1" value="1" placeholder="Ej. 7 días">
-                                <small>Por defecto: 1 día antes</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="recordatorio-horas">Recordatorio Horas Antes</label>
-                                <input type="number" id="recordatorio-horas" min="1" value="2" placeholder="Ej. 24 horas">
-                                <small>Por defecto: 2 horas antes</small>
-                            </div>
-                        </div>
-                    </fieldset>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="cancel-termino">Cancelar</button>
-                <button class="btn btn-success" id="save-termino">Guardar Término</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Presentar Término -->
-    <div class="modal" id="modal-presentar-termino">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Presentar Término</h2>
-                <button class="btn btn-danger" id="close-modal-presentar">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="presentar-termino-id">
-                <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
-                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
-                </div>
-                <div class="form-group">
-                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
-                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
-                    <small>Las observaciones son obligatorias para presentar el término</small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
-                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
-            </div>
-        </div>
-    </div>
-
-<script src="js/notificaciones.js"></script>
-    <script src="js/terminos.js"></script>
+<script src="js/excel-export.js"></script>
+    <script src="js/notificaciones.js"></script>
+    <script src="js/components.js"></script>
     
+    <script src="js/terminos.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // initTerminos() se llama desde terminos.js si se carga primero
-            // pero lo dejamos aquí por si acaso
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('terminos.html');
+            }
+            
+            // Inicializar la página de términos (esto llama a todo desde terminos.js)
             if (typeof initTerminos === 'function') {
                 initTerminos();
             }
-            
-            // Ya no es necesario llamar a initModalTerminos() o setupMateriaFields()
-            // porque initTerminos() los llama internamente.
-            
-            // initExportacionTerminos(); // Esta función no estaba en tu JS, la comento
+
+            // Inicializar la exportación (esta función SÍ puede vivir aquí)
+            initExportacionTerminos();
         });
-
-        // Esta función 'setupMateriaFields' no parece usarse en el modal
-        // de términos, ya que los campos 'termino-prestacion', etc., no existen.
-        // La dejo por si la usas, pero no afecta al modal de términos.
-        function setupMateriaFields() {
-            const materiaSelect = document.getElementById('termino-materia');
-            // ... (resto de tu función setupMateriaFields) ...
-        }
-
-        // Esta función 'initModalTerminos' está duplicada
-        // (ya existe 'initModalTerminosJS' en terminos.js)
-        // La comento para evitar conflictos.
-        /*
-        function initModalTerminos() {
-            // ... (código duplicado) ...
-        }
-        */
-
-        // Esta función 'openTerminoModal' también está duplicada
-        // (ya existe 'openTerminoModalJS' en terminos.js)
-        // La comento.
-        /*
-        function openTerminoModal(termino = null) {
-            // ... (código duplicado) ...
-        }
-        */
-        
-        // El resto de funciones (cargarAsuntosEnSelector, handleAsuntoChange, etc.)
-        // ya están movidas y mejoradas dentro de terminos.js (versiones con sufijo 'JS')
-        // para mantener todo en un solo archivo.
 
         function initExportacionTerminos() {
             // Configurar botón de exportar a Excel
@@ -443,21 +226,9 @@
                 console.warn('Botón export-terminos no encontrado');
             }
         }
-        
-        // Llamar a la exportación
-        initExportacionTerminos();
-        
     </script>
-    <script src="js/components.js"></script>
-    <script>
-        // Configurar página actual para el sidebar
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('terminos.html');
-            }
-        });
-    </script>
+</body>
+</html>
 </body>
 </html>
 

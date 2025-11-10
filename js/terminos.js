@@ -50,9 +50,6 @@ function initTerminos() {
     // ===== MODIFICADO: Renombrado de 'Presentar' a 'Liberar' =====
     initModalLiberarTermino();
     
-    // Configurar selector de asunto y carga de datos
-    // setupAsuntoSelector(); // Esta función la borramos, ya no es necesaria
-    
     // Configurar subida de archivos
     setupFileUploadTermino();
     
@@ -61,28 +58,6 @@ function initTerminos() {
 
     // ===== NUEVO: Listener para el menú de acciones dinámico =====
     setupActionMenuListener();
-}
-
-// Función para cargar asuntos en el selector
-function cargarAsuntosEnSelector() {
-    const selector = document.getElementById('asunto-selector');
-    if (!selector) return;
-    
-    // Obtener asuntos del localStorage
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-    
-    // Limpiar selector
-    selector.innerHTML = '<option value="">Seleccionar Asunto</option>';
-    
-    // Agregar asuntos al selector
-    asuntos.forEach(asunto => {
-        const option = document.createElement('option');
-        option.value = asunto.id;
-        // Asumiendo que 'asuntos' tiene 'expediente' y 'descripcion'
-        const descripcion = asunto.descripcion || asunto.partes || 'Asunto sin descripción';
-        option.textContent = `${asunto.expediente} - ${descripcion}`;
-        selector.appendChild(option);
-    });
 }
 
 function limpiarCamposAutoLlenadosModal() {
@@ -158,11 +133,6 @@ function openTerminoModalJS(termino = null) {
         document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
         document.getElementById('recordatorio-dias').value = termino.recordatorioDias || 1;
         document.getElementById('recordatorio-horas').value = termino.recordatorioHoras || 2;
-        
-        // ===== MODIFICADO: Ya no poblamos los campos ocultos =====
-        // document.getElementById('etapa-revision').value = termino.etapaRevision || termino.estatus || '';
-        // document.getElementById('atendido').value = termino.atendido ? 'true' : 'false';
-        // document.getElementById('observaciones').value = termino.observaciones || '';
         
     } else {
         // Modo nuevo término
@@ -243,10 +213,6 @@ function cargarDatosAsuntoEnModalJS(asuntoId) {
         document.getElementById('termino-partes').value = asunto.partes || '';
         document.getElementById('termino-organo').value = asunto.organoJurisdiccional || '';
         document.getElementById('termino-prioridad').value = asunto.prioridad || '';
-        
-        // Sugerir el abogado del asunto como responsable
-        // (Este campo no existe en tu modal, pero 'termino-abogado' sí)
-        // document.getElementById('termino-responsable').value = asunto.abogado || '';
     }
 }
 
@@ -302,12 +268,6 @@ function guardarTermino() {
         actuacion: document.getElementById('actuacion').value.trim(),
         recordatorioDias: parseInt(document.getElementById('recordatorio-dias').value) || 1,
         recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2,
-        
-        // ===== CAMPOS ELIMINADOS DE LA CAPTURA =====
-        // etapaRevision: document.getElementById('etapa-revision').value,
-        // observaciones: document.getElementById('observaciones').value.trim(),
-        // atendido: document.getElementById('atendido').value === 'true',
-        // acuseDocumento: (se maneja por acción rápida)
     };
     
     // Validar campos obligatorios
@@ -597,9 +557,6 @@ function loadTerminos() {
     });
     
     tbody.innerHTML = html;
-    
-    // Configurar botones de acción (ya no es necesario, se usa delegación)
-    // setupActionButtons(); // Reemplazado por setupActionMenuListener()
 }
 
 // ===== MODIFICADO: generarAccionesRapidas con nuevas opciones =====

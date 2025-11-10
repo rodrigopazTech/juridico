@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Recordatorios - Agenda Legal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        /* --- Estilos del Grid y Gráficas --- */
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .dashboard-card h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .list-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .list-item .title { font-weight: 500; }
+        .list-item .date { font-size: 0.9em; color: #555; }
+
+        /* --- Estilos del Modal --- */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* Fondo oscuro semitransparente */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% desde arriba y centrado */
+            padding: 20px 30px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-sticky-note"></i> Panel de Recordatorios</h1>
+                    <div class="user-info"><i class="fas fa-user-circle"></i> Usuario Abogado</div>
+                </div>
+            </header>
+
+            <div class="toolbar">
+                <h2>Vista General</h2>
+                <button id="btn-abrir-modal" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Crear Recordatorio
+                </button>
+            </div>
+
+            <div class="panel-grid">
+                <div class="dashboard-card">
+                    <h3>Recordatorios (Pendientes vs Completados)</h3>
+                    <div class="chart-container">
+                        <canvas id="recordatorios-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-clock"></i> Próximos Recordatorios</h3>
+                    <div id="proximos-recordatorios-lista" class="list-container">
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal-crear-recordatorio" class="modal">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h2>Crear Nuevo Recordatorio</h2>
+                <span id="modal-close-btn" class="modal-close">&times;</span>
+            </div>
+
+            <form id="form-crear-recordatorio" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label for="recordatorio-titulo">Título del recordatorio</label>
+                    <input type="text" id="recordatorio-titulo" class="form-control" placeholder="Ej: Junta de equipo" required>
+                </div>
+                <div class="form-group">
+                    <label for="recordatorio-fecha">Fecha y Hora de Notificación</label>
+                    <input type="datetime-local" id="recordatorio-fecha" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="recordatorio-detalles">Detalles (Opcional)</label>
+                    <textarea id="recordatorio-detalles" class="form-control" placeholder="Ej: Revisión semanal de casos"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar Recordatorio
+                </button>
+            </form>
+            
+        </div>
+    </div>
+    <script src="js/notificaciones.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    
+    <script src="js/recordatorios-panel.js"></script>
+    
+    <script src="js/components.js"></script>
+    <script src="js/components.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('recordatorios-panel.html'); // Marcar este como activo
+            }
+            
+            // --- CÓDIGO CORREGIDO ---
+            // Verifica si el objeto PanelRecordatorios existe y tiene el método .init
+            if (window.PanelRecordatorios && typeof window.PanelRecordatorios.init === 'function') {
+                PanelRecordatorios.init();
+            }
+        });
+    </script>
+</body>
+</html>

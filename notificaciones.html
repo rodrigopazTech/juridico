@@ -6,9 +6,115 @@
     <title>Panel de Notificaciones - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-</head>
+
+    <style>
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Para responsiveness */
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px; /* Espacio si se envuelve */
+        }
+        .btn-filter {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .btn-filter:hover {
+            background-color: #e0e0e0;
+        }
+        .btn-filter.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        /* Estilos mejorados para la lista de notificaciones */
+        .notification-item {
+            display: flex;
+            align-items: flex-start; /* Alinear al inicio */
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-icon {
+            font-size: 20px;
+            color: #007bff;
+            padding-top: 5px; /* Alinear con el texto */
+        }
+        /* Colores por tipo */
+        .notification-item.event-audiencia .notification-icon { color: #28a745; }
+        .notification-item.event-termino .notification-icon { color: #dc3545; }
+        .notification-item.event-asunto .notification-icon { color: #ffc107; }
+        .notification-item.event-recordatorio .notification-icon { color: #17a2b8; }
+
+        .notification-main {
+            flex: 1;
+        }
+        .notification-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .notification-meta strong {
+            color: #333;
+        }
+        .notification-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 5px;
+        }
+        .notification-when {
+            font-size: 13px;
+            color: #888;
+        }
+        .empty-state {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        /* --- ESTILOS AÑADIDOS --- */
+        .notification-details {
+            font-size: 14px;
+            color: #555;
+            margin: 4px 0 8px 0;
+            padding-left: 10px;
+            border-left: 3px solid #eee;
+        }
+        .notification-when {
+            font-size: 13px;
+            color: #007bff; /* Hacer el tiempo relativo más visible */
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .notification-when .when-full {
+            color: #888;
+            font-weight: 400;
+        }
+        .notification-actions .btn-danger {
+            padding: 5px 10px; /* Botón de eliminar más pequeño */
+            font-size: 12px;
+        }
+        /* --- FIN ESTILOS AÑADIDOS --- */
+    </style>
+    </head>
 <body>
-    <!-- Sidebar -->
     <div id="sidebar-container"></div>
     </div>
 
@@ -26,34 +132,37 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="search-notifications" placeholder="Buscar notificaciones...">
                 </div>
+                <div class="filter-buttons">
+                    <button class="btn-filter active" data-filter="all">Todas</button>
+                    <button class="btn-filter" data-filter="audiencia">Audiencias</button>
+                    <button class="btn-filter" data-filter="termino">Términos</button>
+                    <button class="btn-filter" data-filter="asunto">Asuntos</button>
+                    <button class="btn-filter" data-filter="recordatorio">Recordatorios</button>
+                </div>
             </div>
 
             <div class="dashboard-card">
                 <h3><i class="fas fa-clock"></i> Próximas notificaciones</h3>
                 <div id="upcoming-list">
-                    <!-- Lista de próximas notificaciones -->
-                </div>
+                    </div>
             </div>
 
             <div class="dashboard-card">
                 <h3><i class="fas fa-sun"></i> Notificaciones de hoy</h3>
                 <div id="today-list">
-                    <!-- Lista de notificaciones que se recibirán/han recibido hoy -->
-                </div>
+                    </div>
             </div>
 
             <div class="dashboard-card">
                 <h3><i class="fas fa-history"></i> Historial</h3>
                 <div id="sent-list">
-                    <!-- Notificaciones marcadas como enviadas -->
-                </div>
+                    </div>
             </div>
         </div>
     </div>
 
     <script src="js/notificaciones.js"></script>
     
-    <!-- Cargar componentes -->
     <script src="js/components.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -62,8 +171,8 @@
                 loadSidebar('notificaciones.html');
             }
             
-            // Inicializar notificaciones
-            if (typeof initNotificaciones === 'function') initNotificaciones();
+            // Inicializar notificaciones ya no es necesario aquí,
+            // el script notificaciones.js se auto-inicia
         });
     </script>
 </body>

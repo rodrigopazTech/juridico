@@ -3,7 +3,7 @@
 // Simula el rol del usuario logueado.
 // Cambia este valor para probar los permisos:
 // 'Abogado' | 'Gerente' | 'Direccion'
-const USER_ROLE = 'Abogado';
+const USER_ROLE = 'Direccion';
 
 // Lista de tribunales existentes - solo declarar si no existe
 if (typeof tribunalesExistentes === 'undefined') {
@@ -47,16 +47,15 @@ function initTerminos() {
     // Configurar buscador de estados
     setupEstadoSearch();
     
-    // ===== MODIFICADO: Renombrado de 'Presentar' a 'Liberar' =====
+    // Inicializar todos los modales
     initModalLiberarTermino();
+    initModalTerminosJS();
+    initModalReasignar(); // <-- NUEVO
     
     // Configurar subida de archivos
     setupFileUploadTermino();
     
-    // Inicializar modal de términos
-    initModalTerminosJS();
-
-    // ===== NUEVO: Listener para el menú de acciones dinámico =====
+    // Listener para el menú de acciones
     setupActionMenuListener();
 }
 
@@ -81,27 +80,24 @@ function openTerminoModalJS(termino = null) {
     
     if (!modal) {
         console.error('Modal modal-termino no encontrado');
-        alert('Error: Modal no encontrado');
+        mostrarMensajeGlobal('Error: Modal no encontrado', 'danger');
         return;
     }
     
     // Cargar lista de asuntos en el selector
     cargarAsuntosEnSelectorJS();
     
-    // ===== NUEVO: Ocultar campos según tus reglas =====
     // Ocultamos los campos que ya no deben estar en el modal de edición/creación
     const camposAOcultar = ['etapa-revision', 'atendido', 'acuse-documento', 'observaciones'];
     camposAOcultar.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            // Ocultamos el 'form-group' padre para una mejor UI
             let parent = el.closest('.form-group') || el.closest('.form-row');
             if (parent) {
                 parent.style.display = 'none';
             }
         }
     });
-    // ===== FIN NUEVO =====
     
     if (termino) {
         // Modo edición
@@ -109,15 +105,12 @@ function openTerminoModalJS(termino = null) {
         document.getElementById('save-termino').textContent = 'Actualizar Término';
         document.getElementById('termino-id').value = termino.id;
         
-        // Si tiene asunto asociado, seleccionarlo
         if (termino.asuntoId) {
             document.getElementById('asunto-selector').value = termino.asuntoId;
-            // Deshabilitar selector de asunto al editar
             document.getElementById('asunto-selector').disabled = true;
             document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '0.7';
             cargarDatosAsuntoEnModalJS(termino.asuntoId);
         } else {
-             // Llenar manualmente (si no hay asuntoId)
             document.getElementById('termino-expediente').value = termino.expediente || '';
             document.getElementById('termino-materia').value = termino.materia || '';
             document.getElementById('termino-gerencia').value = termino.estado || termino.gerencia || '';
@@ -127,7 +120,6 @@ function openTerminoModalJS(termino = null) {
             document.getElementById('termino-prioridad').value = termino.prioridad || '';
         }
         
-        // Datos específicos del término - mapear nombres de campos
         document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
         document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
         document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
@@ -141,25 +133,20 @@ function openTerminoModalJS(termino = null) {
         if (form) form.reset();
         document.getElementById('termino-id').value = '';
         
-        // Habilitar selector de asunto
         document.getElementById('asunto-selector').disabled = false;
         document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '1';
         document.getElementById('asunto-selector').value = '';
         
-        // Limpiar campos auto-llenados
         limpiarCamposAutoLlenadosModal();
         
-        // Establecer fecha de hoy como predeterminada
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('fecha-ingreso').value = today;
         
-        // Establecer vencimiento en 15 días
         const vencimiento = new Date();
         vencimiento.setDate(vencimiento.getDate() + 15);
         document.getElementById('fecha-vencimiento').value = vencimiento.toISOString().split('T')[0];
     }
     
-    // Configurar evento de cambio para el selector de asunto
     const asuntoSelector = document.getElementById('asunto-selector');
     if (asuntoSelector) {
         asuntoSelector.removeEventListener('change', handleAsuntoCambioJS); // Evitar duplicados
@@ -205,7 +192,6 @@ function cargarDatosAsuntoEnModalJS(asuntoId) {
     const asunto = asuntos.find(a => a.id === asuntoId);
     
     if (asunto) {
-        // Llenar campos auto-llenados del modal
         document.getElementById('termino-expediente').value = asunto.expediente || '';
         document.getElementById('termino-materia').value = asunto.materia || '';
         document.getElementById('termino-gerencia').value = asunto.gerencia || '';
@@ -253,14 +239,11 @@ function initModalTerminosJS() {
     }
 }
 
-// ===== MODIFICADO: Lógica de guardado actualizada =====
+// Lógica de guardado actualizada
 function guardarTermino() {
-    console.log('Guardando término...');
-    
     const terminoId = document.getElementById('termino-id').value;
     const isEditing = terminoId && terminoId !== '';
     
-    // Obtener valores del formulario
     const terminoData = {
         asuntoId: document.getElementById('asunto-selector').value,
         fechaIngreso: document.getElementById('fecha-ingreso').value,
@@ -270,59 +253,47 @@ function guardarTermino() {
         recordatorioHoras: parseInt(document.getElementById('recordatorio-horas').value) || 2,
     };
     
-    // Validar campos obligatorios
     if (!terminoData.asuntoId) {
-        alert('Por favor, selecciona un asunto.');
+        mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
         return;
     }
     
     if (!terminoData.actuacion || !terminoData.fechaIngreso || !terminoData.fechaVencimiento) {
-        alert('Por favor, completa todos los campos obligatorios (Fecha Ingreso, Fecha Vencimiento y Actuación).');
+        mostrarMensajeGlobal('Por favor, completa todos los campos obligatorios.', 'danger');
         return;
     }
     
     if (new Date(terminoData.fechaVencimiento) <= new Date(terminoData.fechaIngreso)) {
-        alert('La fecha de vencimiento debe ser posterior a la fecha de ingreso.');
+        mostrarMensajeGlobal('La fecha de vencimiento debe ser posterior a la fecha de ingreso.', 'danger');
         return;
     }
     
     let terminos = JSON.parse(localStorage.getItem('terminos')) || [];
     
     if (isEditing) {
-        // Modo edición
         const index = TERMINOS.findIndex(t => t.id == terminoId);
         if (index !== -1) {
-            // Actualizar solo los campos editables
-            TERMINOS[index] = { 
-                ...TERMINOS[index], // Mantener datos existentes (id, estatus, acuses, etc.)
-                ...terminoData      // Sobrescribir con los datos del formulario
-            };
+            TERMINOS[index] = { ...TERMINOS[index], ...terminoData };
             TERMINOS[index].fechaModificacion = new Date().toISOString().split('T')[0];
             
-            // Actualizar en localStorage
             const localStorageIndex = terminos.findIndex(t => t.id == terminoId);
             if (localStorageIndex !== -1) {
                 terminos[localStorageIndex] = TERMINOS[index];
             }
-            
-            alert('Término actualizado exitosamente.');
+            mostrarMensajeGlobal('Término actualizado exitosamente.', 'success');
         } else {
-            alert('Error: No se encontró el término a editar.');
+            mostrarMensajeGlobal('Error: No se encontró el término a editar.', 'danger');
             return;
         }
     } else {
-        // Modo nuevo término
         terminoData.id = Date.now().toString();
         terminoData.fechaCreacion = new Date().toISOString().split('T')[0];
-        
-        // ===== NUEVO: Forzar estatus 'Proyectista' =====
         terminoData.estatus = 'Proyectista';
-        terminoData.observaciones = ''; // Inicializar vacío
-        terminoData.atendido = false; // Inicializar falso
-        terminoData.acuseDocumento = ''; // Inicializar vacío
-        terminoData.historialAcuses = []; // Inicializar array de historial
+        terminoData.observaciones = '';
+        terminoData.atendido = false;
+        terminoData.acuseDocumento = '';
+        terminoData.historialAcuses = [];
 
-        // Llenar datos del asunto para la tabla (esto es desnormalizado, pero tu diseño lo usa)
         const asunto = (JSON.parse(localStorage.getItem('asuntos')) || []).find(a => a.id === terminoData.asuntoId);
         if(asunto) {
             terminoData.expediente = asunto.expediente;
@@ -332,19 +303,16 @@ function guardarTermino() {
             terminoData.actor = asunto.partes;
             terminoData.tribunal = asunto.organoJurisdiccional;
             terminoData.prioridad = asunto.prioridad;
-            terminoData.asunto = terminoData.actuacion; // 'asunto' en la tabla es la 'actuacion'
-            terminoData.prestacion = asunto.tipoAsunto; // Mapear
+            terminoData.asunto = terminoData.actuacion;
+            terminoData.prestacion = asunto.tipoAsunto;
         }
         
-        // Agregar nuevo término
         terminos.push(terminoData);
         TERMINOS.push(terminoData);
-        
-        alert('Término guardado exitosamente.');
+        mostrarMensajeGlobal('Término guardado exitosamente.', 'success');
     }
     
     localStorage.setItem('terminos', JSON.stringify(terminos));
-    
     document.getElementById('form-termino').reset();
     limpiarCamposAutoLlenadosModal();
     
@@ -356,7 +324,7 @@ function guardarTermino() {
     }
 }
 
-// Función para configurar la subida de archivos en términos (ahora oculta)
+// Configuración de subida de archivos (para el modal principal, ahora oculto)
 function setupFileUploadTermino() {
     const fileInput = document.getElementById('acuse-documento');
     const fileName = document.getElementById('acuse-filename');
@@ -374,26 +342,25 @@ function setupFileUploadTermino() {
     }
 }
 
-// ===== MODIFICADO: Lógica del Semáforo =====
+// Lógica del Semáforo
 function getSemaforoStatus(fechaVencimiento) {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalizar 'hoy'
-    
+    today.setHours(0, 0, 0, 0); 
     const vencimiento = new Date(fechaVencimiento);
-    vencimiento.setHours(0, 0, 0, 0); // Normalizar 'vencimiento'
+    vencimiento.setHours(0, 0, 0, 0); 
     
     const diffTime = vencimiento - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
         return { color: 'vencido', class: 'semaforo-vencido', tooltip: `Vencido hace ${Math.abs(diffDays)} días` };
-    } else if (diffDays <= 2) { // 0, 1, 2 días
+    } else if (diffDays <= 2) {
         return { color: 'rojo', class: 'semaforo-rojo', tooltip: `Vence en ${diffDays} días` };
-    } else if (diffDays <= 7) { // 3 a 7 días
+    } else if (diffDays <= 7) {
         return { color: 'amarillo', class: 'semaforo-amarillo', tooltip: `Vence en ${diffDays} días` };
-    } else if (diffDays <= 30) { // 8 a 30 días
+    } else if (diffDays <= 30) {
         return { color: 'verde', class: 'semaforo-verde', tooltip: `Vence en ${diffDays} días` };
-    } else { // Más de 30 días
+    } else {
         return { color: 'azul', class: 'semaforo-azul', tooltip: `Vence en ${diffDays} días` };
     }
 }
@@ -404,123 +371,29 @@ let TERMINOS = [];
 function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     
-    // Datos de ejemplo
     if (TERMINOS.length === 0) {
         const localTerminos = JSON.parse(localStorage.getItem('terminos'));
         if (localTerminos && localTerminos.length > 0) {
             TERMINOS = localTerminos;
         } else {
-            // Si no hay nada en localStorage, cargar datos de ejemplo
             TERMINOS = [
-                {
-                    id: 1,
-                    asuntoId: '1698270123456', // ID de un asunto de ejemplo
-                    fechaIngreso: '2025-10-25',
-                    fechaVencimiento: '2025-11-12', // Vence en 2 días (Rojo)
-                    expediente: '2375/2025',
-                    actor: 'Ortega Ibarra Juan Carlos',
-                    asunto: 'Despido injustificado', // Este es 'actuacion'
-                    actuacion: 'Despido injustificado',
-                    prestacion: 'Reinstalación',
-                    tribunal: 'Primer Tribunal Colegiado en Materia Laboral',
-                    abogado: 'Lic. Martínez',
-                    estado: 'Ciudad de México',
-                    prioridad: 'Alta',
-                    estatus: 'Proyectista', // ESTADO
-                    materia: 'Laboral',
-                    acuseDocumento: '',
-                    historialAcuses: []
-                },
-                {
-                    id: 2,
-                    asuntoId: '1698270234567',
-                    fechaIngreso: '2025-10-28',
-                    fechaVencimiento: '2025-11-16', // Vence en 6 días (Amarillo)
-                    expediente: '2012/2025',
-                    actor: 'Valdez Sánchez María Elena',
-                    asunto: 'Amparo indirecto',
-                    actuacion: 'Amparo indirecto',
-                    prestacion: 'Suspensión definitiva',
-                    tribunal: 'Tercer Tribunal de Enjuiciamiento',
-                    abogado: 'Lic. González',
-                    estado: 'Jalisco',
-                    prioridad: 'Media',
-                    estatus: 'En Revision', // ESTADO
-                    materia: 'Amparo',
-                    acuseDocumento: '',
-                    historialAcuses: []
-                },
-                {
-                    id: 3,
-                    asuntoId: '1698270345678',
-                    fechaIngreso: '2025-11-01',
-                    fechaVencimiento: '2025-11-20', // Vence en 10 días (Verde)
-                    expediente: '2413/2025',
-                    actor: 'García López Ana María',
-                    asunto: 'Rescisión laboral',
-                    actuacion: 'Rescisión laboral',
-                    prestacion: 'Indemnización',
-                    tribunal: 'Segundo Tribunal Laboral',
-                    abogado: 'Lic. Rodríguez',
-                    estado: 'Nuevo León',
-                    prioridad: 'Alta',
-                    estatus: 'Aprobado', // ESTADO
-                    materia: 'Laboral',
-                    acuseDocumento: '',
-                    historialAcuses: []
-                },
-                {
-                    id: 4,
-                    asuntoId: '1698270456789',
-                    fechaIngreso: '2025-10-20',
-                    fechaVencimiento: '2025-12-15', // Vence en > 1 mes (Azul)
-                    expediente: '1987/2025',
-                    actor: 'Martínez Pérez Carlos',
-                    asunto: 'Amparo laboral',
-                    actuacion: 'Amparo laboral',
-                    prestacion: 'Reinstalación',
-                    tribunal: 'Cuarto Tribunal Colegiado',
-                    abogado: 'Lic. Hernández',
-                    estado: 'Jalisco',
-                    prioridad: 'Baja',
-                    estatus: 'Presentado', // ESTADO
-                    materia: 'Amparo',
-                    acuseDocumento: 'Acuse_1987-2025.pdf',
-                    historialAcuses: ['Acuse_viejo_1987.pdf']
-                },
-                {
-                    id: 5,
-                    asuntoId: '1698270567890',
-                    fechaIngreso: '2025-10-01',
-                    fechaVencimiento: '2025-11-01', // Vencido (Vencido)
-                    expediente: '1010/2025',
-                    actor: 'Soto Reyna Luisa',
-                    asunto: 'Cierre de caso',
-                    actuacion: 'Cierre de caso',
-                    prestacion: 'Finiquito',
-                    tribunal: 'Quinto Tribunal Civil',
-                    abogado: 'Lic. Sánchez',
-                    estado: 'Puebla',
-                    prioridad: 'Media',
-                    estatus: 'Liberado', // ESTADO
-                    materia: 'Civil',
-                    acuseDocumento: 'Acuse_FIN_1010.pdf',
-                    historialAcuses: []
-                }
+                { id: 1, asuntoId: '1698270123456', fechaIngreso: '2025-10-25', fechaVencimiento: '2025-11-12', expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', actuacion: 'Despido injustificado', prestacion: 'Reinstalación', tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
+                { id: 2, asuntoId: '1698270234567', fechaIngreso: '2025-10-28', fechaVencimiento: '2025-11-16', expediente: '2012/2025', actor: 'Valdez Sánchez María Elena', asunto: 'Amparo indirecto', actuacion: 'Amparo indirecto', prestacion: 'Suspensión definitiva', tribunal: 'Tercer Tribunal de Enjuiciamiento', abogado: 'Lic. González', estado: 'Jalisco', prioridad: 'Media', estatus: 'En Revision', materia: 'Amparo', acuseDocumento: '', historialAcuses: [] },
+                { id: 3, asuntoId: '1698270345678', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-20', expediente: '2413/2025', actor: 'García López Ana María', asunto: 'Rescisión laboral', actuacion: 'Rescisión laboral', prestacion: 'Indemnización', tribunal: 'Segundo Tribunal Laboral', abogado: 'Lic. Rodríguez', estado: 'Nuevo León', prioridad: 'Alta', estatus: 'Aprobado', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
+                { id: 4, asuntoId: '1698270456789', fechaIngreso: '2025-10-20', fechaVencimiento: '2025-12-15', expediente: '1987/2025', actor: 'Martínez Pérez Carlos', asunto: 'Amparo laboral', actuacion: 'Amparo laboral', prestacion: 'Reinstalación', tribunal: 'Cuarto Tribunal Colegiado', abogado: 'Lic. Hernández', estado: 'Jalisco', prioridad: 'Baja', estatus: 'Presentado', materia: 'Amparo', acuseDocumento: 'Acuse_1987-2025.pdf', historialAcuses: ['Acuse_viejo_1987.pdf'] },
+                { id: 5, asuntoId: '1698270567890', fechaIngreso: '2025-10-01', fechaVencimiento: '2025-11-01', expediente: '1010/2025', actor: 'Soto Reyna Luisa', asunto: 'Cierre de caso', actuacion: 'Cierre de caso', prestacion: 'Finiquito', tribunal: 'Quinto Tribunal Civil', abogado: 'Lic. Sánchez', estado: 'Puebla', prioridad: 'Media', estatus: 'Liberado', materia: 'Civil', acuseDocumento: 'Acuse_FIN_1010.pdf', historialAcuses: [] }
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
     }
     
     let html = '';
-    // Aplicar filtros antes de renderizar
     const filtros = getFiltrosAplicados();
     const terminosFiltrados = filtrarTerminos(TERMINOS, filtros);
 
     terminosFiltrados.forEach(termino => {
         const fechaIngresoClass = isToday(termino.fechaIngreso) ? 'current-date' : '';
         const fechaVencimientoClass = isToday(termino.fechaVencimiento) ? 'current-date' : '';
-        
         const semaforoStatus = getSemaforoStatus(termino.fechaVencimiento);
         
         html += `
@@ -559,11 +432,10 @@ function loadTerminos() {
     tbody.innerHTML = html;
 }
 
-// ===== MODIFICADO: generarAccionesRapidas con nuevas opciones =====
+// Generador de menú de acciones rápidas
 function generarAccionesRapidas(termino, rol) {
     let accionesHTML = '';
     
-    // --- ACCIONES DE NAVEGACIÓN Y AUDITORÍA (CASI TODOS) ---
     accionesHTML += `<a href="#" class="action-item action-view-asunto" title="Ver el asunto principal">
                         <i class="fas fa-briefcase"></i> Ver Asunto
                     </a>`;
@@ -571,7 +443,6 @@ function generarAccionesRapidas(termino, rol) {
                         <i class="fas fa-eye"></i> Ver Historial
                     </a>`;
 
-    // --- ACCIONES DE WORKFLOW (Dependen del estado) ---
     switch (termino.estatus) {
         case 'Proyectista':
             if (rol === 'Abogado' || rol === 'Gerente' || rol === 'Direccion') {
@@ -609,14 +480,12 @@ function generarAccionesRapidas(termino, rol) {
             break;
     }
     
-    // --- ACCIONES DE GESTIÓN (Dependen del Rol) ---
     if (rol === 'Gerente' || rol === 'Direccion') {
          accionesHTML += `<a href="#" class="action-item action-reasignar" title="Asignar a otro abogado">
                             <i class="fas fa-user-friends"></i> Reasignar
                         </a>`;
     }
     
-    // --- ACCIONES DE ACUSE (Si existen) ---
     if (termino.acuseDocumento) {
         accionesHTML += `<a href="#" class="action-item action-download-acuse" title="Descargar acuse actual">
                             <i class="fas fa-download"></i> Ver Acuse Actual
@@ -628,21 +497,19 @@ function generarAccionesRapidas(termino, rol) {
                         </a>`;
     }
 
-    // --- ACCIÓN DE PELIGRO (Solo Dirección) ---
     if (rol === 'Direccion') {
-        accionesHTML += `<div class="action-divider"></div>`; // Separador visual
+        accionesHTML += `<div class="action-divider"></div>`;
         accionesHTML += `<a href="#" class="action-item action-delete danger-action" title="Eliminar este término">
                             <i class="fas fa-trash-alt"></i> Eliminar Término
                         </a>`;
     }
     
-    // Input de archivo oculto
     accionesHTML += `<input type="file" class="input-acuse-hidden" data-id="${termino.id}" accept=".pdf,.doc,.docx" style="display:none;">`;
 
     return accionesHTML;
 }
 
-// ===== MODIFICADO: setupActionMenuListener con nuevos handlers =====
+// Listener de delegación para todas las acciones
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if (!tbody) return;
@@ -673,19 +540,15 @@ function setupActionMenuListener() {
         if (target.classList.contains('action-edit')) {
             openTerminoModalJS(termino);
         }
-        
-        // --- NUEVAS ACCIONES ---
         if (target.classList.contains('action-view-asunto')) {
             verDetallesAsunto(termino.asuntoId);
         }
         if (target.classList.contains('action-reasignar')) {
-            abrirModalReasignar(id);
+            abrirModalReasignar(id); // <-- MODIFICADO
         }
         if (target.classList.contains('action-delete')) {
             eliminarTermino(id);
         }
-        // --- FIN NUEVAS ACCIONES ---
-        
         if (target.classList.contains('action-history')) {
             verHistorial(id);
         }
@@ -734,45 +597,138 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// ===== STUBS (PLANTILLAS) PARA NUEVAS FUNCIONES =====
+// ===== FUNCIONES PARA NUEVO MODAL REASIGNAR =====
+// ===============================================
+
+function initModalReasignar() {
+    const modal = document.getElementById('modal-reasignar');
+    if (!modal) return;
+
+    const btnClose = document.getElementById('close-modal-reasignar');
+    const btnCancel = document.getElementById('cancel-reasignar');
+    const btnSave = document.getElementById('save-reasignar');
+
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.getElementById('form-reasignar').reset();
+    };
+
+    if (btnClose) btnClose.onclick = closeModal;
+    if (btnCancel) btnCancel.onclick = closeModal;
+
+    if (btnSave) {
+        btnSave.onclick = function() {
+            const terminoId = document.getElementById('reasignar-termino-id').value;
+            const nuevoAbogadoSelect = document.getElementById('select-nuevo-abogado');
+            
+            // Obtenemos el TEXTO (nombre) del abogado seleccionado
+            const nuevoAbogadoNombre = nuevoAbogadoSelect.options[nuevoAbogadoSelect.selectedIndex].text;
+            
+            if (!nuevoAbogadoSelect.value) { // Validar que se haya seleccionado uno
+                mostrarMensajeGlobal('Por favor, seleccione un nuevo abogado.', 'danger');
+                return;
+            }
+            
+            guardarReasignacion(terminoId, nuevoAbogadoNombre);
+            closeModal();
+        };
+    }
+    
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+}
+
+function cargarAbogadosSelector() {
+    const selector = document.getElementById('select-nuevo-abogado');
+    if (!selector) return;
+
+    // --- SIMULACIÓN ---
+    // En un futuro, esto vendría de tu tabla `Usuarios`
+    // const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    const usuarios = [
+        { id: 'user1', nombre: 'Lic. Martínez' },
+        { id: 'user2', nombre: 'Lic. González' },
+        { id: 'user3', nombre: 'Lic. Rodríguez' },
+        { id: 'user4', nombre: 'Lic. Hernández' },
+        { id: 'user5', nombre: 'Lic. Sánchez' },
+        { id: 'user6', nombre: 'Lic. Pérez (Nuevo)' }
+    ];
+    // --- FIN SIMULACIÓN ---
+    
+    selector.innerHTML = '<option value="">Seleccione un abogado...</option>'; // Limpiar
+    
+    usuarios.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id; // Usar el ID
+        option.textContent = user.nombre; // Mostrar el Nombre
+        selector.appendChild(option);
+    });
+}
+
+function abrirModalReasignar(terminoId) {
+    const modal = document.getElementById('modal-reasignar');
+    if (!modal) {
+        console.error('Modal de reasignar no encontrado');
+        return;
+    }
+
+    const termino = TERMINOS.find(t => t.id == terminoId);
+    if (!termino) {
+        mostrarMensajeGlobal('Error: No se encontró el término.', 'danger');
+        return;
+    }
+
+    // 1. Cargar la lista de abogados en el selector
+    cargarAbogadosSelector();
+
+    // 2. Llenar la info actual en el modal
+    document.getElementById('reasignar-termino-id').value = terminoId;
+    document.getElementById('reasignar-actuacion').value = termino.asunto || 'N/A';
+    document.getElementById('reasignar-abogado-actual').value = termino.abogado || 'No asignado';
+    
+    // 3. Mostrar el modal
+    modal.style.display = 'flex';
+}
+
+function guardarReasignacion(terminoId, nuevoAbogadoNombre) {
+    const termino = TERMINOS.find(t => t.id == terminoId);
+    if (!termino) return;
+
+    console.log(`Reasignando término ID ${terminoId} a: ${nuevoAbogadoNombre}`);
+
+    // Lógica de actualización
+    const index = TERMINOS.findIndex(t => t.id == terminoId);
+    TERMINOS[index].abogado = nuevoAbogadoNombre;
+    
+    // Persistir en localStorage
+    let terminosLS = JSON.parse(localStorage.getItem('terminos'));
+    const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
+    terminosLS[lsIndex].abogado = nuevoAbogadoNombre;
+    localStorage.setItem('terminos', JSON.stringify(terminosLS));
+    
+    // (Simulación de log)
+    actualizarEstatusTermino(terminoId, termino.estatus, `Reasignado a ${nuevoAbogadoNombre} por ${USER_ROLE}`);
+    
+    mostrarMensajeGlobal('Término reasignado exitosamente', 'success');
+    // No es necesario llamar a loadTerminos(), porque actualizarEstatusTermino() ya lo hace.
+}
+
+// ===============================================
+// ===== FUNCIONES DE ACCIÓN (STUBS Y REALES) =====
 // ===============================================
 
 function verDetallesAsunto(asuntoId) {
     if (!asuntoId) {
-        alert('Error: Este término no tiene un asunto asociado.');
+        mostrarMensajeGlobal('Error: Este término no tiene un asunto asociado.', 'danger');
         return;
     }
     // Asumiendo que tu página de detalles se llama 'asuntos-detalle.html'
     // y recibe el ID por la URL.
     console.log(`Redirigiendo a detalles del asunto ID: ${asuntoId}`);
     window.location.href = `asuntos-detalle.html?id=${asuntoId}`;
-}
-
-function abrirModalReasignar(terminoId) {
-    // Aquí crearías un nuevo modal, más simple
-    const termino = TERMINOS.find(t => t.id == terminoId);
-    
-    // (Simulación con un prompt)
-    const abogadosDisponibles = "Lista de abogados: 1=Lic. Pérez, 2=Lic. Garza, 3=Lic. Soto";
-    const nuevoAbogado = prompt(`Reasignar término: "${termino.asunto}" (Actual: ${termino.abogado})\n\n${abogadosDisponibles}\n\nIngrese el nombre del nuevo abogado:`);
-    
-    if (nuevoAbogado && nuevoAbogado.trim() !== '') {
-        // Lógica de actualización
-        const index = TERMINOS.findIndex(t => t.id == terminoId);
-        TERMINOS[index].abogado = nuevoAbogado.trim();
-        
-        // Persistir en localStorage
-        let terminosLS = JSON.parse(localStorage.getItem('terminos'));
-        const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
-        terminosLS[lsIndex].abogado = nuevoAbogado.trim();
-        localStorage.setItem('terminos', JSON.stringify(terminosLS));
-        
-        // (Simulación de log)
-        actualizarEstatusTermino(terminoId, termino.estatus, `Reasignado a ${nuevoAbogado} por ${USER_ROLE}`);
-        
-        alert('Término reasignado.');
-        loadTerminos(); // Recargar la tabla
-    }
 }
 
 function eliminarTermino(terminoId) {
@@ -782,22 +738,16 @@ function eliminarTermino(terminoId) {
     if (confirmacion) {
         console.log(`Eliminando término ID: ${terminoId}`);
         
-        // Eliminar del array en memoria
         TERMINOS = TERMINOS.filter(t => t.id != terminoId);
         
-        // Eliminar de localStorage
         let terminosLS = JSON.parse(localStorage.getItem('terminos'));
         terminosLS = terminosLS.filter(t => t.id != terminoId);
         localStorage.setItem('terminos', JSON.stringify(terminosLS));
         
-        alert('Término eliminado.');
+        mostrarMensajeGlobal('Término eliminado.', 'success');
         loadTerminos(); // Recargar la tabla
     }
 }
-
-// ===============================================
-// ===== FUNCIONES DE ACCIÓN (NUEVAS Y MODIFICADAS) =====
-// ===============================================
 
 function verHistorial(id) {
     alert(`(Simulación) Viendo historial para el término ID: ${id}. Aquí se mostraría un modal con la tabla 'Historial_Terminos'.`);
@@ -808,7 +758,7 @@ function verHistorialAcuses(id) {
     if (termino && termino.historialAcuses.length > 0) {
         alert(`(Simulación) Historial de Acuses para ID ${id}:\n\n- ${termino.historialAcuses.join('\n- ')}`);
     } else {
-        alert('Este término no tiene historial de acuses.');
+        mostrarMensajeGlobal('Este término no tiene historial de acuses.', 'info');
     }
 }
 
@@ -845,13 +795,11 @@ function subirAcuse(id, file) {
         console.log(`Acuse anterior '${termino.acuseDocumento}' guardado en historial.`);
     }
     
-    // Asignar el nuevo acuse
     termino.acuseDocumento = nuevoNombreArchivo;
     
-    // Cambiar estatus a 'Presentado'
     actualizarEstatusTermino(id, 'Presentado', `Nuevo acuse '${nuevoNombreArchivo}' subido por ${USER_ROLE}`);
     
-    alert(`Acuse '${nuevoNombreArchivo}' subido. El término ahora está 'Presentado'.`);
+    mostrarMensajeGlobal(`Acuse '${nuevoNombreArchivo}' subido. El término ahora está 'Presentado'.`, 'success');
 }
 
 // Función genérica para actualizar estatus y persistir
@@ -859,15 +807,12 @@ function actualizarEstatusTermino(terminoId, nuevoEstatus, log) {
     const index = TERMINOS.findIndex(t => t.id == terminoId);
     if (index === -1) return;
 
-    // Actualizar objeto en memoria
     TERMINOS[index].estatus = nuevoEstatus;
     
-    // (Simulación de log de auditoría)
     if (!TERMINOS[index].log) TERMINOS[index].log = [];
     TERMINOS[index].log.push({ fecha: new Date().toISOString(), accion: log });
     console.log(log);
 
-    // Persistir en localStorage
     let terminosLS = JSON.parse(localStorage.getItem('terminos')) || [];
     const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
     if (lsIndex !== -1) {
@@ -875,10 +820,11 @@ function actualizarEstatusTermino(terminoId, nuevoEstatus, log) {
         localStorage.setItem('terminos', JSON.stringify(terminosLS));
     }
 
-    // Recargar la tabla para reflejar el cambio
     loadTerminos();
 }
 
+// ===============================================
+// ===== FUNCIONES DE FILTROS Y BÚSQUEDA =====
 // ===============================================
 
 function setupSearchTerminos() {
@@ -900,7 +846,6 @@ function setupFiltersTerminos() {
     });
 }
 
-// ===== MODIFICADO: Funciones de filtrado =====
 function getFiltrosAplicados() {
     return {
         tribunal: document.getElementById('filter-tribunal-termino').value.trim().toLowerCase(),
@@ -920,7 +865,6 @@ function filtrarTerminos(terminos, filtros) {
         const rowPrioridad = (termino.prioridad || '');
         const rowMateria = (termino.materia || '');
         
-        // Combinar todos los campos de texto para la búsqueda global
         const rowText = [
             rowTribunal, rowEstado, rowEstatus, rowPrioridad, rowMateria,
             (termino.expediente || ''),
@@ -942,7 +886,6 @@ function filtrarTerminos(terminos, filtros) {
 }
 
 function applyFiltersTerminos() {
-    // Esta función ahora solo llama a loadTerminos, que contiene la lógica de filtrado
     loadTerminos();
 }
 // ===============================================
@@ -1243,7 +1186,7 @@ function isToday(dateString) {
     return dateString === today;
 }
 
-// ===== MODIFICADO: Renombrado a 'Liberar' =====
+// Modal de Liberar Término
 function initModalLiberarTermino() {
     const modal = document.getElementById('modal-presentar-termino');
     const btnCerrar = document.getElementById('close-modal-presentar');
@@ -1275,7 +1218,7 @@ function initModalLiberarTermino() {
             const observaciones = document.getElementById('observaciones-presentacion').value.trim();
             
             if (!observaciones) {
-                alert('Las observaciones son obligatorias para liberar el término');
+                mostrarMensajeGlobal('Las observaciones son obligatorias para liberar el término', 'danger');
                 return;
             }
             
@@ -1287,9 +1230,8 @@ function initModalLiberarTermino() {
 function abrirModalLiberarTermino(terminoId) {
     console.log('Abriendo modal para LIBERAR término ID:', terminoId); 
     
-    // ===== NUEVO: Chequeo de Rol =====
     if (USER_ROLE !== 'Direccion') {
-        alert('Acción no permitida. Solo "Direccion" puede liberar términos.');
+        mostrarMensajeGlobal('Acción no permitida. Solo "Direccion" puede liberar términos.', 'danger');
         return;
     }
 
@@ -1320,30 +1262,25 @@ function abrirModalLiberarTermino(terminoId) {
 function liberarTermino(terminoId, observaciones) {
     console.log('Liberando término:', terminoId, 'Observaciones:', observaciones);
     
-    // Actualizar estatus y guardar observaciones
     const index = TERMINOS.findIndex(t => t.id == terminoId);
     if (index !== -1) {
-        TERMINOS[index].observaciones = observaciones; // Guardar observaciones
+        TERMINOS[index].observaciones = observaciones;
     }
     
     actualizarEstatusTermino(terminoId, 'Liberado', `Término liberado por ${USER_ROLE}. Obs: ${observaciones}`);
 
-    // Mostrar mensaje de éxito
     mostrarMensajeGlobal(`Término ${terminoId} liberado correctamente`, 'success');
           
-    // Cerrar modal
     const modal = document.getElementById('modal-presentar-termino');
     const observacionesField = document.getElementById('observaciones-presentacion');
     if (modal) modal.style.display = 'none';
     if (observacionesField) observacionesField.value = '';
-    
-    // Recargar la tabla (ya lo hace actualizarEstatusTermino)
 }
 
 // Función global para descargar acuse
 function descargarAcuse(nombreArchivo, expediente) {
     if (!nombreArchivo) {
-        alert('Este término no tiene un acuse para descargar.');
+        mostrarMensajeGlobal('Este término no tiene un acuse para descargar.', 'info');
         return;
     }
     console.log('📥 Descargando acuse:', nombreArchivo, 'para expediente:', expediente);
@@ -1359,14 +1296,31 @@ function descargarAcuse(nombreArchivo, expediente) {
 // Función de utilidad para mensajes
 function mostrarMensajeGlobal(mensaje, tipo = 'success') {
     const msgDiv = document.createElement('div');
+    // Asignar clase de alerta base y clase de tipo específico
     msgDiv.className = `alert alert-${tipo}`;
-    msgDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 15px; border-radius: 5px;';
+    // Estilos para posicionarlo
+    msgDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 15px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);';
+    
+    // Asignar colores de fondo y texto basados en el tipo (¡Usando tus variables CSS!)
+    if (tipo === 'success') {
+        msgDiv.style.backgroundColor = '#d4edda';
+        msgDiv.style.color = '#155724';
+        msgDiv.style.borderColor = '#c3e6cb';
+    } else if (tipo === 'danger') {
+        msgDiv.style.backgroundColor = '#f8d7da';
+        msgDiv.style.color = '#721c24';
+        msgDiv.style.borderColor = '#f5c6cb';
+    } else { // 'info' o default
+        msgDiv.style.backgroundColor = '#d1ecf1';
+        msgDiv.style.color = '#0c5460';
+        msgDiv.style.borderColor = '#bee5eb';
+    }
+    
     msgDiv.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${mensaje}`;
     document.body.appendChild(msgDiv);
     
     setTimeout(() => {
         if (msgDiv.parentNode) {
-            // Corrección de un pequeño typo que tenías en el código anterior (msgSgDiv -> msgDiv)
             msgDiv.parentNode.removeChild(msgDiv); 
         }
     }, 3000);

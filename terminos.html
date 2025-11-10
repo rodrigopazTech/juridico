@@ -6,7 +6,6 @@
     <title>Términos - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Librería XLSX para exportar a Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
@@ -53,13 +52,11 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar de navegación -->
     <div id="sidebar-container"></div>
         
         
     </div>
     
-    <!-- Contenido principal -->
     <div class="main-content">
         <div class="container">
             <header>
@@ -71,7 +68,6 @@
                 </div>
             </header>
             
-            <!-- Tabla de Términos -->
             <div class="tab-content active" id="terminos">
                 <div class="toolbar">
                     <div class="search-box">
@@ -88,7 +84,6 @@
                     </div>
                 </div>
                 
-                <!-- Filtros para términos -->
                 <div class="filters">
                     <div class="filters-title">
                         <i class="fas fa-filter"></i> Filtros de Términos
@@ -102,8 +97,7 @@
                                        placeholder="Buscar tribunal o agregar nuevo..."
                                        autocomplete="off">
                                 <div class="tribunal-suggestions" id="tribunal-suggestions">
-                                    <!-- Las sugerencias aparecerán aquí -->
-                                </div>
+                                    </div>
                                 <button type="button" class="btn-clear-tribunal" id="clear-tribunal" title="Limpiar filtro">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -117,8 +111,7 @@
                                        placeholder="Buscar estado..."
                                        autocomplete="off">
                                 <div class="estado-suggestions" id="estado-suggestions">
-                                    <!-- Las sugerencias aparecerán aquí -->
-                                </div>
+                                    </div>
                                 <button type="button" class="btn-clear-estado" id="clear-estado" title="Limpiar filtro">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -129,9 +122,10 @@
                             <select id="filter-estatus-termino">
                                 <option value="">Todos los estatus</option>
                                 <option value="Proyectista">Proyectista</option>
-                                <option value="Liberado">Liberado</option>
-                                <option value="Revisión">Revisión</option>
+                                <option value="En Revision">En Revisión</option>
+                                <option value="Aprobado">Aprobado</option>
                                 <option value="Presentado">Presentado</option>
+                                <option value="Liberado">Liberado</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -178,15 +172,223 @@
                             </tr>
                         </thead>
                         <tbody id="terminos-body">
-                            <!-- Los datos se cargarán dinámicamente -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
     
-<script src="js/excel-export.js"></script>
+    <div class="modal" id="modal-termino">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-termino-title">Nuevo Término</h2>
+                <button class="btn btn-danger" id="close-modal-termino">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-termino">
+                    <input type="hidden" id="termino-id">
+                    <input type="hidden" id="termino-asunto-id">
+                    
+                    <fieldset class="asunto-selector-section">
+                        <legend>Seleccionar Asunto</legend>
+                        
+                        <div class="form-group">
+                            <label for="asunto-selector">Asunto*</label>
+                            <select id="asunto-selector" required>
+                                <option value="">Seleccionar Asunto</option>
+                            </select>
+                            <small class="form-text">Selecciona el asunto al que pertenece este término. Los datos se llenarán automáticamente.</small>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="auto-filled-section">
+                        <legend>Datos del Asunto (Auto-llenados)</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-expediente">Expediente</label>
+                                <input type="text" id="termino-expediente" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-materia">Materia</label>
+                                <input type="text" id="termino-materia" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-gerencia">Gerencia (Estado)</label>
+                                <input type="text" id="termino-gerencia" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-abogado">Abogado Responsable</label>
+                                <input type="text" id="termino-abogado" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-partes">Partes Procesales</label>
+                            <input type="text" id="termino-partes" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-tipo-asunto">Tipo de Asunto (Prestación/Procedimiento)</label>
+                            <input type="text" id="termino-tipo-asunto" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-organo">Órgano Jurisdiccional</label>
+                                <input type="text" id="termino-organo" placeholder="Puede editarse si es necesario">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-prioridad">Prioridad del Asunto</label>
+                                <input type="text" id="termino-prioridad" readonly class="readonly-field">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="user-input-section">
+                        <legend>Datos Específicos del Término</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fecha-ingreso">Fecha de Ingreso*</label>
+                                <input type="date" id="fecha-ingreso" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha-vencimiento">Fecha de Vencimiento*</label>
+                                <input type="date" id="fecha-vencimiento" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
+                            <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
+                        </div>
+                        
+                        <div class="form-row" style="display: none;">
+                            <div class="form-group">
+                                <label for="etapa-revision">Etapa de Revisión*</label>
+                                <select id="etapa-revision" required>
+                                    <option value="">Seleccione etapa</option>
+                                    <option value="Proyectista">Proyectista</option>
+                                    <option value="Liberado">Liberado</option>
+                                    <option value="Revisión">Revisión</option>
+                                    <option value="Presentado">Presentado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="atendido">¿Atendido?</label>
+                                <select id="atendido">
+                                    <option value="false">No</option>
+                                    <option value="true">Sí</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label for="acuse-documento">Acuse (Subir Documento)</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
+                                <label for="acuse-documento" class="file-upload-btn">
+                                    <i class="fas fa-file-upload"></i>
+                                    Subir Acuse del Término
+                                </label>
+                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label for="observaciones">Observaciones</label>
+                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordatorio-dias">Recordatorio Días Antes</label>
+                                <input type="number" id="recordatorio-dias" min="1" value="1" placeholder="Ej. 7 días">
+                                <small>Por defecto: 1 día antes</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordatorio-horas">Recordatorio Horas Antes</label>
+                                <input type="number" id="recordatorio-horas" min="1" value="2" placeholder="Ej. 24 horas">
+                                <small>Por defecto: 2 horas antes</small>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-termino">Cancelar</button>
+                <button class="btn btn-success" id="save-termino">Guardar Término</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-presentar-termino">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Presentar Término</h2>
+                <button class="btn btn-danger" id="close-modal-presentar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="presentar-termino-id">
+                <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
+                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
+                </div>
+                <div class="form-group">
+                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
+                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
+                    <small>Las observaciones son obligatorias para presentar el término</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
+                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-reasignar">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="modal-reasignar-title">Reasignar Término</h2>
+                <button class="btn btn-danger" id="close-modal-reasignar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reasignar">
+                    <input type="hidden" id="reasignar-termino-id">
+                    
+                    <div class="form-group">
+                        <label>Término (Actuación):</label>
+                        <input type="text" id="reasignar-actuacion" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Abogado Actual:</label>
+                        <input type="text" id="reasignar-abogado-actual" readonly class="readonly-field">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="select-nuevo-abogado">Asignar a (Nuevo Abogado):*</label>
+                        <select id="select-nuevo-abogado" required>
+                            <option value="">Seleccione un abogado...</option>
+                            </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
+                <button class="btn btn-success" id="save-reasignar">Confirmar Reasignación</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/excel-export.js"></script>
     <script src="js/notificaciones.js"></script>
     <script src="js/components.js"></script>
     
@@ -227,8 +429,5 @@
             }
         }
     </script>
-</body>
+    </body>
 </html>
-</body>
-</html>
-

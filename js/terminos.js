@@ -31,6 +31,9 @@ const estadosMexico = [
     'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
 ];
 
+// Estado global simple
+let TERMINOS = [];
+
 function initTerminos() {
     // Cargar datos de términos
     loadTerminos();
@@ -50,7 +53,7 @@ function initTerminos() {
     // Inicializar todos los modales
     initModalLiberarTermino();
     initModalTerminosJS();
-    initModalReasignar(); // <-- NUEVO
+    initModalReasignar();
     
     // Configurar subida de archivos
     setupFileUploadTermino();
@@ -365,9 +368,6 @@ function getSemaforoStatus(fechaVencimiento) {
     }
 }
 
-// Estado global simple
-let TERMINOS = [];
-
 function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     
@@ -396,6 +396,18 @@ function loadTerminos() {
         const fechaVencimientoClass = isToday(termino.fechaVencimiento) ? 'current-date' : '';
         const semaforoStatus = getSemaforoStatus(termino.fechaVencimiento);
         
+        // Función para obtener la clase CSS según el estado
+        function getEstadoClass(estatus) {
+            const estatusMap = {
+                'Proyectista': 'estado-proyectista',
+                'En Revision': 'estado-revision',
+                'Aprobado': 'estado-aprobado',
+                'Presentado': 'estado-presentado',
+                'Liberado': 'estado-liberado'
+            };
+            return estatusMap[estatus] || 'estado-default';
+        }
+        
         html += `
             <tr data-id="${termino.id}" data-tribunal="${termino.tribunal}" data-estado="${termino.estado || termino.gerencia}" data-estatus="${termino.estatus}" data-prioridad="${termino.prioridad}" data-materia="${termino.materia}">
                 <td class="${fechaIngresoClass}">
@@ -411,6 +423,13 @@ function loadTerminos() {
                 <td>${termino.prestacion}</td>
                 <td>${termino.abogado}</td>
                 
+                <!-- NUEVA COLUMNA: ESTADO ACTUAL -->
+                <td>
+                    <span class="badge-estado ${getEstadoClass(termino.estatus)}">
+                        ${termino.estatus}
+                    </span>
+                </td>
+                
                 <td class="actions">
                     <button class="btn btn-primary btn-sm action-edit" title="Editar término">
                         <i class="fas fa-edit"></i>
@@ -425,7 +444,7 @@ function loadTerminos() {
                         </div>
                     </div>
                 </td>
-                </tr>
+            </tr>
         `;
     });
     
@@ -544,7 +563,7 @@ function setupActionMenuListener() {
             verDetallesAsunto(termino.asuntoId);
         }
         if (target.classList.contains('action-reasignar')) {
-            abrirModalReasignar(id); // <-- MODIFICADO
+            abrirModalReasignar(id);
         }
         if (target.classList.contains('action-delete')) {
             eliminarTermino(id);
@@ -888,10 +907,8 @@ function filtrarTerminos(terminos, filtros) {
 function applyFiltersTerminos() {
     loadTerminos();
 }
-// ===============================================
 
 function setupTribunalSearch() {
-    // ... (Tu código de setupTribunalSearch existente, no necesita cambios)
     const input = document.getElementById('filter-tribunal-termino');
     const suggestionsDiv = document.getElementById('tribunal-suggestions');
     const clearBtn = document.getElementById('clear-tribunal');
@@ -1042,7 +1059,6 @@ function setupTribunalSearch() {
 }
 
 function setupEstadoSearch() {
-    // ... (Tu código de setupEstadoSearch existente, no necesita cambios)
     const input = document.getElementById('filter-estado-termino');
     const suggestionsDiv = document.getElementById('estado-suggestions');
     const clearBtn = document.getElementById('clear-estado');

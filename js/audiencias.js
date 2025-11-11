@@ -1,6 +1,9 @@
-// ===============================
-// Audiencias - JS fusionado
-// ===============================
+// js/audiencias.js
+
+// Simula el rol del usuario logueado.
+// Cambia este valor para probar los permisos:
+// 'Abogado' | 'Gerente' | 'Direccion'
+const USER_ROLE = 'Abogado'; 
 
 // Lista de estados mexicanos para el filtro de gerencias
 const estadosMexicoAudiencias = [
@@ -14,6 +17,18 @@ const estadosMexicoAudiencias = [
 // Estado global simple
 let AUDIENCIAS = [];
 
+// Lista simulada de abogados (para reasignar y modal)
+const LISTA_ABOGADOS = [
+    'Lic. María González Ruiz',
+    'Lic. Carlos Hernández López',
+    'Lic. Ana Patricia Morales',
+    'Lic. Roberto Silva Martínez',
+    'Lic. Sandra Jiménez Castro',
+    'Lic. Fernando Ramírez Torres',
+    'Lic. Carmen Delgado Vázquez',
+    'Lic. Alejandro Mendoza Ruiz'
+];
+
 // -------------------------------
 // Utilidades
 // -------------------------------
@@ -22,8 +37,10 @@ function caseInsensitiveIncludes(haystack, needle){
 }
 
 function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString + 'T00:00:00-06:00');
   const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-  return new Date(dateString).toLocaleDateString('es-ES', options);
+  return date.toLocaleDateString('es-ES', options);
 }
 
 function formatDateTime(ts) {
@@ -50,8 +67,10 @@ function getSemaforoStatusAudiencia(fecha, hora) {
   const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
   const diffDays  = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffHours <= 24) {
-    return { color: 'rojo', class: 'semaforo-rojo', tooltip: diffHours <= 0 ? 'En curso o pasada' : `En ${diffHours} horas` };
+  if (diffHours <= 0) {
+      return { color: 'vencido', class: 'semaforo-vencido', tooltip: 'En curso o pasada' };
+  } else if (diffHours <= 24) {
+    return { color: 'rojo', class: 'semaforo-rojo', tooltip: `En ${diffHours} horas` };
   } else if (diffDays <= 3) {
     return { color: 'amarillo', class: 'semaforo-amarillo', tooltip: `En ${diffDays} días` };
   } else {
@@ -63,13 +82,32 @@ function getSemaforoStatusAudiencia(fecha, hora) {
 // Inicialización principal
 // -------------------------------
 function initAudiencias() {
+  console.log('Inicializando módulo de audiencias...');
+  
+  // Carga de datos inicial
   loadAudiencias();
+  
+  // Inicializar TODOS los modales primero
+  initModalAudiencias();
+  initModalComentarios();
+  initModalFinalizarAudiencia();
+  initModalHistorialCambios();
+  initGestionTiposAudiencia();
+  initModalReasignarAudiencia();
+
+  // Configurar componentes de UI
   setupSearch();
   setupFilters();
   setupGerenciaSearch();
-  setupExpedienteSearch();
   setupAsuntoSelectorAudiencia();
-  setupFileUploadAudiencia(); // del modal (acta-audiencia)
+  setupFileUploadAudiencia();
+  setupActionMenuListenerAudiencia();
+  
+  // Poblar selectores
+  renderTipoOptions();
+  cargarAbogadosSelects();
+  
+  console.log('Módulo de audiencias inicializado correctamente');
 }
 
 // -------------------------------
@@ -79,79 +117,32 @@ function initAudiencias() {
 function loadAudiencias() {
   const tbody = document.getElementById('audiencias-body');
 
-  // Lee de localStorage
   const ls = JSON.parse(localStorage.getItem('audiencias') || '[]');
 
   if (ls && ls.length) {
-    // Caso normal: ya hay datos persistidos
-    AUDIENCIAS = ls.map(a => ({ ...a, id: String(a.id) })); // normaliza id a string
+    AUDIENCIAS = ls.map(a => ({ ...a, id: String(a.id) }));
   } else {
-    // Demo inicial (ajusta si quieres otras)
     const DEMO = [
-      {
-        id: '1',
-        fecha: '2025-11-06',
-        hora: '10:00',
-        tribunal: 'Juzgado Primero de lo Civil del Distrito Federal',
-        expediente: '2354/2025',
-        actor: 'Gómez Rivera Laura',
-        tipo: 'Inicial',
-        materia: 'Civil',
-        demandado: 'Martínez Contreras Luis',
-        gerencia: 'Ciudad de México',
-        abogadoEncargado: 'Lic. María González Ruiz',
-        abogadoComparece: 'Lic. Ana Patricia Morales',
-        observaciones: 'Primera audiencia de ofrecimiento de pruebas',
-        prioridad: 'Alta',
-        actaDocumento: ''
-      },
-      {
-        id: '2',
-        fecha: '2025-11-08',
-        hora: '09:30',
-        tribunal: 'Tribunal Laboral Regional Norte',
-        expediente: '5421/2025',
-        actor: 'Ortega Ibarra Juan Carlos',
-        tipo: 'Intermedia',
-        materia: 'Laboral',
-        demandado: 'Empresa Constructora S.A. de C.V.',
-        gerencia: 'Nuevo León',
-        abogadoEncargado: 'Lic. Roberto Silva Martínez',
-        abogadoComparece: 'Lic. Carlos Hernández López',
-        observaciones: 'Desahogo de testigos',
-        prioridad: 'Media',
-        actaDocumento: ''
-      },
-      {
-        id: '3',
-        fecha: '2025-11-10',
-        hora: '12:00',
-        tribunal: 'Juzgado Segundo en Materia Penal',
-        expediente: '1987/2025',
-        actor: 'Fiscalía del Estado',
-        tipo: 'Testimonial',
-        materia: 'Penal',
-        demandado: 'Hernández Rivas Jorge',
-        gerencia: 'Jalisco',
-        abogadoEncargado: 'Lic. Sandra Jiménez Castro',
-        abogadoComparece: 'Lic. Fernando Ramírez Torres',
-        observaciones: 'Audiencia de testigos presenciales',
-        prioridad: 'Alta',
-        actaDocumento: ''
-      }
+      { id: '1', asuntoId: '1698270123456', fecha: '2025-11-12', hora: '10:00', tribunal: 'Juzgado Primero de lo Civil', expediente: '2354/2025', actor: 'Gómez Rivera Laura', tipo: 'Inicial', materia: 'Civil', demandado: 'Martínez Contreras Luis', gerencia: 'Ciudad de México', abogadoEncargado: 'Lic. María González Ruiz', abogadoComparece: 'Lic. Ana Patricia Morales', observaciones: '', prioridad: 'Alta', actaDocumento: '', atendida: false },
+      { id: '2', asuntoId: '1698270234567', fecha: '2025-11-13', hora: '09:30', tribunal: 'Tribunal Laboral Regional Norte', expediente: '5421/2025', actor: 'Ortega Ibarra Juan Carlos', tipo: 'Intermedia', materia: 'Laboral', demandado: 'Empresa Constructora S.A. de C.V.', gerencia: 'Nuevo León', abogadoEncargado: 'Lic. Roberto Silva Martínez', abogadoComparece: 'Lic. Carlos Hernández López', observaciones: '', prioridad: 'Media', actaDocumento: '', atendida: false },
+      { id: '3', asuntoId: '1698270345678', fecha: '2025-11-10', hora: '12:00', tribunal: 'Juzgado Segundo en Materia Penal', expediente: '1987/2025', actor: 'Fiscalía del Estado', tipo: 'Testimonial', materia: 'Penal', demandado: 'Hernández Rivas Jorge', gerencia: 'Jalisco', abogadoEncargado: 'Lic. Sandra Jiménez Castro', abogadoComparece: 'Lic. Fernando Ramírez Torres', observaciones: 'Audiencia finalizada, se anexa acta.', prioridad: 'Alta', actaDocumento: 'Acta_1987_2025.pdf', atendida: true }
     ];
-
     AUDIENCIAS = DEMO;
-    // ⬅️ siembra en localStorage para que no se “pierdan” al primer guardado
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
   }
 
-  // pinta la tabla (tu código existente a partir de aquí)
   let html = '';
-  AUDIENCIAS.forEach(a => {
+  // Aplicar filtros antes de renderizar
+  const filtros = getFiltrosAplicadosAudiencias();
+  const audienciasFiltradas = filtrarAudiencias(AUDIENCIAS, filtros);
+
+  audienciasFiltradas.forEach(a => {
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
+    // Asignar clase si está desahogada (atendida)
+    const rowClass = a.atendida ? 'row-desahogada' : ''; 
+    
     html += `
-      <tr data-tipo="${escapeHTML(a.tipo||'')}"
+      <tr class="${rowClass}" data-id="${a.id}" data-tipo="${escapeHTML(a.tipo||'')}"
           data-gerencia="${escapeHTML(a.gerencia||'')}"
           data-materia="${escapeHTML(a.materia||'')}"
           data-prioridad="${escapeHTML(a.prioridad||'')}">
@@ -170,24 +161,23 @@ function loadAudiencias() {
         <td>${escapeHTML(a.tribunal||'')}</td>
         <td>${escapeHTML(a.expediente||'')}</td>
         <td>${escapeHTML(a.actor||'')}</td>
+        
         <td class="actions">
-          <button class="btn btn-info btn-sm btn-subir-acta" title="Subir acta" data-id="${a.id}">
-            <i class="fas fa-file-upload"></i>
-          </button>
-          <input type="file" class="input-acta" data-id="${a.id}" accept=".pdf,.doc,.docx" style="display:none;">
-          <button class="btn btn-secondary btn-sm view-changes" data-id="${a.id}" title="Ver cambios">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="btn btn-primary btn-sm edit-audiencia" data-id="${a.id}" title="Editar">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-presentado btn-sm comment-audiencia" data-id="${a.id}" title="Agregar comentario">
-            <i class="fas fa-comment-dots"></i>
-          </button>
-          <input type="checkbox" class="delete-audiencia" data-id="${a.id}" title="Finalizar audiencia"> Desahogado
+            <button class="btn btn-primary btn-sm action-edit-audiencia" title="Editar audiencia">
+                <i class="fas fa-edit"></i>
+            </button>
+            <div class="action-menu-container">
+                <button class="btn btn-secondary btn-sm action-menu-toggle" title="Acciones rápidas">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="action-menu">
+                    ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
+                </div>
+            </div>
+            <input type="file" class="input-acta-hidden" data-id="${a.id}" accept=".pdf,.doc,.docx" style="display:none;">
         </td>
-      </tr>
-      <tr class="expandable-row" id="expand-audiencia-${a.id}">
+        </tr>
+      <tr class="expandable-row ${rowClass}" id="expand-audiencia-${a.id}">
         <td colspan="7">
           <div class="expandable-content">
             <table>
@@ -203,6 +193,12 @@ function loadAudiencias() {
                 <th>Prioridad</th>
                 <td><span class="badge badge-${escapeHTML((a.prioridad||'').toLowerCase())}">${escapeHTML(a.prioridad||'')}</span></td>
               </tr>
+              <tr>
+                <th>Ab. Comparece</th>
+                <td>${escapeHTML(a.abogadoComparece||'')}</td>
+                <th>Estatus</th>
+                <td>${a.atendida ? '<span class="status-presentado"><i class="fas fa-check-circle"></i> Desahogada</span>' : 'Pendiente'}</td>
+              </tr>
             </table>
           </div>
         </td>
@@ -213,20 +209,11 @@ function loadAudiencias() {
   tbody.innerHTML = html;
 
   setupExpandableRows();
-  setupActionButtons();
-  setupActaUpload();
 }
 
 // -------------------------------
 // Guardado (alta/edición)
 // -------------------------------
-function saveAudiencia() {
-  guardarAudiencia();
-  // cierra modal y refresca tabla (por si la función no lo hace)
-  const m = document.getElementById('modal-audiencia');
-  if (m) m.style.display = 'none';
-  loadAudiencias();
-}
 
 function guardarAudiencia() {
   console.log('Guardando audiencia...');
@@ -239,37 +226,29 @@ function guardarAudiencia() {
     fechaAudiencia: document.getElementById('fecha-audiencia').value,
     horaAudiencia: document.getElementById('hora-audiencia').value,
     tipoAudiencia: document.getElementById('tipo-audiencia').value,
-    abogadoComparece: document.getElementById('abogado-comparece').value, // usa string para consistencia
-    observaciones: (document.getElementById('observaciones')?.value || '').trim(),
-    atendida: (document.getElementById('atendida')?.value === 'true'),
+    sala: document.getElementById('sala-audiencia').value,
+    abogadoComparece: document.getElementById('abogado-comparece').value,
     recordatorioDias: parseInt(document.getElementById('recordatorio-dias')?.value) || 1,
-    recordatorioHoras: parseInt(document.getElementById('recordatorio-horas')?.value) || 2
+    recordatorioHoras: parseInt(document.getElementById('recordatorio-horas')?.value) || 2,
   };
-
-  // Archivo
-  const archivoInput = document.getElementById('acta-documento');
-  if (archivoInput?.files?.[0]) {
-    audienciaData.actaDocumento = archivoInput.files[0].name;
-  }
 
   // Validaciones
   if (!audienciaData.asuntoId) {
-    alert('Por favor, selecciona un asunto.');
+    mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
     return;
   }
   if (!audienciaData.tipoAudiencia || !audienciaData.fechaAudiencia || !audienciaData.horaAudiencia || !audienciaData.abogadoComparece) {
-    alert('Completa Tipo, Fecha, Hora y Abogado que Comparece.');
+    mostrarMensajeGlobal('Completa Tipo, Fecha, Hora y Abogado que Comparece.', 'danger');
     return;
   }
   if (!isEditing) {
     const hoy = new Date().toISOString().split('T')[0];
     if (audienciaData.fechaAudiencia < hoy) {
-      alert('La fecha de la audiencia no puede ser en el pasado.');
+      mostrarMensajeGlobal('La fecha de la audiencia no puede ser en el pasado.', 'danger');
       return;
     }
   }
 
-  // Base = LS si existe, o lo que ya está en memoria (demo)
   const ls = JSON.parse(localStorage.getItem('audiencias') || '[]');
   let base = (ls && ls.length) ? ls.map(a => ({ ...a, id: String(a.id) })) : [...AUDIENCIAS.map(a => ({ ...a, id: String(a.id) }))];
 
@@ -277,70 +256,142 @@ function guardarAudiencia() {
     // Actualiza existente
     const idx = base.findIndex(a => String(a.id) === String(audienciaId));
     if (idx === -1) {
-      alert('No se encontró la audiencia a editar.');
+      mostrarMensajeGlobal('No se encontró la audiencia a editar.', 'danger');
       return;
     }
-    audienciaData.id = String(base[idx].id);
-    audienciaData.fechaCreacion = base[idx].fechaCreacion || new Date().toISOString().split('T')[0];
-    audienciaData.fechaModificacion = new Date().toISOString().split('T')[0];
-
-    // Mapea nombres usados en la tabla para no romper display
+    
     base[idx] = {
       ...base[idx],
       ...audienciaData,
-      // Campos que usa la tabla “lista”
+      fechaModificacion: new Date().toISOString().split('T')[0],
       fecha: audienciaData.fechaAudiencia,
       hora: audienciaData.horaAudiencia,
       tipo: audienciaData.tipoAudiencia,
-      actor: base[idx].actor || '',        // conserva si ya existía
-      tribunal: base[idx].tribunal || '',  // conserva si ya existía
-      materia: base[idx].materia || '',
-      gerencia: base[idx].gerencia || '',
-      prioridad: base[idx].prioridad || '',
-      demandado: base[idx].demandado || ''
     };
-    alert('Audiencia actualizada exitosamente.');
+    
+    mostrarMensajeGlobal('Audiencia actualizada exitosamente.', 'success');
+
   } else {
     // Nueva
     audienciaData.id = String(Date.now());
     audienciaData.fechaCreacion = new Date().toISOString().split('T')[0];
+    audienciaData.atendida = false;
+    audienciaData.observaciones = '';
+    audienciaData.actaDocumento = '';
 
-    // Campos usados por la tabla “lista”
+    // Mapeo para la tabla
     const row = {
-      id: audienciaData.id,
+      ...audienciaData,
       fecha: audienciaData.fechaAudiencia,
       hora: audienciaData.horaAudiencia,
-      tribunal: '', // completar si quieres
-      expediente: '', // lo puedes derivar del asunto si lo cargas
-      actor: '',
       tipo: audienciaData.tipoAudiencia,
-      materia: '',
-      demandado: '',
-      gerencia: '',
-      abogadoEncargado: '',
-      abogadoComparece: audienciaData.abogadoComparece,
-      observaciones: audienciaData.observaciones,
-      prioridad: 'Media',
-      actaDocumento: audienciaData.actaDocumento || ''
     };
+    
+    // Llenar datos del asunto
+    const asunto = (JSON.parse(localStorage.getItem('asuntos')) || []).find(a => a.id === audienciaData.asuntoId);
+    if(asunto) {
+        row.expediente = asunto.expediente;
+        row.materia = asunto.materia;
+        row.gerencia = asunto.gerencia;
+        row.abogadoEncargado = asunto.abogado;
+        row.actor = asunto.partes;
+        row.tribunal = asunto.organoJurisdiccional;
+        row.prioridad = asunto.prioridad;
+        row.demandado = asunto.demandado || '';
+    }
 
     base.push(row);
-    alert('Audiencia guardada exitosamente.');
+    mostrarMensajeGlobal('Audiencia guardada exitosamente.', 'success');
   }
 
   // Persistencia y refresco
   localStorage.setItem('audiencias', JSON.stringify(base));
   AUDIENCIAS = base;
 
-  // Limpia formulario y cierra modal
   document.getElementById('form-audiencia')?.reset();
-  document.getElementById('acta-filename').textContent = 'Ningún archivo seleccionado';
-  document.getElementById('acta-filename').classList.remove('has-file');
+  limpiarCamposAutoLlenadosAudiencia();
+  const actaFilename = document.getElementById('acta-filename');
+  if(actaFilename) {
+      actaFilename.textContent = 'Ningún archivo seleccionado';
+      actaFilename.classList.remove('has-file');
+  }
   const modal = document.getElementById('modal-audiencia');
   if (modal) modal.style.display = 'none';
 
-  // Redibuja tabla
   loadAudiencias();
+}
+
+// -------------------------------
+// Modal: Audiencia (Principal) - FUNCIONES FALTANTES
+// -------------------------------
+function initModalAudiencias() {
+  const modal = document.getElementById('modal-audiencia');
+  const btnClose = document.getElementById('close-modal-audiencia');
+  const btnCancel = document.getElementById('cancel-audiencia');
+  const btnSave = document.getElementById('save-audiencia');
+  const btnAdd = document.getElementById('add-audiencia');
+
+  if (btnAdd) {
+    btnAdd.addEventListener('click', function() {
+      openAudienciaModal(null);
+    });
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closeAudienciaModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeAudienciaModal);
+  if (btnSave) btnSave.addEventListener('click', guardarAudiencia);
+
+  window.addEventListener('click', function(event) {
+    if (event.target === modal) {
+      closeAudienciaModal();
+    }
+  });
+}
+
+function openAudienciaModal(audiencia) {
+  const modal = document.getElementById('modal-audiencia');
+  const title = document.getElementById('modal-audiencia-title');
+  const form = document.getElementById('form-audiencia');
+  
+  if (!modal) {
+    console.error('Modal de audiencia no encontrado');
+    return;
+  }
+
+  // Resetear formulario
+  if (form) form.reset();
+  limpiarCamposAutoLlenadosAudiencia();
+  
+  // Configurar para edición o nueva
+  if (audiencia) {
+    title.textContent = 'Editar Audiencia';
+    document.getElementById('audiencia-id').value = audiencia.id;
+    
+    // Llenar datos existentes
+    document.getElementById('asunto-selector-audiencia').value = audiencia.asuntoId || '';
+    document.getElementById('tipo-audiencia').value = audiencia.tipo || '';
+    document.getElementById('fecha-audiencia').value = audiencia.fecha || '';
+    document.getElementById('hora-audiencia').value = audiencia.hora || '';
+    document.getElementById('sala-audiencia').value = audiencia.sala || '';
+    document.getElementById('abogado-comparece').value = audiencia.abogadoComparece || '';
+    document.getElementById('recordatorio-dias').value = audiencia.recordatorioDias || 1;
+    document.getElementById('recordatorio-horas').value = audiencia.recordatorioHoras || 2;
+    
+    // Cargar datos del asunto si existe
+    if (audiencia.asuntoId) {
+      cargarDatosAsuntoAudiencia(audiencia.asuntoId);
+    }
+  } else {
+    title.textContent = 'Nueva Audiencia';
+    document.getElementById('audiencia-id').value = '';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function closeAudienciaModal() {
+  const modal = document.getElementById('modal-audiencia');
+  if (modal) modal.style.display = 'none';
 }
 
 // -------------------------------
@@ -364,7 +415,7 @@ function cargarAsuntosEnSelectorAudiencia() {
   asuntos.forEach(asunto => {
     const opt = document.createElement('option');
     opt.value = asunto.id;
-    opt.textContent = `${asunto.expediente} - ${asunto.descripcion}`;
+    opt.textContent = `${asunto.expediente} - ${asunto.descripcion || asunto.partes}`;
     selector.appendChild(opt);
   });
 }
@@ -392,14 +443,17 @@ function cargarDatosAsuntoAudiencia(asuntoId) {
 function limpiarCamposAutoLlenadosAudiencia() {
   ['expediente-auto-audiencia','materia-auto-audiencia','gerencia-auto-audiencia',
    'abogado-auto-audiencia','partes-auto-audiencia','organo-auto-audiencia','prioridad-auto-audiencia']
-   .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+   .forEach(id => { 
+     const el = document.getElementById(id); 
+     if (el) el.value = ''; 
+   });
 }
 
 // -------------------------------
-// Subida de archivos (modal)
+// Subida de archivos
 // -------------------------------
 function setupFileUploadAudiencia() {
-  const fileInput = document.getElementById('acta-audiencia'); // modal
+  const fileInput = document.getElementById('acta-audiencia');
   const fileName  = document.getElementById('acta-filename');
   if (!fileInput || !fileName) return;
   fileInput.addEventListener('change', function () {
@@ -414,14 +468,16 @@ function setupFileUploadAudiencia() {
 }
 
 // -------------------------------
-/* Acciones en la tabla */
+// Acciones en la tabla
 // -------------------------------
+
 function setupExpandableRows() {
-  document.querySelectorAll('.toggle-expand').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const id = this.getAttribute('data-id');
+  document.getElementById('audiencias-body').addEventListener('click', function(e) {
+    const toggleBtn = e.target.closest('.toggle-expand');
+    if (toggleBtn) {
+      const id = toggleBtn.getAttribute('data-id');
       const expRow = document.getElementById(`expand-audiencia-${id}`);
-      const icon = this.querySelector('i');
+      const icon = toggleBtn.querySelector('i');
       if (expRow.classList.contains('active')) {
         expRow.classList.remove('active');
         icon.className = 'fas fa-chevron-down';
@@ -429,149 +485,129 @@ function setupExpandableRows() {
         expRow.classList.add('active');
         icon.className = 'fas fa-chevron-up';
       }
-    });
+    }
   });
 }
 
-function setupActionButtons() {
-  // Editar
-  document.querySelectorAll('.edit-audiencia').forEach(button => {
-    button.addEventListener('click', function () {
-      const id = parseInt(this.getAttribute('data-id'), 10);
-      const audiencia = AUDIENCIAS.find(a => a.id == id);
-      if (!audiencia) return alert('No se encontró la audiencia a editar.');
+// Generador de menú de acciones rápidas
+function generarAccionesRapidasAudiencia(audiencia, rol) {
+    let accionesHTML = '';
 
-      // Mapa mínimo esperado por openAudienciaModal (compatibilidad)
-      openAudienciaModal({
-        id: audiencia.id,
-        asuntoId: audiencia.asuntoId,
-        expediente: audiencia.expediente,
-        materia: audiencia.materia,
-        gerencia: audiencia.gerencia,
-        abogadoEncargado: audiencia.abogadoEncargado,
-        actor: audiencia.actor,
-        demandado: audiencia.demandado,
-        tribunal: audiencia.tribunal,
-        prioridad: audiencia.prioridad,
-        tipoAudiencia: audiencia.tipo || audiencia.tipoAudiencia,
-        fechaAudiencia: audiencia.fecha || audiencia.fechaAudiencia,
-        horaAudiencia: audiencia.hora || audiencia.horaAudiencia,
-        sala: audiencia.sala || audiencia.salaAudiencia,
-        abogadoComparece: audiencia.abogadoComparece,
-        observaciones: audiencia.observaciones,
-        atendida: audiencia.atendida,
-        recordatorioDias: audiencia.recordatorioDias,
-        recordatorioHoras: audiencia.recordatorioHoras,
-        actaDocumento: audiencia.actaDocumento || audiencia.actaNombre
-      });
-    });
-  });
+    // Acciones de Navegación y Auditoría
+    accionesHTML += `<a href="#" class="action-item action-view-asunto-audiencia" title="Ver el asunto principal">
+                        <i class="fas fa-briefcase"></i> Ver Asunto
+                    </a>`;
+    if (rol === 'Gerente' || rol === 'Direccion') {
+      accionesHTML += `<a href="#" class="action-item action-history-audiencia" title="Ver historial de cambios">
+                          <i class="fas fa-eye"></i> Ver Historial
+                      </a>`;
+    }
+    accionesHTML += `<a href="#" class="action-item action-comment-audiencia" title="Agregar/Ver comentarios">
+                        <i class="fas fa-comment-dots"></i> Comentarios
+                    </a>`;
+    
+    // Acciones de Workflow
+    if (!audiencia.atendida) {
+        accionesHTML += `<div class="action-divider"></div>`;
+        accionesHTML += `<a href="#" class="action-item action-upload-acta" title="Subir acta de audiencia">
+                            <i class="fas fa-file-upload"></i> Subir Acta
+                        </a>`;
+        accionesHTML += `<a href="#" class="action-item action-desahogar" title="Marcar como desahogada">
+                            <i class="fas fa-check"></i> Desahogar
+                        </a>`;
+        
+        if (rol === 'Gerente' || rol === 'Direccion') {
+            accionesHTML += `<a href="#" class="action-item action-reasignar-audiencia" title="Asignar a otro abogado">
+                                <i class="fas fa-user-friends"></i> Reasignar
+                            </a>`;
+        }
+    } else {
+        if (audiencia.actaDocumento) {
+            accionesHTML += `<a href="#" class="action-item action-view-acta" title="Descargar acta">
+                                <i class="fas fa-download"></i> Ver Acta
+                            </a>`;
+        }
+    }
 
-  // Ver cambios (si tienes el modal demo)
-  document.querySelectorAll('.view-changes').forEach(button => {
-    button.addEventListener('click', function () {
-      const id = this.getAttribute('data-id');
-      if (typeof openHistorialCambiosModal === 'function') {
-        openHistorialCambiosModal(id);
-      } else {
-        alert('El historial de cambios no está disponible.');
-      }
-    });
-  });
+    // Acción de Peligro (Solo Dirección)
+    if (rol === 'Direccion') {
+        accionesHTML += `<div class="action-divider"></div>`; 
+        accionesHTML += `<a href="#" class="action-item action-delete-audiencia danger-action" title="Eliminar esta audiencia">
+                            <i class="fas fa-trash-alt"></i> Eliminar Audiencia
+                        </a>`;
+    }
 
-  // Comentarios
-  document.querySelectorAll('.comment-audiencia').forEach(button => {
-    button.addEventListener('click', function () {
-      const id = this.getAttribute('data-id');
-      openComentariosModal(id);
-    });
-  });
-
-  // Finalizar
-  document.querySelectorAll('.delete-audiencia').forEach(checkbox => {
-    checkbox.addEventListener('change', function () {
-      if (this.checked) {
-        const id = this.getAttribute('data-id');
-        openFinalizarAudienciaModal(id);
-      }
-    });
-  });
-  // ===== FIN DEL CAMBIO 2 ===== -->
+    return accionesHTML;
 }
 
-// Subida de acta desde la tabla
-function setupActaUpload() {
-  // Click en botón => dispara input file
-  document.querySelectorAll('.btn-subir-acta').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const id = this.getAttribute('data-id');
-      const input = document.querySelector(`.input-acta[data-id="${id}"]`);
-      if (input) input.click();
-    });
-  });
+// Listener de delegación para todas las acciones
+function setupActionMenuListenerAudiencia() {
+    const tbody = document.getElementById('audiencias-body');
+    if (!tbody) return;
 
-  // Al seleccionar archivo, actualiza AUDIENCIAS y persiste
-  document.querySelectorAll('.input-acta').forEach(input => {
-    input.addEventListener('change', function () {
-      const id = parseInt(this.getAttribute('data-id'), 10);
+    tbody.addEventListener('click', function(e) {
+        const target = e.target.closest('button, a'); 
+        if (!target) return;
 
-      if (this.files && this.files.length > 0) {
-        const fileName = this.files[0].name;
+        const row = target.closest('tr');
+        if (!row) return;
 
-        const idx = AUDIENCIAS.findIndex(a => a.id == id);
-        if (idx !== -1) {
-          AUDIENCIAS[idx].actaDocumento = fileName;
+        const id = row.getAttribute('data-id');
+        const audiencia = AUDIENCIAS.find(t => t.id == id);
+        if (!audiencia) return;
 
-          // Persistir en localStorage
-          const audLS = JSON.parse(localStorage.getItem('audiencias') || '[]');
-          const idxLS = audLS.findIndex(a => String(a.id) === String(id));
-          if (idxLS !== -1) {
-            audLS[idxLS].actaDocumento = fileName;
-            localStorage.setItem('audiencias', JSON.stringify(audLS));
-          }
+        // Manejador del menú de 3 puntos
+        if (target.classList.contains('action-menu-toggle')) {
+            e.preventDefault();
+            document.querySelectorAll('.action-menu.show').forEach(menu => {
+                if (menu !== target.nextElementSibling) {
+                    menu.classList.remove('show');
+                }
+            });
+            target.nextElementSibling.classList.toggle('show');
         }
 
-        // Feedback visual rápido en el botón
-        const btn = document.querySelector(`button[data-id="${id}"].btn-subir-acta`);
-        if (btn) {
-          btn.classList.add('uploaded');
-          btn.title = `Acta subida: ${fileName}`;
-          setTimeout(() => btn.classList.remove('uploaded'), 2000);
+        // Acciones
+        if (target.classList.contains('action-edit-audiencia')) {
+            openAudienciaModal(audiencia);
         }
-      }
+        if (target.classList.contains('action-view-asunto-audiencia')) {
+            verDetallesAsunto(audiencia.asuntoId);
+        }
+        if (target.classList.contains('action-history-audiencia')) {
+            openHistorialCambiosModal(id);
+        }
+        if (target.classList.contains('action-comment-audiencia')) {
+            openComentariosModal(id);
+        }
+        if (target.classList.contains('action-desahogar')) {
+            openFinalizarAudienciaModal(id);
+        }
+        if (target.classList.contains('action-upload-acta')) {
+            row.querySelector('.input-acta-hidden').click();
+        }
+        if (target.classList.contains('action-view-acta')) {
+            descargarActa(audiencia.actaDocumento, audiencia.expediente);
+        }
+        if (target.classList.contains('action-reasignar-audiencia')) {
+            abrirModalReasignarAudiencia(id);
+        }
+        if (target.classList.contains('action-delete-audiencia')) {
+            eliminarAudiencia(id);
+        }
     });
-  });
+    
+    // Listener para el input de archivo oculto
+    tbody.addEventListener('change', function(e) {
+        if (e.target.classList.contains('input-acta-hidden')) {
+            const id = e.target.getAttribute('data-id');
+            const file = e.target.files[0];
+            if (file) {
+                subirActa(id, file);
+            }
+        }
+    });
 }
-
-  // al elegir archivo, actualizar nombre visible y AUDIENCIAS
-  document.querySelectorAll('.input-acta').forEach(input => {
-    input.addEventListener('change', function () {
-      const id = parseInt(this.getAttribute('data-id'), 10);
-      const spanNombre = document.getElementById(`acta-nombre-${id}`);
-
-      if (this.files && this.files.length > 0) {
-        const fileName = this.files[0].name;
-        if (spanNombre) spanNombre.textContent = fileName;
-
-        const idx = AUDIENCIAS.findIndex(a => a.id == id);
-        if (idx !== -1) {
-          AUDIENCIAS[idx].actaDocumento = fileName;
-          // persistir en localStorage
-          const audLS = JSON.parse(localStorage.getItem('audiencias') || '[]');
-          const idxLS = audLS.findIndex(a => String(a.id) === String(id));
-          if (idxLS !== -1) {
-            audLS[idxLS].actaDocumento = fileName;
-            localStorage.setItem('audiencias', JSON.stringify(audLS));
-          }
-        }
-
-        // aquí podrías hacer upload real con fetch/FormData
-      } else {
-        if (spanNombre) spanNombre.textContent = 'Sin archivo';
-      }
-    });
-  });
-
 
 // -------------------------------
 // Búsqueda y filtros
@@ -580,62 +616,55 @@ function setupSearch() {
   const searchInput = document.getElementById('search-audiencias');
   if (!searchInput) return;
   searchInput.addEventListener('input', function () {
-    const term = this.value.toLowerCase();
-    const rows = Array.from(document.getElementById('audiencias-body').querySelectorAll('tr'));
-    for (let i = 0; i < rows.length; i += 2) {
-      const mainRow = rows[i];
-      const expRow  = rows[i + 1];
-      const text = (mainRow.textContent + (expRow ? expRow.textContent : '')).toLowerCase();
-      const show = text.includes(term);
-      mainRow.style.display = show ? '' : 'none';
-      if (expRow) expRow.style.display = show ? '' : 'none';
-    }
+    applyFilters();
   });
 }
 
 function setupFilters() {
-  ['filter-tipo','filter-materia','filter-prioridad'].forEach(id => {
+  ['filter-tipo','filter-materia','filter-prioridad', 'filter-gerencia'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', applyFilters);
   });
 }
 
+function getFiltrosAplicadosAudiencias() {
+    return {
+        tipo: document.getElementById('filter-tipo').value,
+        gerencia: (document.getElementById('filter-gerencia').value || '').trim().toLowerCase(),
+        materia: document.getElementById('filter-materia').value,
+        prioridad: document.getElementById('filter-prioridad').value,
+        search: document.getElementById('search-audiencias').value.toLowerCase()
+    };
+}
+
+function filtrarAudiencias(audiencias, filtros) {
+    return audiencias.filter(a => {
+        const rowTipo = a.tipo || '';
+        const rowGer  = (a.gerencia || '').toLowerCase();
+        const rowMat  = a.materia || '';
+        const rowPri  = a.prioridad || '';
+
+        const rowText = [
+            rowTipo, rowGer, rowMat, rowPri,
+            a.fecha, a.hora, a.tribunal, a.expediente, a.actor, a.demandado, a.abogadoComparece
+        ].join(' ').toLowerCase();
+
+        const matchesTipo = !filtros.tipo || rowTipo === filtros.tipo;
+        const matchesGer  = !filtros.gerencia || rowGer.includes(filtros.gerencia);
+        const matchesMat  = !filtros.materia || rowMat === filtros.materia;
+        const matchesPri  = !filtros.prioridad || rowPri === filtros.prioridad;
+        const matchesSearch = !filtros.search || rowText.includes(filtros.search);
+
+        return matchesTipo && matchesGer && matchesMat && matchesPri && matchesSearch;
+    });
+}
+
 function applyFilters() {
-  const tipo = document.getElementById('filter-tipo').value;
-  const gerencia = (document.getElementById('filter-gerencia').value || '').trim();
-  const materia = document.getElementById('filter-materia').value;
-  const prioridad = document.getElementById('filter-prioridad').value;
-
-  const rows = document.querySelectorAll('#audiencias-body tr:not(.expandable-row)');
-
-  rows.forEach(row => {
-    const rowTipo = row.getAttribute('data-tipo') || '';
-    const rowGer  = row.getAttribute('data-gerencia') || '';
-    const rowMat  = row.getAttribute('data-materia') || '';
-    const rowPri  = row.getAttribute('data-prioridad') || '';
-
-    const matchesTipo = !tipo || rowTipo.includes(tipo);
-    const matchesGer  = !gerencia || caseInsensitiveIncludes(rowGer, gerencia);
-    const matchesMat  = !materia || rowMat.includes(materia);
-    const matchesPri  = !prioridad || rowPri.includes(prioridad);
-
-    const id = row.querySelector('.toggle-expand')?.getAttribute('data-id');
-    const expRow = document.getElementById(`expand-audiencia-${id}`);
-
-    if (matchesTipo && matchesGer && matchesMat && matchesPri) {
-      row.style.display = '';
-      if (expRow && row.querySelector('.toggle-expand').innerHTML.includes('chevron-up')) {
-        expRow.style.display = 'table-row';
-      }
-    } else {
-      row.style.display = 'none';
-      if (expRow) expRow.style.display = 'none';
-    }
-  });
+    loadAudiencias();
 }
 
 // -------------------------------
-// Gerencias (autocomplete tipo chips)
+// Gerencias (autocomplete)
 // -------------------------------
 function setupGerenciaSearch() {
   const input = document.getElementById('filter-gerencia');
@@ -707,7 +736,7 @@ function setupGerenciaSearch() {
 }
 
 // -------------------------------
-// Comentarios (localStorage por audiencia)
+// Comentarios
 // -------------------------------
 function lsKey(audienciaId) { return `audiencia_comentarios_${audienciaId}`; }
 
@@ -742,7 +771,7 @@ function saveComentario() {
   const audienciaId = document.getElementById('comentarios-audiencia-id').value;
   const textarea = document.getElementById('nuevo-comentario');
   const texto = (textarea.value || '').trim();
-  if (!texto) return alert('Escribe un comentario.');
+  if (!texto) return mostrarMensajeGlobal('Escribe un comentario.', 'danger');
 
   const comentarios = getComentarios(audienciaId);
   comentarios.push({ text: texto, ts: Date.now() });
@@ -789,59 +818,384 @@ function deleteComentario(audienciaId, index) {
 }
 
 // -------------------------------
-// Buscador de Expedientes (input auxiliar opcional)
+// Gestión de Tipos
 // -------------------------------
-function setupExpedienteSearch() {
-  const input = document.getElementById('audiencia-expediente');
-  const ul = document.getElementById('audiencia-expediente-suggestions');
-  if (!input || !ul) return;
+const DEFAULT_TIPOS_AUDIENCIA = [
+  'Inicial','Intermedia','Ratificación','Admisión','Confesional','Reanudación','Incidental','Constitucional'
+];
 
-  let items = getExpedientesList();
-  let selectedIndex = -1;
-
-  input.addEventListener('input', function(){
-    const q = this.value.trim().toLowerCase();
-    items = getExpedientesList();
-    const matches = q ? items.filter(e => e.toLowerCase().includes(q)) : items;
-    renderSuggestions(matches);
-  });
-  input.addEventListener('focus', function(){
-    items = getExpedientesList();
-    renderSuggestions(items);
-  });
-  input.addEventListener('keydown', function(e){
-    const visibles = ul.querySelectorAll('li[data-expediente]');
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex+1, visibles.length-1); updateHighlight(visibles); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex-1, -1); updateHighlight(visibles); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (selectedIndex>=0 && visibles[selectedIndex]) chooseSuggestion(visibles[selectedIndex].getAttribute('data-expediente')); }
-    else if (e.key === 'Escape') { hideSuggestions(); }
-  });
-  document.addEventListener('click', function(e){
-    if (!input.contains(e.target) && !ul.contains(e.target)) hideSuggestions();
-  });
-
-  function getExpedientesList() {
-    const set = new Set();
-    try { (JSON.parse(localStorage.getItem('asuntos') || '[]')||[]).forEach(a => a.expediente && set.add(a.expediente)); } catch(e){}
-    try { AUDIENCIAS.forEach(a => a.expediente && set.add(a.expediente)); } catch(e){}
-    return Array.from(set).sort();
+function caseInsensitiveSort(a,b){ return a.localeCompare(b,'es',{sensitivity:'base'}); }
+function getTiposAudiencia(){
+  try{
+    const raw = localStorage.getItem('tiposAudiencia');
+    if (raw){
+      const arr = JSON.parse(raw);
+      return Array.from(new Set(arr.filter(Boolean))).sort(caseInsensitiveSort);
+    }
+  }catch(e){}
+  setTiposAudiencia(DEFAULT_TIPOS_AUDIENCIA);
+  return [...DEFAULT_TIPOS_AUDIENCIA].sort(caseInsensitiveSort);
+}
+function setTiposAudiencia(arr){
+  const clean = Array.from(new Set((arr||[]).map(s => (s||'').trim()).filter(Boolean)));
+  localStorage.setItem('tiposAudiencia', JSON.stringify(clean));
+}
+function renderTipoOptions(){
+  const tipos = getTiposAudiencia();
+  const selForm = document.getElementById('tipo-audiencia');
+  if (selForm){
+    selForm.innerHTML = '<option value="">Seleccione un tipo</option>' +
+      tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
   }
-  function renderSuggestions(list){
-    if (!list || !list.length) { ul.style.display = 'none'; ul.innerHTML = ''; selectedIndex = -1; return; }
-    ul.innerHTML = list.map((exp) => `<li data-expediente="${escapeHTML(exp)}" class="suggestion-item">${escapeHTML(exp)}</li>`).join('');
-    ul.style.display = 'block';
-    selectedIndex = -1;
-    ul.querySelectorAll('li[data-expediente]').forEach(li => {
-      li.addEventListener('click', function(){ chooseSuggestion(this.getAttribute('data-expediente')); });
+  const selFiltro = document.getElementById('filter-tipo');
+  if (selFiltro){
+    const current = selFiltro.value;
+    selFiltro.innerHTML = '<option value="">Todos los tipos</option>' +
+      tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
+    if ([...selFiltro.options].some(o => o.value === current)) selFiltro.value = current;
+  }
+}
+function existsIgnoringCase(arr, value, ignoreIndex=-1){
+  return arr.some((x,idx) => idx!==ignoreIndex && x.localeCompare(value,'es',{sensitivity:'base'})===0);
+}
+function initGestionTiposAudiencia(){
+  const modal = document.getElementById('modal-tipos-audiencia');
+  const btnOpen = document.getElementById('manage-tipos-btn');
+  const btnClose = document.getElementById('close-modal-tipos');
+  const btnCancel = document.getElementById('cancel-tipos');
+  const btnSave = document.getElementById('save-tipos');
+  const btnAdd = document.getElementById('add-tipo-btn');
+  const inputNuevo = document.getElementById('nuevo-tipo-audiencia');
+  const ul = document.getElementById('lista-tipos-audiencia');
+
+  let workingList = getTiposAudiencia();
+
+  function open(){ workingList = getTiposAudiencia(); renderList(); modal.style.display='flex'; inputNuevo.value=''; inputNuevo.focus(); }
+  function close(){ modal.style.display='none'; }
+  function renderList(){
+    if (!ul) return;
+    if (!workingList.length){ ul.innerHTML = `<li style="color:#666;">Sin tipos registrados.</li>`; return; }
+    ul.innerHTML = workingList.map((t,idx)=>`
+      <li style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #eee;">
+        <span style="flex:1;" data-idx="${idx}" class="tipo-text">${escapeHTML(t)}</span>
+        <button class="btn btn-info btn-sm edit-tipo" data-idx="${idx}" title="Editar"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-danger btn-sm del-tipo" data-idx="${idx}" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </li>`).join('');
+
+    ul.querySelectorAll('.edit-tipo').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = parseInt(b.getAttribute('data-idx'),10);
+        const actual = workingList[i] || '';
+        const nuevo = prompt('Editar tipo de audiencia:', actual);
+        if (nuevo===null) return;
+        const normalized = (nuevo||'').trim();
+        if (!normalized) return mostrarMensajeGlobal('El tipo no puede estar vacío.', 'danger');
+        if (existsIgnoringCase(workingList, normalized, i)) return mostrarMensajeGlobal('Ya existe un tipo con ese nombre.', 'danger');
+        workingList[i] = normalized;
+        workingList.sort(caseInsensitiveSort);
+        renderList();
+      });
+    });
+    ul.querySelectorAll('.del-tipo').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const i = parseInt(b.getAttribute('data-idx'),10);
+        const nombre = workingList[i];
+        if (!confirm(`¿Eliminar el tipo "${nombre}"?`)) return;
+        workingList.splice(i,1);
+        renderList();
+      });
     });
   }
-  function chooseSuggestion(value){ input.value = value || ''; hideSuggestions(); }
-  function updateHighlight(nodes){ nodes.forEach((n,i)=> n.classList.toggle('highlighted', i===selectedIndex)); }
-  function hideSuggestions(){ ul.style.display='none'; selectedIndex=-1; }
+
+  if (btnOpen) btnOpen.addEventListener('click', open);
+  if (btnClose) btnClose.addEventListener('click', close);
+  if (btnCancel) btnCancel.addEventListener('click', close);
+  window.addEventListener('click', e=>{ if (e.target===modal) close(); });
+
+  if (btnAdd) btnAdd.addEventListener('click', ()=>{
+    const val = (inputNuevo.value||'').trim();
+    if (!val) return mostrarMensajeGlobal('Escribe un nombre para el nuevo tipo.', 'danger');
+    if (existsIgnoringCase(workingList, val)) return mostrarMensajeGlobal('Ese tipo ya existe.', 'danger');
+    workingList.push(val);
+    workingList.sort(caseInsensitiveSort);
+    inputNuevo.value='';
+    renderList();
+  });
+  if (btnSave) btnSave.addEventListener('click', ()=>{
+    setTiposAudiencia(workingList);
+    renderTipoOptions();
+    close();
+  });
 }
 
 // -------------------------------
-// Exponer init para el HTML
+// Modal: Historial
 // -------------------------------
-window.initAudiencias = initAudiencias;
-window.saveAudiencia = saveAudiencia;
+function openHistorialCambiosModal(audienciaId) {
+  const modal = document.getElementById('modal-historial-cambios');
+  const input = modal.querySelector('.readonly-field');
+  if (input) input.value = `Audiencia ID ${audienciaId}`;
+  modal.style.display = 'flex';
+}
+function initModalHistorialCambios() {
+  const modal = document.getElementById('modal-historial-cambios');
+  const btnClose = document.getElementById('close-modal-historial');
+  const btnCancel = document.getElementById('cancel-historial');
+  if (btnClose) btnClose.addEventListener('click', () => modal.style.display = 'none');
+  if (btnCancel) btnCancel.addEventListener('click', () => modal.style.display = 'none');
+  window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+}
+
+// -------------------------------
+// Modal: Desahogar/Finalizar
+// -------------------------------
+function initModalFinalizarAudiencia() {
+  const modal = document.getElementById('modal-finalizar-audiencia');
+  const btnClose = document.getElementById('close-modal-finalizar');
+  const btnCancel = document.getElementById('cancel-finalizar');
+  const btnOk = document.getElementById('confirmar-finalizar');
+
+  if (btnClose) btnClose.addEventListener('click', () => modal.style.display='none');
+  if (btnCancel) btnCancel.addEventListener('click', () => modal.style.display='none');
+  if (btnOk) btnOk.addEventListener('click', () => {
+    const id = document.getElementById('finalizar-audiencia-id').value;
+    const obs = document.getElementById('observaciones-finales').value.trim();
+    if (!obs) return mostrarMensajeGlobal('Las observaciones son obligatorias para finalizar.', 'danger');
+    
+    const idx = AUDIENCIAS.findIndex(a => a.id == id);
+    if (idx !== -1) {
+        AUDIENCIAS[idx].atendida = true;
+        AUDIENCIAS[idx].observaciones = obs;
+        
+        const audLS = JSON.parse(localStorage.getItem('audiencias') || '[]');
+        const idxLS = audLS.findIndex(a => String(a.id) === String(id));
+        if (idxLS !== -1) {
+            audLS[idxLS].atendida = true;
+            audLS[idxLS].observaciones = obs;
+            localStorage.setItem('audiencias', JSON.stringify(audLS));
+        }
+        
+        mostrarMensajeGlobal('Audiencia desahogada correctamente.', 'success');
+        loadAudiencias();
+    }
+    
+    modal.style.display='none';
+    document.getElementById('observaciones-finales').value = '';
+  });
+
+  window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display='none'; });
+}
+
+function openFinalizarAudienciaModal(audienciaId) {
+  const modal = document.getElementById('modal-finalizar-audiencia');
+  document.getElementById('finalizar-audiencia-id').value = audienciaId;
+  document.getElementById('observaciones-finales').value = '';
+  modal.style.display = 'flex';
+}
+
+// -------------------------------
+// Modal: Reasignar
+// -------------------------------
+function initModalReasignarAudiencia() {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    if (!modal) return;
+
+    const btnClose = document.getElementById('close-modal-reasignar-audiencia');
+    const btnCancel = document.getElementById('cancel-reasignar-audiencia');
+    const btnSave = document.getElementById('save-reasignar-audiencia');
+
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.getElementById('form-reasignar-audiencia').reset();
+    };
+
+    if (btnClose) btnClose.onclick = closeModal;
+    if (btnCancel) btnCancel.onclick = closeModal;
+
+    if (btnSave) {
+        btnSave.onclick = function() {
+            const audienciaId = document.getElementById('reasignar-audiencia-id').value;
+            const nuevoAbogadoSelect = document.getElementById('select-nuevo-abogado-audiencia');
+            const nuevoAbogadoNombre = nuevoAbogadoSelect.value;
+            
+            if (!nuevoAbogadoNombre) {
+                mostrarMensajeGlobal('Por favor, seleccione un nuevo abogado.', 'danger');
+                return;
+            }
+            
+            guardarReasignacionAudiencia(audienciaId, nuevoAbogadoNombre);
+            closeModal();
+        };
+    }
+    
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+}
+
+function cargarAbogadosSelects() {
+    const selectores = [
+        document.getElementById('abogado-comparece'), 
+        document.getElementById('select-nuevo-abogado-audiencia')
+    ];
+    
+    selectores.forEach(selector => {
+        if (selector) {
+            const valorActual = selector.value;
+            selector.innerHTML = '<option value="">Seleccione un abogado...</option>';
+            
+            LISTA_ABOGADOS.forEach(nombre => {
+                const option = document.createElement('option');
+                option.value = nombre;
+                option.textContent = nombre;
+                selector.appendChild(option);
+            });
+            
+            if (valorActual) {
+                selector.value = valorActual;
+            }
+        }
+    });
+}
+
+function abrirModalReasignarAudiencia(audienciaId) {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    if (!modal) {
+        console.error('Modal de reasignar no encontrado');
+        return;
+    }
+
+    const audiencia = AUDIENCIAS.find(t => t.id == audienciaId);
+    if (!audiencia) {
+        mostrarMensajeGlobal('Error: No se encontró la audiencia.', 'danger');
+        return;
+    }
+
+    document.getElementById('reasignar-audiencia-id').value = audienciaId;
+    document.getElementById('reasignar-tipo-audiencia').value = audiencia.tipo || 'N/A';
+    document.getElementById('reasignar-abogado-actual-audiencia').value = audiencia.abogadoComparece || 'No asignado';
+    
+    modal.style.display = 'flex';
+}
+
+function guardarReasignacionAudiencia(audienciaId, nuevoAbogadoNombre) {
+    const audiencia = AUDIENCIAS.find(t => t.id == audienciaId);
+    if (!audiencia) return;
+
+    console.log(`Reasignando audiencia ID ${audienciaId} a: ${nuevoAbogadoNombre}`);
+
+    const index = AUDIENCIAS.findIndex(t => t.id == audienciaId);
+    AUDIENCIAS[index].abogadoComparece = nuevoAbogadoNombre;
+    
+    let audienciasLS = JSON.parse(localStorage.getItem('audiencias'));
+    const lsIndex = audienciasLS.findIndex(t => t.id == audienciaId);
+    audienciasLS[lsIndex].abogadoComparece = nuevoAbogadoNombre;
+    localStorage.setItem('audiencias', JSON.stringify(audienciasLS));
+    
+    console.log(`Audiencia reasignada a ${nuevoAbogadoNombre} por ${USER_ROLE}`);
+    
+    mostrarMensajeGlobal('Audiencia reasignada exitosamente', 'success');
+    loadAudiencias();
+}
+
+// -------------------------------
+// Nuevas Acciones del Menú
+// -------------------------------
+function verDetallesAsunto(asuntoId) {
+    if (!asuntoId) {
+        mostrarMensajeGlobal('Error: Esta audiencia no tiene un asunto asociado.', 'danger');
+        return;
+    }
+    console.log(`Redirigiendo a detalles del asunto ID: ${asuntoId}`);
+    window.location.href = `asuntos-detalle.html?id=${asuntoId}`;
+}
+
+function eliminarAudiencia(audienciaId) {
+    if (USER_ROLE !== 'Direccion') {
+        mostrarMensajeGlobal('Acción no permitida.', 'danger');
+        return;
+    }
+    
+    const confirmacion = confirm('¿Estás seguro de que deseas ELIMINAR esta audiencia?\n\nEsta acción no se puede deshacer.');
+    
+    if (confirmacion) {
+        console.log(`Eliminando audiencia ID: ${audienciaId}`);
+        
+        AUDIENCIAS = AUDIENCIAS.filter(t => t.id != audienciaId);
+        
+        let audienciasLS = JSON.parse(localStorage.getItem('audiencias'));
+        audienciasLS = audienciasLS.filter(t => t.id != audienciaId);
+        localStorage.setItem('audiencias', JSON.stringify(audienciasLS));
+        
+        mostrarMensajeGlobal('Audiencia eliminada.', 'success');
+        loadAudiencias();
+    }
+}
+
+function subirActa(id, file) {
+    const audiencia = AUDIENCIAS.find(t => t.id == id);
+    if (!audiencia) return;
+
+    const nuevoNombreArchivo = file.name;
+    
+    audiencia.actaDocumento = nuevoNombreArchivo;
+    
+    let audienciasLS = JSON.parse(localStorage.getItem('audiencias'));
+    const lsIndex = audienciasLS.findIndex(t => t.id == id);
+    audienciasLS[lsIndex].actaDocumento = nuevoNombreArchivo;
+    localStorage.setItem('audiencias', JSON.stringify(audienciasLS));
+    
+    console.log(`Nueva acta '${nuevoNombreArchivo}' subida por ${USER_ROLE}`);
+    
+    mostrarMensajeGlobal(`Acta '${nuevoNombreArchivo}' subida.`, 'success');
+    loadAudiencias();
+}
+
+function descargarActa(nombreArchivo, expediente) {
+    if (!nombreArchivo) {
+        mostrarMensajeGlobal('Esta audiencia no tiene un acta para descargar.', 'info');
+        return;
+    }
+    console.log('📥 Descargando acta:', nombreArchivo, 'para expediente:', expediente);
+    
+    const enlace = document.createElement('a');
+    enlace.href = '#'; // Simulación
+    enlace.download = nombreArchivo;
+    enlace.click();
+    
+    mostrarMensajeGlobal(`Descarga simulada de: ${nombreArchivo}`, 'success');
+}
+
+// -------------------------------
+// Función de utilidad para mensajes
+// -------------------------------
+function mostrarMensajeGlobal(mensaje, tipo = 'success') {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `alert alert-${tipo}`;
+    msgDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 15px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);';
+    
+    if (tipo === 'success') {
+        msgDiv.style.backgroundColor = '#d4edda';
+        msgDiv.style.color = '#155724';
+        msgDiv.style.borderColor = '#c3e6cb';
+    } else if (tipo === 'danger') {
+        msgDiv.style.backgroundColor = '#f8d7da';
+        msgDiv.style.color = '#721c24';
+        msgDiv.style.borderColor = '#f5c6cb';
+    } else {
+        msgDiv.style.backgroundColor = '#d1ecf1';
+        msgDiv.style.color = '#0c5460';
+        msgDiv.style.borderColor = '#bee5eb';
+    }
+    
+    msgDiv.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${mensaje}`;
+    document.body.appendChild(msgDiv);
+    
+    setTimeout(() => {
+        if (msgDiv.parentNode) {
+            msgDiv.parentNode.removeChild(msgDiv); 
+        }
+    }, 3000);
+}

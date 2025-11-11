@@ -8,14 +8,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="css/styles.css"/>
 
-  <!-- Librería XLSX para exportar a Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-  <!-- Sidebar dinámico -->
   <div id="sidebar-container"></div>
 
-  <!-- Contenido principal -->
   <div class="main-content">
     <div class="container">
       <header>
@@ -27,7 +24,6 @@
         </div>
       </header>
 
-      <!-- TABLA -->
       <div class="tab-content active" id="audiencias">
         <div class="toolbar">
           <div class="search-box">
@@ -44,13 +40,11 @@
           </div>
         </div>
 
-        <!-- FILTROS -->
         <div class="filters">
           <div class="filters-title"><i class="fas fa-filter"></i> Filtros de Audiencias</div>
           <div class="filter-row">
             <div class="filter-group">
               <label for="filter-tipo">Tipo de Audiencia</label>
-              <!-- Se pobla dinámicamente con Gestión de Tipos -->
               <select id="filter-tipo">
                 <option value="">Todos los tipos</option>
               </select>
@@ -69,7 +63,6 @@
 
             <div class="filter-group">
               <label for="filter-materia">Materia</label>
-              <!-- Mantengo el catálogo más amplio de la versión nueva -->
               <select id="filter-materia">
                 <option value="">Todas las materias</option>
                 <option value="Civil">Civil</option>
@@ -112,15 +105,13 @@
                 </tr>
                 </thead>
             <tbody id="audiencias-body">
-              <!-- Se llena por JS -->
-            </tbody>
+              </tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Crear/Editar Audiencia -->
   <div class="modal" id="modal-audiencia">
     <div class="modal-content">
       <div class="modal-header">
@@ -132,7 +123,6 @@
         <form id="form-audiencia">
           <input type="hidden" id="audiencia-id"/>
 
-          <!-- Selector de Asunto -->
           <div class="form-group">
             <label for="asunto-selector-audiencia">Asunto *</label>
             <select id="asunto-selector-audiencia" required>
@@ -140,10 +130,8 @@
             </select>
           </div>
 
-          <!-- Autollenado de Asunto -->
           <fieldset class="auto-filled-section">
             <legend>Datos del Asunto (Auto-llenados)</legend>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="expediente-auto-audiencia">Expediente</label>
@@ -154,7 +142,6 @@
                 <input type="text" id="materia-auto-audiencia" class="readonly-field" readonly>
               </div>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="gerencia-auto-audiencia">Gerencia</label>
@@ -165,7 +152,6 @@
                 <input type="text" id="abogado-auto-audiencia" class="readonly-field" readonly>
               </div>
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="partes-auto-audiencia">Partes Procesales</label>
@@ -176,21 +162,18 @@
                 <input type="text" id="organo-auto-audiencia" class="readonly-field" readonly>
               </div>
             </div>
-
             <div class="form-group">
               <label for="prioridad-auto-audiencia">Prioridad del Asunto</label>
               <input type="text" id="prioridad-auto-audiencia" class="readonly-field" readonly>
             </div>
           </fieldset>
 
-          <!-- Datos específicos -->
           <fieldset class="user-input-section">
             <legend>Datos Específicos de la Audiencia</legend>
 
             <div class="form-group">
               <label for="tipo-audiencia">Tipo de Audiencia *</label>
               <div style="display:flex; gap:8px; align-items:center;">
-                <!-- Se pobla con Gestionar Tipos -->
                 <select id="tipo-audiencia" required style="flex:1;">
                   <option value="">Seleccione un tipo</option>
                 </select>
@@ -219,21 +202,12 @@
 
             <div class="form-group">
               <label for="abogado-comparece">Abogado que Comparece *</label>
-              <!-- Dejo nombres como en la versión vieja -->
               <select id="abogado-comparece" required>
                 <option value="">Seleccione un abogado</option>
-                <option>Lic. María González Ruiz</option>
-                <option>Lic. Carlos Hernández López</option>
-                <option>Lic. Ana Patricia Morales</option>
-                <option>Lic. Roberto Silva Martínez</option>
-                <option>Lic. Sandra Jiménez Castro</option>
-                <option>Lic. Fernando Ramírez Torres</option>
-                <option>Lic. Carmen Delgado Vázquez</option>
-                <option>Lic. Alejandro Mendoza Ruiz</option>
-              </select>
+                </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
               <label for="acta-audiencia">Acta de Audiencia (Archivo)</label>
               <div class="file-upload-container">
                 <input type="file" id="acta-audiencia" accept=".pdf,.doc,.docx" class="file-input">
@@ -244,7 +218,7 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
               <label for="atendida">¿Atendida?</label>
               <select id="atendida">
                 <option value="false">No</option>
@@ -252,6 +226,10 @@
               </select>
             </div>
 
+            <div class="form-group" style="display: none;">
+              <label for="observaciones">Observaciones</label>
+              <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales sobre la audiencia..."></textarea>
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="recordatorio-dias">Recordatorio Días Antes</label>
@@ -265,10 +243,6 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="observaciones">Observaciones</label>
-              <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales sobre la audiencia..."></textarea>
-            </div>
           </fieldset>
         </form>
       </div>
@@ -280,7 +254,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Comentarios -->
   <div class="modal" id="modal-comentarios">
     <div class="modal-content" style="max-width:700px;">
       <div class="modal-header">
@@ -305,33 +278,31 @@
     </div>
   </div>
 
-  <!-- MODAL: Finalizar Audiencia -->
   <div class="modal" id="modal-finalizar-audiencia">
     <div class="modal-content" style="max-width:600px;">
       <div class="modal-header">
-        <h2>Finalizar Audiencia</h2>
+        <h2>Desahogar Audiencia</h2>
         <button class="btn btn-danger" id="close-modal-finalizar"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="finalizar-audiencia-id">
         <div class="alert-warning" style="background:#fff3cd;border:1px solid #ffeaa7;padding:15px;border-radius:5px;margin-bottom:20px;">
-          <h3 style="margin:0 0 10px 0;color:#856404;">¿Seguro que quieres finalizar esta audiencia?</h3>
-          <p style="margin:0;color:#856404;">Esta audiencia la podrás visualizar en la Agenda General</p>
+          <h3 style="margin:0 0 10px 0;color:#856404;">¿Confirmas que la audiencia fue desahogada?</h3>
+          <p style="margin:0;color:#856404;">La audiencia cambiará su estatus a "Desahogada" y se mostrará en la Agenda General.</p>
         </div>
         <div class="form-group">
-          <label for="observaciones-finales">Observaciones Finales</label>
-          <textarea id="observaciones-finales" rows="4" placeholder="Escribe las observaciones finales de la audiencia..." required></textarea>
-          <small>Las observaciones son obligatorias para finalizar la audiencia</small>
+          <label for="observaciones-finales">Observaciones / Resumen *</label>
+          <textarea id="observaciones-finales" rows="4" placeholder="Escribe un breve resumen o las observaciones de la audiencia..." required></textarea>
+          <small>Las observaciones son obligatorias para desahogar la audiencia.</small>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-danger" id="cancel-finalizar">Cancelar</button>
-        <button class="btn btn-success" id="confirmar-finalizar"><i class="fas fa-check"></i> Finalizar Audiencia</button>
+        <button class="btn btn-success" id="confirmar-finalizar"><i class="fas fa-check"></i> Confirmar Desahogo</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Gestionar tipos de audiencia -->
   <div class="modal" id="modal-tipos-audiencia">
     <div class="modal-content" style="max-width:650px;">
       <div class="modal-header">
@@ -360,7 +331,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Historial de cambios (demo) -->
   <div class="modal" id="modal-historial-cambios">
     <div class="modal-content" style="max-width:700px;">
       <div class="modal-header">
@@ -391,346 +361,81 @@
     </div>
   </div>
 
-  <!-- Scripts base de tu proyecto -->
-  <script src="js/notificaciones.js"></script>
+  <div class="modal" id="modal-reasignar-audiencia">
+      <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+              <h2 id="modal-reasignar-title-audiencia">Reasignar Audiencia</h2>
+              <button class="btn btn-danger" id="close-modal-reasignar-audiencia">
+                  <i class="fas fa-times"></i>
+              </button>
+          </div>
+          <div class="modal-body">
+              <form id="form-reasignar-audiencia">
+                  <input type="hidden" id="reasignar-audiencia-id">
+                  
+                  <div class="form-group">
+                      <label>Audiencia (Tipo):</label>
+                      <input type="text" id="reasignar-tipo-audiencia" readonly class="readonly-field">
+                  </div>
+                  <div class="form-group">
+                      <label>Abogado que Comparece (Actual):</label>
+                      <input type="text" id="reasignar-abogado-actual-audiencia" readonly class="readonly-field">
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="select-nuevo-abogado-audiencia">Asignar a (Nuevo Abogado):*</label>
+                      <select id="select-nuevo-abogado-audiencia" required>
+                          <option value="">Seleccione un abogado...</option>
+                          </select>
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-danger" id="cancel-reasignar-audiencia">Cancelar</button>
+              <button class="btn btn-success" id="save-reasignar-audiencia">Confirmar Reasignación</button>
+          </div>
+      </div>
+  </div>
   <script src="js/excel-export.js"></script>
+  <script src="js/notificaciones.js"></script>
+  <script src="js/components.js"></script>
+  
   <script src="js/audiencias.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Inicial de la lógica de audiencias (si existe en tu JS)
-      if (typeof initAudiencias === 'function') initAudiencias();
-
-      initModalAudiencias();
-      initModalComentarios();
-      initModalFinalizarAudiencia();
-      initExportacionAudiencias();
-      initModalHistorialCambios();
-      // Gestión dinámica de tipos
-      try {
-        if (!localStorage.getItem('tiposAudiencia')) {
-          setTiposAudiencia(DEFAULT_TIPOS_AUDIENCIA);
-        }
-        renderTipoOptions();
-        initGestionTiposAudiencia();
-      } catch(e){ console.warn('TiposAudiencia init:', e); }
-    });
-
-    /* ---------- Sidebar dinámico ---------- */
-    // Cargar sidebar y marcar la página activa
-    // (requiere js/components.js en tu proyecto)
-  </script>
-  <script src="js/components.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      if (typeof loadSidebar === 'function') {
-        loadSidebar('audiencias.html');
-      }
-    });
-  </script>
-
-  <script>
-    /* ===========================
-       Modales: Audiencias
-    ============================ */
-    function initModalAudiencias() {
-      const modal = document.getElementById('modal-audiencia');
-      const btnAdd = document.getElementById('add-audiencia');
-      const btnClose = document.getElementById('close-modal-audiencia');
-      const btnCancel = document.getElementById('cancel-audiencia');
-      const btnSave = document.getElementById('save-audiencia');
-
-      if (btnAdd) btnAdd.addEventListener('click', () => openAudienciaModal());
-      if (btnClose) btnClose.addEventListener('click', () => modal.style.display = 'none');
-      if (btnCancel) btnCancel.addEventListener('click', () => modal.style.display = 'none');
-      if (btnSave) btnSave.addEventListener('click', () => {
-        // Validación de tipo (por si manipulan el DOM)
-        const tipo = (document.getElementById('tipo-audiencia')?.value || '').trim();
-        const tipos = getTiposAudiencia();
-        const existe = tipos.some(t => t.localeCompare(tipo,'es',{sensitivity:'base'}) === 0);
-        if (!existe) {
-          alert('El tipo seleccionado no es válido. Elige uno de la lista o créalo en “Gestionar tipos”.');
-          return;
-        }
-        // Llama al flujo real de guardado definido en audiencias.js
-        if (typeof saveAudiencia === 'function') saveAudiencia();
-        else alert('No se encontró la función saveAudiencia().');
-      });
-
-      window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display='none'; });
-    }
-
-    function initModalComentarios() {
-      const modal = document.getElementById('modal-comentarios');
-      const btnClose = document.getElementById('close-modal-comentarios');
-      const btnSave = document.getElementById('save-comentario');
-
-      if (btnClose) btnClose.addEventListener('click', () => modal.style.display='none');
-      if (btnSave) btnSave.addEventListener('click', () => {
-        const comentario = document.getElementById('nuevo-comentario').value.trim();
-        if (comentario) {
-          alert('Comentario guardado: ' + comentario);
-          document.getElementById('nuevo-comentario').value = '';
-          modal.style.display='none';
-        }
-      });
-    }
-
-    function initModalFinalizarAudiencia() {
-      const modal = document.getElementById('modal-finalizar-audiencia');
-      const btnClose = document.getElementById('close-modal-finalizar');
-      const btnCancel = document.getElementById('cancel-finalizar');
-      const btnOk = document.getElementById('confirmar-finalizar');
-
-      if (btnClose) btnClose.addEventListener('click', () => modal.style.display='none');
-      if (btnCancel) btnCancel.addEventListener('click', () => modal.style.display='none');
-      if (btnOk) btnOk.addEventListener('click', () => {
-        const id = document.getElementById('finalizar-audiencia-id').value;
-        const obs = document.getElementById('observaciones-finales').value.trim();
-        if (!obs) return alert('Las observaciones son obligatorias para finalizar.');
-        alert('Audiencia finalizada correctamente.\nObservaciones: ' + obs + '\n\nPodrás visualizarla en la Agenda General.');
-        modal.style.display='none';
-        document.getElementById('observaciones-finales').value = '';
-        const checkbox = document.querySelector(`.delete-audiencia[data-id="${id}"]`);
-        if (checkbox) checkbox.checked = false;
-      });
-
-      window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display='none'; });
-    }
-
-    function openFinalizarAudienciaModal(audienciaId) {
-      const modal = document.getElementById('modal-finalizar-audiencia');
-      document.getElementById('finalizar-audiencia-id').value = audienciaId;
-      document.getElementById('observaciones-finales').value = '';
-      modal.style.display = 'flex';
-    }
-
-    function initExportacionAudiencias() {
-      const btn = document.getElementById('export-audiencias');
-      if (!btn) return;
-      btn.addEventListener('click', function() {
-        if (typeof exportarAudienciasAExcel === 'function') {
-          exportarAudienciasAExcel();
-        } else {
-          alert('Error: La función de exportación no está disponible.');
-          console.error('Función exportarAudienciasAExcel no encontrada');
-        }
-      });
-    }
-
-    /* ===========================
-       Abrir modal con data (crear/editar)
-    ============================ */
-    function openAudienciaModal(audiencia = null) {
-      const modal = document.getElementById('modal-audiencia');
-      const title = document.getElementById('modal-audiencia-title');
-      const form = document.getElementById('form-audiencia');
-
-      if (audiencia) {
-        // Edición
-        title.textContent = 'Editar Audiencia';
-        document.getElementById('save-audiencia').textContent = 'Actualizar Audiencia';
-        document.getElementById('audiencia-id').value = audiencia.id;
-
-        // Asunto
-        if (audiencia.asuntoId) {
-          const sel = document.getElementById('asunto-selector-audiencia');
-          sel.value = audiencia.asuntoId;
-          sel.dispatchEvent(new Event('change'));
-        } else {
-          document.getElementById('expediente-auto-audiencia').value = audiencia.expediente || '';
-          document.getElementById('materia-auto-audiencia').value = audiencia.materia || '';
-          document.getElementById('gerencia-auto-audiencia').value = audiencia.gerencia || '';
-          document.getElementById('abogado-auto-audiencia').value = audiencia.abogadoEncargado || '';
-          document.getElementById('partes-auto-audiencia').value = `${audiencia.actor || ''} vs ${audiencia.demandado || ''}`;
-          document.getElementById('organo-auto-audiencia').value = audiencia.tribunal || '';
-          document.getElementById('prioridad-auto-audiencia').value = audiencia.prioridad || '';
-        }
-
-        // Campos específicos
-        document.getElementById('tipo-audiencia').value = audiencia.tipoAudiencia || audiencia.tipo || '';
-        document.getElementById('fecha-audiencia').value = audiencia.fechaAudiencia || audiencia.fecha || '';
-        document.getElementById('hora-audiencia').value = audiencia.horaAudiencia || audiencia.hora || '';
-        document.getElementById('sala-audiencia').value = audiencia.sala || audiencia.lugar || '';
-
-        // Abogado comparece (por nombre)
-        const abogadoSelect = document.getElementById('abogado-comparece');
-        const abComp = audiencia.abogadoComparece || '';
-        if (abComp) {
-          for (let opt of abogadoSelect.options) {
-            if (opt.text.includes(abComp) || opt.value === abComp) {
-              abogadoSelect.value = opt.value;
-              break;
-            }
+      document.addEventListener('DOMContentLoaded', function() {
+          // Cargar sidebar y marcar la página activa
+          if (typeof loadSidebar === 'function') {
+              loadSidebar('audiencias.html');
           }
-        }
+          
+          // Inicializar la página de audiencias (esto llama a todo desde audiencias.js)
+          if (typeof initAudiencias === 'function') {
+              initAudiencias();
+          }
 
-        document.getElementById('observaciones').value = audiencia.observaciones || '';
-        document.getElementById('atendida').value = audiencia.atendida ? 'true' : 'false';
-        document.getElementById('recordatorio-dias').value = audiencia.recordatorioDias || 1;
-        document.getElementById('recordatorio-horas').value = audiencia.recordatorioHoras || 2;
-
-        // Nombre del acta (si existe)
-        const actaFilename = document.getElementById('acta-filename');
-        const actaDoc = audiencia.actaDocumento || audiencia.actaNombre || '';
-        if (actaDoc) {
-          actaFilename.textContent = actaDoc;
-          actaFilename.classList.add('has-file');
-        } else {
-          actaFilename.textContent = 'Ningún archivo seleccionado';
-          actaFilename.classList.remove('has-file');
-        }
-
-      } else {
-        // Nueva
-        title.textContent = 'Nueva Audiencia';
-        document.getElementById('save-audiencia').textContent = 'Guardar Audiencia';
-        if (form) form.reset();
-        document.getElementById('audiencia-id').value = '';
-        if (typeof limpiarCamposAutoLlenadosAudiencia === 'function') {
-          limpiarCamposAutoLlenadosAudiencia();
-        }
-        const actaFilename = document.getElementById('acta-filename');
-        actaFilename.textContent = 'Ningún archivo seleccionado';
-        actaFilename.classList.remove('has-file');
-      }
-
-      modal.style.display = 'flex';
-    }
-
-    /* ===========================
-       Historial Cambios (demo)
-    ============================ */
-    function openHistorialCambiosModal(audienciaId) {
-      const modal = document.getElementById('modal-historial-cambios');
-      const input = modal.querySelector('.readonly-field');
-      if (input) input.value = `Audiencia ${audienciaId}`;
-      modal.style.display = 'flex';
-    }
-    function initModalHistorialCambios() {
-      const modal = document.getElementById('modal-historial-cambios');
-      const btnClose = document.getElementById('close-modal-historial');
-      const btnCancel = document.getElementById('cancel-historial');
-      if (btnClose) btnClose.addEventListener('click', () => modal.style.display = 'none');
-      if (btnCancel) btnCancel.addEventListener('click', () => modal.style.display = 'none');
-      window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-    }
-
-    /* ===========================
-       Gestión de Tipos (localStorage)
-    ============================ */
-    const DEFAULT_TIPOS_AUDIENCIA = [
-      'Inicial','Intermedia','Ratificación','Admisión','Confesional','Reanudación','Incidental','Constitucional'
-    ];
-
-    function caseInsensitiveSort(a,b){ return a.localeCompare(b,'es',{sensitivity:'base'}); }
-    function getTiposAudiencia(){
-      try{
-        const raw = localStorage.getItem('tiposAudiencia');
-        if (raw){
-          const arr = JSON.parse(raw);
-          return Array.from(new Set(arr.filter(Boolean))).sort(caseInsensitiveSort);
-        }
-      }catch(e){}
-      setTiposAudiencia(DEFAULT_TIPOS_AUDIENCIA);
-      return [...DEFAULT_TIPOS_AUDIENCIA].sort(caseInsensitiveSort);
-    }
-    function setTiposAudiencia(arr){
-      const clean = Array.from(new Set((arr||[]).map(s => (s||'').trim()).filter(Boolean)));
-      localStorage.setItem('tiposAudiencia', JSON.stringify(clean));
-    }
-    function renderTipoOptions(){
-      const tipos = getTiposAudiencia();
-      const selForm = document.getElementById('tipo-audiencia');
-      if (selForm){
-        selForm.innerHTML = '<option value="">Seleccione un tipo</option>' +
-          tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
-      }
-      const selFiltro = document.getElementById('filter-tipo');
-      if (selFiltro){
-        const current = selFiltro.value;
-        selFiltro.innerHTML = '<option value="">Todos los tipos</option>' +
-          tipos.map(t => `<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');
-        if ([...selFiltro.options].some(o => o.value === current)) selFiltro.value = current;
-      }
-    }
-    function existsIgnoringCase(arr, value, ignoreIndex=-1){
-      return arr.some((x,idx) => idx!==ignoreIndex && x.localeCompare(value,'es',{sensitivity:'base'})===0);
-    }
-    function initGestionTiposAudiencia(){
-      const modal = document.getElementById('modal-tipos-audiencia');
-      const btnOpen = document.getElementById('manage-tipos-btn');
-      const btnClose = document.getElementById('close-modal-tipos');
-      const btnCancel = document.getElementById('cancel-tipos');
-      const btnSave = document.getElementById('save-tipos');
-      const btnAdd = document.getElementById('add-tipo-btn');
-      const inputNuevo = document.getElementById('nuevo-tipo-audiencia');
-      const ul = document.getElementById('lista-tipos-audiencia');
-
-      let workingList = getTiposAudiencia();
-
-      function open(){ workingList = getTiposAudiencia(); renderList(); modal.style.display='flex'; inputNuevo.value=''; inputNuevo.focus(); }
-      function close(){ modal.style.display='none'; }
-      function renderList(){
-        if (!ul) return;
-        if (!workingList.length){ ul.innerHTML = `<li style="color:#666;">Sin tipos registrados.</li>`; return; }
-        ul.innerHTML = workingList.map((t,idx)=>`
-          <li style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #eee;">
-            <span style="flex:1;" data-idx="${idx}" class="tipo-text">${escapeHTML(t)}</span>
-            <button class="btn btn-info btn-sm edit-tipo" data-idx="${idx}" title="Editar"><i class="fas fa-pen"></i></button>
-            <button class="btn btn-danger btn-sm del-tipo" data-idx="${idx}" title="Eliminar"><i class="fas fa-trash"></i></button>
-          </li>`).join('');
-
-        ul.querySelectorAll('.edit-tipo').forEach(b=>{
-          b.addEventListener('click', ()=>{
-            const i = parseInt(b.getAttribute('data-idx'),10);
-            const actual = workingList[i] || '';
-            const nuevo = prompt('Editar tipo de audiencia:', actual);
-            if (nuevo===null) return;
-            const normalized = (nuevo||'').trim();
-            if (!normalized) return alert('El tipo no puede estar vacío.');
-            if (existsIgnoringCase(workingList, normalized, i)) return alert('Ya existe un tipo con ese nombre.');
-            workingList[i] = normalized;
-            workingList.sort(caseInsensitiveSort);
-            renderList();
-          });
-        });
-        ul.querySelectorAll('.del-tipo').forEach(b=>{
-          b.addEventListener('click', ()=>{
-            const i = parseInt(b.getAttribute('data-idx'),10);
-            const nombre = workingList[i];
-            if (!confirm(`¿Eliminar el tipo "${nombre}"?`)) return;
-            workingList.splice(i,1);
-            renderList();
-          });
-        });
-      }
-
-      if (btnOpen) btnOpen.addEventListener('click', open);
-      if (btnClose) btnClose.addEventListener('click', close);
-      if (btnCancel) btnCancel.addEventListener('click', close);
-      window.addEventListener('click', e=>{ if (e.target===modal) close(); });
-
-      if (btnAdd) btnAdd.addEventListener('click', ()=>{
-        const val = (inputNuevo.value||'').trim();
-        if (!val) return alert('Escribe un nombre para el nuevo tipo.');
-        if (existsIgnoringCase(workingList, val)) return alert('Ese tipo ya existe.');
-        workingList.push(val);
-        workingList.sort(caseInsensitiveSort);
-        inputNuevo.value='';
-        renderList();
+          // Inicializar la exportación
+          initExportacionAudiencias();
       });
-      if (btnSave) btnSave.addEventListener('click', ()=>{
-        setTiposAudiencia(workingList);
-        renderTipoOptions();
-        close();
-      });
-    }
 
-    // Utilidad para imprimir texto seguro
-    function escapeHTML(str){
-      return (str||'').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-    }
+      function initExportacionAudiencias() {
+          // Configurar botón de exportar a Excel
+          const btnExportAudiencias = document.getElementById('export-audiencias');
+          if (btnExportAudiencias) {
+              btnExportAudiencias.addEventListener('click', function() {
+                  console.log('Iniciando exportación de audiencias...');
+                  // Esta función 'exportarAudienciasAExcel' debe existir en tu 'excel-export.js'
+                  if (typeof exportarAudienciasAExcel === 'function') {
+                      exportarAudienciasAExcel();
+                  } else {
+                      alert('Error: La función de exportación no está disponible.');
+                      console.error('Función exportarAudienciasAExcel no encontrada');
+                  }
+              });
+          } else {
+              console.warn('Botón export-audiencias no encontrado');
+          }
+      }
   </script>
-</body>
+  </body>
 </html>

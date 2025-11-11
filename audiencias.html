@@ -233,25 +233,6 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="acta-audiencia">Acta de Audiencia (Archivo)</label>
-              <div class="file-upload-container">
-                <input type="file" id="acta-audiencia" accept=".pdf,.doc,.docx" class="file-input">
-                <label for="acta-audiencia" class="file-upload-btn">
-                  <i class="fas fa-file-upload"></i> Subir Acta de Audiencia
-                </label>
-                <span class="file-name" id="acta-filename">Ningún archivo seleccionado</span>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="atendida">¿Atendida?</label>
-              <select id="atendida">
-                <option value="false">No</option>
-                <option value="true">Sí</option>
-              </select>
-            </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="recordatorio-dias">Recordatorio Días Antes</label>
@@ -265,10 +246,6 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="observaciones">Observaciones</label>
-              <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales sobre la audiencia..."></textarea>
-            </div>
           </fieldset>
         </form>
       </div>
@@ -522,82 +499,65 @@
        Abrir modal con data (crear/editar)
     ============================ */
     function openAudienciaModal(audiencia = null) {
-      const modal = document.getElementById('modal-audiencia');
-      const title = document.getElementById('modal-audiencia-title');
-      const form = document.getElementById('form-audiencia');
+    const modal = document.getElementById('modal-audiencia');
+    const title = document.getElementById('modal-audiencia-title');
+    const form  = document.getElementById('form-audiencia');
 
-      if (audiencia) {
-        // Edición
-        title.textContent = 'Editar Audiencia';
-        document.getElementById('save-audiencia').textContent = 'Actualizar Audiencia';
-        document.getElementById('audiencia-id').value = audiencia.id;
+    if (audiencia) {
+      // Edición
+      title.textContent = 'Editar Audiencia';
+      document.getElementById('save-audiencia').textContent = 'Actualizar Audiencia';
+      document.getElementById('audiencia-id').value = audiencia.id;
 
-        // Asunto
-        if (audiencia.asuntoId) {
-          const sel = document.getElementById('asunto-selector-audiencia');
-          sel.value = audiencia.asuntoId;
-          sel.dispatchEvent(new Event('change'));
-        } else {
-          document.getElementById('expediente-auto-audiencia').value = audiencia.expediente || '';
-          document.getElementById('materia-auto-audiencia').value = audiencia.materia || '';
-          document.getElementById('gerencia-auto-audiencia').value = audiencia.gerencia || '';
-          document.getElementById('abogado-auto-audiencia').value = audiencia.abogadoEncargado || '';
-          document.getElementById('partes-auto-audiencia').value = `${audiencia.actor || ''} vs ${audiencia.demandado || ''}`;
-          document.getElementById('organo-auto-audiencia').value = audiencia.tribunal || '';
-          document.getElementById('prioridad-auto-audiencia').value = audiencia.prioridad || '';
-        }
-
-        // Campos específicos
-        document.getElementById('tipo-audiencia').value = audiencia.tipoAudiencia || audiencia.tipo || '';
-        document.getElementById('fecha-audiencia').value = audiencia.fechaAudiencia || audiencia.fecha || '';
-        document.getElementById('hora-audiencia').value = audiencia.horaAudiencia || audiencia.hora || '';
-        document.getElementById('sala-audiencia').value = audiencia.sala || audiencia.lugar || '';
-
-        // Abogado comparece (por nombre)
-        const abogadoSelect = document.getElementById('abogado-comparece');
-        const abComp = audiencia.abogadoComparece || '';
-        if (abComp) {
-          for (let opt of abogadoSelect.options) {
-            if (opt.text.includes(abComp) || opt.value === abComp) {
-              abogadoSelect.value = opt.value;
-              break;
-            }
-          }
-        }
-
-        document.getElementById('observaciones').value = audiencia.observaciones || '';
-        document.getElementById('atendida').value = audiencia.atendida ? 'true' : 'false';
-        document.getElementById('recordatorio-dias').value = audiencia.recordatorioDias || 1;
-        document.getElementById('recordatorio-horas').value = audiencia.recordatorioHoras || 2;
-
-        // Nombre del acta (si existe)
-        const actaFilename = document.getElementById('acta-filename');
-        const actaDoc = audiencia.actaDocumento || audiencia.actaNombre || '';
-        if (actaDoc) {
-          actaFilename.textContent = actaDoc;
-          actaFilename.classList.add('has-file');
-        } else {
-          actaFilename.textContent = 'Ningún archivo seleccionado';
-          actaFilename.classList.remove('has-file');
-        }
-
+      // Asunto (autollenado si existe id de asunto)
+      if (audiencia.asuntoId) {
+        const sel = document.getElementById('asunto-selector-audiencia');
+        sel.value = audiencia.asuntoId;
+        sel.dispatchEvent(new Event('change'));
       } else {
-        // Nueva
-        title.textContent = 'Nueva Audiencia';
-        document.getElementById('save-audiencia').textContent = 'Guardar Audiencia';
-        if (form) form.reset();
-        document.getElementById('audiencia-id').value = '';
-        if (typeof limpiarCamposAutoLlenadosAudiencia === 'function') {
-          limpiarCamposAutoLlenadosAudiencia();
-        }
-        const actaFilename = document.getElementById('acta-filename');
-        actaFilename.textContent = 'Ningún archivo seleccionado';
-        actaFilename.classList.remove('has-file');
+        // Llenado directo de campos auto (solo lectura)
+        document.getElementById('expediente-auto-audiencia').value = audiencia.expediente || '';
+        document.getElementById('materia-auto-audiencia').value    = audiencia.materia || '';
+        document.getElementById('gerencia-auto-audiencia').value   = audiencia.gerencia || '';
+        document.getElementById('abogado-auto-audiencia').value    = audiencia.abogadoEncargado || '';
+        document.getElementById('partes-auto-audiencia').value     = `${audiencia.actor || ''} vs ${audiencia.demandado || ''}`;
+        document.getElementById('organo-auto-audiencia').value     = audiencia.tribunal || '';
+        document.getElementById('prioridad-auto-audiencia').value  = audiencia.prioridad || '';
       }
 
-      modal.style.display = 'flex';
+      // Campos específicos que sí existen
+      document.getElementById('tipo-audiencia').value  = audiencia.tipoAudiencia || audiencia.tipo || '';
+      document.getElementById('fecha-audiencia').value = audiencia.fechaAudiencia || audiencia.fecha || '';
+      document.getElementById('hora-audiencia').value  = audiencia.horaAudiencia || audiencia.hora || '';
+      document.getElementById('sala-audiencia').value  = audiencia.sala || audiencia.lugar || '';
+
+      // Abogado comparece (por nombre)
+      const abogadoSelect = document.getElementById('abogado-comparece');
+      const abComp = audiencia.abogadoComparece || '';
+      if (abComp) {
+        for (let opt of abogadoSelect.options) {
+          if (opt.text.includes(abComp) || opt.value === abComp) {
+            abogadoSelect.value = opt.value;
+            break;
+          }
+        }
+      }
+
+      // Ya NO tocamos: observaciones, atendida, acta-filename
+    } else {
+      // Nueva
+      title.textContent = 'Nueva Audiencia';
+      document.getElementById('save-audiencia').textContent = 'Guardar Audiencia';
+      if (form) form.reset();
+      document.getElementById('audiencia-id').value = '';
+      if (typeof limpiarCamposAutoLlenadosAudiencia === 'function') {
+        limpiarCamposAutoLlenadosAudiencia();
+      }
+      // Ya NO tocamos: acta-filename
     }
 
+    modal.style.display = 'flex';
+  }
     /* ===========================
        Historial Cambios (demo)
     ============================ */

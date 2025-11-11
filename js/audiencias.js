@@ -239,24 +239,13 @@ function guardarAudiencia() {
     fechaAudiencia: document.getElementById('fecha-audiencia').value,
     horaAudiencia: document.getElementById('hora-audiencia').value,
     tipoAudiencia: document.getElementById('tipo-audiencia').value,
-    abogadoComparece: document.getElementById('abogado-comparece').value, // usa string para consistencia
-    observaciones: (document.getElementById('observaciones')?.value || '').trim(),
-    atendida: (document.getElementById('atendida')?.value === 'true'),
+    abogadoComparece: document.getElementById('abogado-comparece').value,
     recordatorioDias: parseInt(document.getElementById('recordatorio-dias')?.value) || 1,
     recordatorioHoras: parseInt(document.getElementById('recordatorio-horas')?.value) || 2
   };
 
-  // Archivo
-  const archivoInput = document.getElementById('acta-documento');
-  if (archivoInput?.files?.[0]) {
-    audienciaData.actaDocumento = archivoInput.files[0].name;
-  }
-
-  // Validaciones
-  if (!audienciaData.asuntoId) {
-    alert('Por favor, selecciona un asunto.');
-    return;
-  }
+  // Validaciones mínimas
+  if (!audienciaData.asuntoId) { alert('Por favor, selecciona un asunto.'); return; }
   if (!audienciaData.tipoAudiencia || !audienciaData.fechaAudiencia || !audienciaData.horaAudiencia || !audienciaData.abogadoComparece) {
     alert('Completa Tipo, Fecha, Hora y Abogado que Comparece.');
     return;
@@ -269,49 +258,40 @@ function guardarAudiencia() {
     }
   }
 
-  // Base = LS si existe, o lo que ya está en memoria (demo)
+  // Base
   const ls = JSON.parse(localStorage.getItem('audiencias') || '[]');
   let base = (ls && ls.length) ? ls.map(a => ({ ...a, id: String(a.id) })) : [...AUDIENCIAS.map(a => ({ ...a, id: String(a.id) }))];
 
   if (isEditing) {
-    // Actualiza existente
     const idx = base.findIndex(a => String(a.id) === String(audienciaId));
-    if (idx === -1) {
-      alert('No se encontró la audiencia a editar.');
-      return;
-    }
-    audienciaData.id = String(base[idx].id);
-    audienciaData.fechaCreacion = base[idx].fechaCreacion || new Date().toISOString().split('T')[0];
-    audienciaData.fechaModificacion = new Date().toISOString().split('T')[0];
+    if (idx === -1) { alert('No se encontró la audiencia a editar.'); return; }
 
-    // Mapea nombres usados en la tabla para no romper display
+    const original = base[idx];
     base[idx] = {
-      ...base[idx],
+      ...original,
       ...audienciaData,
-      // Campos que usa la tabla “lista”
+      id: String(original.id),
+      fechaCreacion: original.fechaCreacion || new Date().toISOString().split('T')[0],
+      fechaModificacion: new Date().toISOString().split('T')[0],
+      // Campos usados en la tabla
       fecha: audienciaData.fechaAudiencia,
       hora: audienciaData.horaAudiencia,
       tipo: audienciaData.tipoAudiencia,
-      actor: base[idx].actor || '',        // conserva si ya existía
-      tribunal: base[idx].tribunal || '',  // conserva si ya existía
-      materia: base[idx].materia || '',
-      gerencia: base[idx].gerencia || '',
-      prioridad: base[idx].prioridad || '',
-      demandado: base[idx].demandado || ''
+      actor: original.actor || '',
+      tribunal: original.tribunal || '',
+      materia: original.materia || '',
+      gerencia: original.gerencia || '',
+      prioridad: original.prioridad || '',
+      demandado: original.demandado || ''
     };
     alert('Audiencia actualizada exitosamente.');
   } else {
-    // Nueva
-    audienciaData.id = String(Date.now());
-    audienciaData.fechaCreacion = new Date().toISOString().split('T')[0];
-
-    // Campos usados por la tabla “lista”
     const row = {
-      id: audienciaData.id,
+      id: String(Date.now()),
       fecha: audienciaData.fechaAudiencia,
       hora: audienciaData.horaAudiencia,
-      tribunal: '', // completar si quieres
-      expediente: '', // lo puedes derivar del asunto si lo cargas
+      tribunal: '',
+      expediente: '',
       actor: '',
       tipo: audienciaData.tipoAudiencia,
       materia: '',
@@ -319,27 +299,19 @@ function guardarAudiencia() {
       gerencia: '',
       abogadoEncargado: '',
       abogadoComparece: audienciaData.abogadoComparece,
-      observaciones: audienciaData.observaciones,
-      prioridad: 'Media',
-      actaDocumento: audienciaData.actaDocumento || ''
+      prioridad: 'Media'
     };
-
     base.push(row);
     alert('Audiencia guardada exitosamente.');
   }
 
-  // Persistencia y refresco
   localStorage.setItem('audiencias', JSON.stringify(base));
   AUDIENCIAS = base;
 
-  // Limpia formulario y cierra modal
   document.getElementById('form-audiencia')?.reset();
-  document.getElementById('acta-filename').textContent = 'Ningún archivo seleccionado';
-  document.getElementById('acta-filename').classList.remove('has-file');
   const modal = document.getElementById('modal-audiencia');
   if (modal) modal.style.display = 'none';
 
-  // Redibuja tabla
   loadAudiencias();
 }
 

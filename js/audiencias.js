@@ -3,7 +3,7 @@
 // Simula el rol del usuario logueado.
 // Cambia este valor para probar los permisos:
 // 'Abogado' | 'Gerente' | 'Direccion'
-const USER_ROLE = 'Abogado'; 
+const USER_ROLE = 'Gerente'; 
 
 // Lista de estados mexicanos para el filtro de gerencias
 const estadosMexicoAudiencias = [

@@ -3,10 +3,12 @@ function initUsuarios() {
     // Cargar datos iniciales
     loadUsuarios();
     loadMaterias();
+    loadGerencias(); // Carga inicial para que existan
     
     // Configurar búsqueda
     setupSearchUsuarios();
     setupSearchMaterias();
+    setupSearchGerencias(); 
     
     // Configurar filtros
     setupFiltersUsuarios();
@@ -32,7 +34,9 @@ function loadUsuarios() {
                 correo: 'maria.gonzalez@juridico.com',
                 rol: 'SUBDIRECTOR',
                 activo: true,
-                fechaCreacion: '2025-01-15'
+                fechaCreacion: '2025-01-15',
+                gerenciaId: 1, // ID de Gerencia
+                materias: [1, 4] // IDs de Materias
             },
             {
                 id: 2,
@@ -40,7 +44,9 @@ function loadUsuarios() {
                 correo: 'carlos.hernandez@juridico.com',
                 rol: 'GERENTE',
                 activo: true,
-                fechaCreacion: '2025-02-10'
+                fechaCreacion: '2025-02-10',
+                gerenciaId: 1,
+                materias: [1, 4, 5, 7]
             },
             {
                 id: 3,
@@ -48,7 +54,9 @@ function loadUsuarios() {
                 correo: 'ana.morales@juridico.com',
                 rol: 'ABOGADO',
                 activo: true,
-                fechaCreacion: '2025-03-05'
+                fechaCreacion: '2025-03-05',
+                gerenciaId: 2,
+                materias: [3]
             },
             {
                 id: 4,
@@ -56,7 +64,9 @@ function loadUsuarios() {
                 correo: 'roberto.silva@juridico.com',
                 rol: 'ABOGADO',
                 activo: true,
-                fechaCreacion: '2025-03-20'
+                fechaCreacion: '2025-03-20',
+                gerenciaId: 2,
+                materias: [2, 3]
             },
             {
                 id: 5,
@@ -64,7 +74,9 @@ function loadUsuarios() {
                 correo: 'sandra.jimenez@juridico.com',
                 rol: 'ABOGADO',
                 activo: false,
-                fechaCreacion: '2025-04-12'
+                fechaCreacion: '2025-04-12',
+                gerenciaId: 3,
+                materias: [9]
             }
         ];
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
@@ -120,6 +132,7 @@ function setupUsuarioActions() {
             const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
             const usuario = usuarios.find(u => u.id === id);
             if (usuario) {
+                // openUsuarioModal (definida en el HTML)
                 openUsuarioModal(usuario);
             }
         });
@@ -149,6 +162,9 @@ function toggleUsuarioStatus(id) {
     }
 }
 
+// =======================================================
+// ============= FUNCIÓN SAVEUSUARIO (MODIFICADA PARA CHECKBOX) ==========
+// =======================================================
 function saveUsuario() {
     const id = document.getElementById('usuario-id').value;
     const nombre = document.getElementById('usuario-nombre').value.trim();
@@ -156,19 +172,32 @@ function saveUsuario() {
     const contraseña = document.getElementById('usuario-contraseña').value;
     const rol = document.getElementById('usuario-rol').value;
     const activo = document.getElementById('usuario-activo').value === 'true';
-    
+
+    // --- LÍNEAS MODIFICADAS ---
+    const gerenciaId = document.getElementById('usuario-gerencia').value;
+    // Leer desde el nuevo contenedor de checkboxes
+    const materias = getSelectedCheckboxValues('usuario-materias-checkbox-container');
+    // --- FIN DE LÍNEAS MODIFICADAS ---
+
     // Validaciones
-    if (!nombre || !correo || !rol) {
-        alert('Por favor, completa todos los campos obligatorios.');
+    if (!nombre || !correo || !rol || !gerenciaId) {
+        alert('Por favor, completa todos los campos obligatorios (Nombre, Correo, Rol, Gerencia).');
         return;
     }
-    
+
+    // Validar materias solo si el grupo es visible
+    const materiasGroup = document.getElementById('usuario-materias-group');
+    if (materiasGroup.style.display === 'block' && materias.length === 0) {
+        alert('Debe seleccionar al menos una materia para la gerencia elegida.');
+        return;
+    }
+
     if (!id && !contraseña) {
         alert('La contraseña es obligatoria para nuevos usuarios.');
         return;
     }
     
-    if (contraseña && contraseña.length < 8) {
+    if (contraseña && contraseña.length < 8 && id === "") { // Solo validar longitud en creación
         alert('La contraseña debe tener al menos 8 caracteres.');
         return;
     }
@@ -198,7 +227,9 @@ function saveUsuario() {
                 nombre,
                 correo,
                 rol,
-                activo
+                activo,
+                gerenciaId: parseInt(gerenciaId),
+                materias: materias // Guardar array de checkboxes
             };
             
             // Solo actualizar contraseña si se proporcionó una nueva
@@ -217,6 +248,8 @@ function saveUsuario() {
             contraseña, // En un sistema real, esto debería ser hash
             rol,
             activo,
+            gerenciaId: parseInt(gerenciaId),
+            materias: materias, // Guardar array de checkboxes
             fechaCreacion: new Date().toISOString().split('T')[0]
         };
         usuarios.push(newUser);
@@ -339,6 +372,7 @@ function setupMateriaActions() {
             const materias = JSON.parse(localStorage.getItem('materias')) || [];
             const materia = materias.find(m => m.id === id);
             if (materia) {
+                // openMateriaModal (definida en el HTML)
                 openMateriaModal(materia);
             }
         });
@@ -433,11 +467,341 @@ function setupSearchMaterias() {
     });
 }
 
-// ==================== FUNCIONES AUXILIARES ====================
+
+// ================================================================
+// ==================== NUEVA GESTIÓN DE GERENCIAS ================
+// ================================================================
+
+function getGerencias() {
+    return JSON.parse(localStorage.getItem('gerencias')) || [];
+}
+
+function loadGerencias() {
+    const tbody = document.getElementById('gerencias-body');
+    if (!tbody) return;
+
+    let gerencias = getGerencias();
+    const materias = getMaterias(); // Necesitamos esto para mapear IDs a nombres
+
+    // Datos de ejemplo si no hay nada
+    if (gerencias.length === 0) {
+        gerencias = [
+            { id: 1, nombre: 'Gerencia de Civil, Mercantil, Fiscal y Administrativo', materias: [1, 4, 5, 7] },
+            { id: 2, nombre: 'Gerencia Laboral y Penal', materias: [2, 3] },
+            { id: 3, nombre: 'Gerencia de Transparencia y Amparo', materias: [9, 10] }
+        ];
+        localStorage.setItem('gerencias', JSON.stringify(gerencias));
+    }
+
+    // Mapear materias para fácil acceso por ID
+    const materiasMap = new Map(materias.map(m => [m.id, m.nombre]));
+
+    let html = '';
+    gerencias.forEach(gerencia => {
+        // Convertir IDs de materias a nombres
+        const materiasNombres = gerencia.materias
+            .map(id => materiasMap.get(id) || `ID:${id}?`)
+            .join(', ');
+
+        html += `
+            <tr data-nombre="${gerencia.nombre.toLowerCase()}">
+                <td>${gerencia.id}</td>
+                <td>${gerencia.nombre}</td>
+                <td>${materiasNombres || 'Sin materias asignadas'}</td>
+                <td class="actions">
+                    <button class="btn btn-primary btn-sm edit-gerencia" data-id="${gerencia.id}" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm delete-gerencia" data-id="${gerencia.id}" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+    setupGerenciaActions();
+}
+
+function setupGerenciaActions() {
+    document.querySelectorAll('.edit-gerencia').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = parseInt(this.getAttribute('data-id'));
+            const gerencia = getGerencias().find(g => g.id === id);
+            if (gerencia) {
+                // openGerenciaModal (definida en el HTML)
+                openGerenciaModal(gerencia);
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-gerencia').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = parseInt(this.getAttribute('data-id'));
+            if (confirm('¿Estás seguro de que deseas eliminar esta gerencia?')) {
+                deleteGerencia(id);
+            }
+        });
+    });
+}
+
+// =======================================================
+// ============= FUNCIÓN SAVEGERENCIA (MODIFICADA PARA CHECKBOX) ==========
+// =======================================================
+function saveGerencia() {
+    const id = document.getElementById('gerencia-id').value;
+    const nombre = document.getElementById('gerencia-nombre').value.trim();
+    
+    // --- LÍNEA MODIFICADA ---
+    // Leer desde el nuevo contenedor de checkboxes
+    const materiasSeleccionadas = getSelectedCheckboxValues('gerencia-materias-checkbox-container');
+    // --- FIN DE LÍNEA MODIFICADA ---
+
+    if (!nombre || materiasSeleccionadas.length === 0) {
+        alert('Por favor, complete el nombre y seleccione al menos una materia.');
+        return;
+    }
+
+    let gerencias = getGerencias();
+    
+    // Validar nombre duplicado
+    const existing = gerencias.find(g => g.nombre.toLowerCase() === nombre.toLowerCase() && g.id.toString() !== id);
+    if (existing) {
+        alert('Ya existe una gerencia con este nombre.');
+        return;
+    }
+
+    if (id) {
+        // Editar
+        const gerenciaIndex = gerencias.findIndex(g => g.id === parseInt(id));
+        if (gerenciaIndex !== -1) {
+            gerencias[gerenciaIndex].nombre = nombre;
+            gerencias[gerenciaIndex].materias = materiasSeleccionadas;
+        }
+        alert('Gerencia actualizada exitosamente.');
+    } else {
+        // Crear
+        const newId = gerencias.length ? Math.max(...gerencias.map(g => g.id)) + 1 : 1;
+        const newGerencia = {
+            id: newId,
+            nombre,
+            materias: materiasSeleccionadas
+        };
+        gerencias.push(newGerencia);
+        alert('Gerencia creada exitosamente.');
+    }
+
+    localStorage.setItem('gerencias', JSON.stringify(gerencias));
+    document.getElementById('modal-gerencia').style.display = 'none';
+    loadGerencias();
+}
+
+function deleteGerencia(id) {
+    // Validar que ningún usuario esté usando esta gerencia
+    const usuarios = getUsuarios();
+    const usuarioUsandoGerencia = usuarios.find(u => u.gerenciaId == id); // Usar == para comparación flexible
+    if(usuarioUsandoGerencia) {
+        alert('No se puede eliminar esta gerencia porque está asignada al usuario: ' + usuarioUsandoGerencia.nombre);
+        return;
+    }
+
+    let gerencias = getGerencias().filter(g => g.id !== id);
+    localStorage.setItem('gerencias', JSON.stringify(gerencias));
+    alert('Gerencia eliminada exitosamente.');
+    loadGerencias();
+}
+
+function setupSearchGerencias() {
+    const searchInput = document.getElementById('search-gerencias');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#gerencias-body tr');
+        
+        rows.forEach(row => {
+            const nombre = row.getAttribute('data-nombre') || '';
+            if (nombre.includes(searchTerm) || row.textContent.toLowerCase().includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+
+// ================================================================
+// ==================== NUEVAS FUNCIONES AUXILIARES (CON CHECKBOX) =
+// ================================================================
+
+/**
+ * Puebla un div con checkboxes de todas las materias disponibles.
+ * Usado en el modal de "Nueva Gerencia".
+ * @param {string} containerId - El ID del <div> contenedor.
+ * @param {Array<number>} [selectedMateriaIds=[]] - Array de IDs de materias a pre-seleccionar.
+ */
+function populateAllMateriasCheckboxes(containerId, selectedMateriaIds = []) {
+    const materias = getMaterias();
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = ''; // Limpiar opciones anteriores
+    const selectedIdsStr = selectedMateriaIds.map(String); // Para comparación fiable
+
+    materias.forEach(materia => {
+        const div = document.createElement('div'); // Contenedor para el par
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `materia-chk-gerencia-${materia.id}`; // ID único
+        checkbox.value = materia.id;
+        checkbox.name = 'gerencia-materia'; // Nombre de grupo
+        
+        // Marcar si está en la lista de seleccionados
+        if (selectedIdsStr.includes(String(materia.id))) {
+            checkbox.checked = true;
+        }
+
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = materia.nombre;
+        
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        container.appendChild(div);
+    });
+}
+
+/**
+ * Puebla un <select> de gerencias.
+ * Usado en el modal de "Nuevo Usuario".
+ * @param {string} selectElementId - El ID del <select> a poblar.
+ * @param {number|null} [selectedGerenciaId=null] - El ID de la gerencia a pre-seleccionar.
+ */
+function populateGerenciasSelect(selectElementId, selectedGerenciaId = null) {
+    const gerencias = getGerencias(); 
+    const select = document.getElementById(selectElementId);
+    
+    // Guardar la opción "Seleccione..."
+    const placeholder = select.querySelector('option[value=""]');
+    select.innerHTML = ''; // Limpiar
+    if (placeholder) {
+        select.appendChild(placeholder); // Restaurar placeholder
+    }
+
+    gerencias.forEach(gerencia => {
+        const option = document.createElement('option');
+        option.value = gerencia.id;
+        option.textContent = gerencia.nombre;
+        if (selectedGerenciaId && gerencia.id == selectedGerenciaId) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+}
+
+/**
+ * Maneja el evento de cambio en el selector de gerencias del modal de usuario.
+ * Muestra y puebla el contenedor de checkboxes correspondiente.
+ * @param {Event|null} event - El evento de cambio (puede ser null si se llama manualmente).
+ * @param {Array<number>} [selectedMateriaIds=[]] - Materias a pre-seleccionar (para modo edición).
+ */
+function handleGerenciaChange(event, selectedMateriaIds = []) {
+    const gerenciaSelect = document.getElementById('usuario-gerencia');
+    const materiasGroup = document.getElementById('usuario-materias-group');
+    // --- CAMBIO AQUÍ ---
+    // Obtener el nuevo contenedor de checkboxes
+    const materiasContainer = document.getElementById('usuario-materias-checkbox-container');
+
+    const selectedGerenciaId = gerenciaSelect.value;
+
+    if (!selectedGerenciaId) {
+        materiasGroup.style.display = 'none'; // Ocultar
+        materiasContainer.innerHTML = ''; // Limpiar
+        return;
+    }
+
+    // Obtener datos
+    const gerencias = getGerencias();
+    const allMaterias = getMaterias();
+    const gerencia = gerencias.find(g => g.id == selectedGerenciaId);
+
+    if (!gerencia) {
+        console.error('No se encontró la gerencia con ID:', selectedGerenciaId);
+        materiasGroup.style.display = 'none';
+        return;
+    }
+
+    // Filtrar las materias que pertenecen a esta gerencia
+    const materiasDeLaGerencia = allMaterias.filter(materia => 
+        gerencia.materias.map(String).includes(String(materia.id)) // Comparación fiable
+    );
+
+    // --- BLOQUE MODIFICADO ---
+    // Poblar el contenedor de checkboxes
+    materiasContainer.innerHTML = ''; // Limpiar
+    const selectedIdsStr = selectedMateriaIds.map(String); // Para comparación fiable
+
+    materiasDeLaGerencia.forEach(materia => {
+        const div = document.createElement('div');
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `materia-chk-usuario-${materia.id}`; // ID único
+        checkbox.value = materia.id;
+        checkbox.name = 'usuario-materia'; // Nombre de grupo
+
+        // Marcar si está en la lista de seleccionados
+        if (selectedIdsStr.includes(String(materia.id))) {
+            checkbox.checked = true;
+        }
+
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = materia.nombre;
+        
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        materiasContainer.appendChild(div);
+    });
+    // --- FIN BLOQUE MODIFICADO ---
+
+    // Mostrar el grupo
+    materiasGroup.style.display = 'block';
+}
+
+/**
+ * Obtiene el array de IDs seleccionados de un contenedor de checkboxes.
+ * @param {string} containerId - El ID del <div> que contiene los checkboxes.
+ * @returns {Array<number>} - Array de IDs (convertidos a número).
+ */
+function getSelectedCheckboxValues(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    
+    const selected = [];
+    // Buscar todos los checkboxes marcados dentro del contenedor
+    const checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    
+    checkedBoxes.forEach(checkbox => {
+        selected.push(parseInt(checkbox.value));
+    });
+    return selected;
+}
+
+
+// ==================== FUNCIONES AUXILIARES (Originales) ====================
 
 function formatDate(dateString) {
+    if (!dateString) return 'N/A';
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('es-ES', options);
+    try {
+        return new Date(dateString).toLocaleDateString('es-ES', options);
+    } catch (e) {
+        return dateString; // Devolver el string original si la fecha es inválida
+    }
 }
 
 // Función para exportar usuarios (para uso de otros módulos)

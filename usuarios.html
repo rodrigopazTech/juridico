@@ -16,7 +16,7 @@
             overflow-y: auto;
             background-color: #f9f9f9;
         }
-        .checkbox-container div { /* Contenedor para cada par (checkbox + label) */
+        .checkbox-container div {
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -30,8 +30,36 @@
             margin-bottom: 0; 
             font-weight: normal; 
         }
+
+        /* Estilos para la nueva tabla de materias en el modal */
+        #tabla-gerencia-materias {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        #tabla-gerencia-materias th,
+        #tabla-gerencia-materias td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #tabla-gerencia-materias th {
+            background-color: #f2f2f2;
+        }
+        #tabla-gerencia-materias .actions {
+            text-align: center;
+        }
+        #form-add-gerencia-materia {
+            display: flex;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        #form-add-gerencia-materia input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
     </style>
-    </head>
+</head>
 <body>
     <div id="sidebar-container"></div>
     
@@ -50,13 +78,9 @@
                 <button class="tab-button active" data-tab="usuarios">
                     <i class="fas fa-users"></i> Usuarios
                 </button>
-                <button class="tab-button" data-tab="materias">
-                    <i class="fas fa-tags"></i> Materias
-                </button>
                 <button class="tab-button" data-tab="gerencias">
                     <i class="fas fa-home"></i> Gerencias
                 </button>
-
             </div>
 
             <div class="tab-content active" id="usuarios">
@@ -69,7 +93,6 @@
                         <i class="fas fa-plus"></i> Nuevo Usuario
                     </button>
                 </div>
-                
                 <div class="filters">
                     <div class="filters-title">
                         <i class="fas fa-filter"></i> Filtros de Usuarios
@@ -94,7 +117,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="table-container">
                     <table id="tabla-usuarios">
                         <thead>
@@ -108,33 +130,6 @@
                             </tr>
                         </thead>
                         <tbody id="usuarios-body">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="tab-content" id="materias">
-                <div class="toolbar">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="search-materias" placeholder="Buscar materias...">
-                    </div>
-                    <button class="btn btn-primary" id="add-materia">
-                        <i class="fas fa-plus"></i> Nueva Materia
-                    </button>
-                </div>
-                
-                <div class="table-container">
-                    <table id="tabla-materias">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="materias-body">
                             </tbody>
                     </table>
                 </div>
@@ -180,23 +175,19 @@
             <div class="modal-body">
                 <form id="form-usuario">
                     <input type="hidden" id="usuario-id">
-
                     <div class="form-group">
                         <label for="usuario-nombre">Nombre Completo *</label>
                         <input type="text" id="usuario-nombre" required placeholder="Ej. Lic. María González Ruiz">
                     </div>
-
                     <div class="form-group">
                         <label for="usuario-correo">Correo Electrónico *</label>
                         <input type="email" id="usuario-correo" required placeholder="usuario@empresa.com">
                     </div>
-
                     <div class="form-group">
                         <label for="usuario-contraseña">Contraseña *</label>
                         <input type="password" id="usuario-contraseña" required placeholder="Mínimo 8 caracteres">
                         <small>La contraseña debe tener al menos 8 caracteres</small>
                     </div>
-
                     <div class="form-group">
                         <label for="usuario-rol">Rol *</label>
                         <select id="usuario-rol" required>
@@ -206,20 +197,17 @@
                             <option value="ABOGADO">Abogado</option>
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="usuario-gerencia">Gerencia *</label>
                         <select id="usuario-gerencia" required>
                             <option value="">Seleccione una gerencia</option>
                             </select>
                     </div>
-
                     <div class="form-group" id="usuario-materias-group" style="display: none;">
                         <label>Materias Asignadas *</label>
                         <div id="usuario-materias-checkbox-container" class="checkbox-container">
                             </div>
                     </div>
-
                     <div class="form-group">
                         <label for="usuario-activo">Estado</label>
                         <select id="usuario-activo">
@@ -232,36 +220,6 @@
             <div class="modal-footer">
                 <button class="btn btn-danger" id="cancel-usuario">Cancelar</button>
                 <button class="btn btn-success" id="save-usuario">Guardar Usuario</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modal-materia">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-materia-title">Nueva Materia</h2>
-                <button class="btn btn-danger" id="close-modal-materia">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="form-materia">
-                    <input type="hidden" id="materia-id">
-
-                    <div class="form-group">
-                        <label for="materia-nombre">Nombre de la Materia *</label>
-                        <input type="text" id="materia-nombre" required placeholder="Ej. Laboral, Civil, Penal">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="materia-descripcion">Descripción</label>
-                        <textarea id="materia-descripcion" rows="3" placeholder="Descripción de la materia (opcional)"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="cancel-materia">Cancelar</button>
-                <button class="btn btn-success" id="save-materia">Guardar Materia</button>
             </div>
         </div>
     </div>
@@ -282,18 +240,54 @@
                         <label for="gerencia-nombre">Nombre de la Gerencia *</label>
                         <input type="text" id="gerencia-nombre" required placeholder="Ej. Gerencia de Asuntos Civiles y Mercantiles">
                     </div>
-
-                    <div class="form-group">
-                        <label>Materias Asignadas *</label>
-                        <div id="gerencia-materias-checkbox-container" class="checkbox-container">
-                            </div>
-                    </div>
-                </form>
+                    
+                    </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-danger" id="cancel-gerencia">Cancelar</button>
                 <button class="btn btn-success" id="save-gerencia">Guardar Gerencia</button>
             </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-manage-materias">
+        <div class="modal-content large"> <div class="modal-header">
+                <h2 id="manage-materias-title">Gestionar Materias</h2>
+                <button class="btn btn-danger" id="close-modal-manage-materias">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="manage-materias-gerencia-id">
+                <input type="hidden" id="manage-materias-materia-id"> <h3 id="manage-materias-gerencia-nombre"></h3>
+                
+                <div class="table-container" style="margin-bottom: 20px;">
+                    <table id="tabla-gerencia-materias">
+                        <thead>
+                            <tr>
+                                <th>ID Materia</th>
+                                <th>Nombre de la Materia</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gerencia-materias-body">
+                            </tbody>
+                    </table>
+                </div>
+
+                <form id="form-add-gerencia-materia">
+                    <input type="text" id="add-materia-nombre" placeholder="Nombre de la materia" required>
+                    <button type="submit" class="btn btn-success" id="save-gerencia-materia-btn">
+                        <i class="fas fa-plus"></i> Añadir Materia
+                    </button>
+                    <button type="button" class="btn btn-danger" id="cancel-edit-gerencia-materia-btn" style="display:none;">
+                        Cancelar Edición
+                    </button>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                </div>
         </div>
     </div>
 
@@ -306,8 +300,9 @@
             }
             initTabs();
             initModalUsuarios();
-            initModalMaterias();
-            initModalGerencias(); // <-- AÑADIDO
+            // initModalMaterias(); // ELIMINADO
+            initModalGerencias();
+            initModalManageMaterias(); // <-- AÑADIDO
         });
 
         // Función para inicializar las pestañas (MODIFICADA)
@@ -325,12 +320,11 @@
                     this.classList.add('active');
                     document.getElementById(targetTab).classList.add('active');
                     
-                    // Cargar datos según la pestaña activa
                     if (targetTab === 'usuarios') {
                         loadUsuarios();
-                    } else if (targetTab === 'materias') {
-                        loadMaterias();
-                    } else if (targetTab === 'gerencias') { // <-- AÑADIDO
+                    // } else if (targetTab === 'materias') { // ELIMINADO
+                    //     loadMaterias();
+                    } else if (targetTab === 'gerencias') {
                         loadGerencias();
                     }
                 });
@@ -346,77 +340,32 @@
             const btnSave = document.getElementById('save-usuario');
 
             if (btnOpen) {
-                btnOpen.addEventListener('click', function() {
-                    openUsuarioModal();
-                });
+                btnOpen.addEventListener('click', () => openUsuarioModal());
             }
             if (btnClose) {
-                btnClose.addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
+                btnClose.addEventListener('click', () => modal.style.display = 'none');
             }
             if (btnCancel) {
-                btnCancel.addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
+                btnCancel.addEventListener('click', () => modal.style.display = 'none');
             }
             if (btnSave) {
-                btnSave.addEventListener('click', function() {
-                    saveUsuario();
-                });
+                btnSave.addEventListener('click', () => saveUsuario());
             }
             
-            // <-- AÑADIDO -->
-            // Listener para el cambio en el selector de Gerencia
+            // Listener para el cambio en el selector de Gerencia (SE MANTIENE)
             const gerenciaSelect = document.getElementById('usuario-gerencia');
             if (gerenciaSelect) {
                 gerenciaSelect.addEventListener('change', handleGerenciaChange);
             }
-            // <-- FIN AÑADIDO -->
 
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) modal.style.display = 'none';
             });
         }
 
-        // Función para inicializar modal de materias (Sin cambios)
-        function initModalMaterias() {
-            const modal = document.getElementById('modal-materia');
-            const btnOpen = document.getElementById('add-materia');
-            const btnClose = document.getElementById('close-modal-materia');
-            const btnCancel = document.getElementById('cancel-materia');
-            const btnSave = document.getElementById('save-materia');
+        // initModalMaterias(); // ELIMINADO
 
-            if (btnOpen) {
-                btnOpen.addEventListener('click', function() {
-                    openMateriaModal();
-                });
-            }
-            if (btnClose) {
-                btnClose.addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
-            }
-            if (btnCancel) {
-                btnCancel.addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
-            }
-            if (btnSave) {
-                btnSave.addEventListener('click', function() {
-                    saveMateria();
-                });
-            }
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-        
-        // Función para inicializar modal de gerencias (NUEVA)
+        // Función para inicializar modal de gerencias (Sin cambios en su lógica)
         function initModalGerencias() {
             const modal = document.getElementById('modal-gerencia');
             const btnOpen = document.getElementById('add-gerencia');
@@ -440,9 +389,38 @@
                 if (event.target === modal) modal.style.display = 'none';
             });
         }
+        
+        // ===== NUEVA FUNCIÓN: INICIALIZAR MODAL GESTIONAR MATERIAS =====
+        function initModalManageMaterias() {
+            const modal = document.getElementById('modal-manage-materias');
+            const btnClose = document.getElementById('close-modal-manage-materias');
+            const form = document.getElementById('form-add-gerencia-materia');
+            const btnCancelEdit = document.getElementById('cancel-edit-gerencia-materia-btn');
 
+            if (btnClose) {
+                btnClose.addEventListener('click', () => modal.style.display = 'none');
+            }
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) modal.style.display = 'none';
+            });
+            
+            // Listener para el formulario de AÑADIR/GUARDAR
+            if (form) {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    saveGerenciaMateria(); // Función en usuarios.js
+                });
+            }
 
-        // Función openUsuarioModal (MODIFICADA)
+            // Listener para el botón de CANCELAR EDICIÓN
+            if (btnCancelEdit) {
+                btnCancelEdit.addEventListener('click', () => {
+                    cancelEditGerenciaMateria(); // Función en usuarios.js
+                });
+            }
+        }
+
+        // Función openUsuarioModal (Sin cambios)
         function openUsuarioModal(usuario = null) {
             const modal = document.getElementById('modal-usuario');
             const title = document.getElementById('modal-usuario-title');
@@ -462,14 +440,12 @@
                 document.getElementById('usuario-id').value = usuario.id;
                 document.getElementById('usuario-nombre').value = usuario.nombre;
                 document.getElementById('usuario-correo').value = usuario.correo;
-                document.getElementById('usuario-contraseña').required = false; // No requerir al editar
+                document.getElementById('usuario-contraseña').required = false; 
                 document.getElementById('usuario-contraseña').placeholder = "Dejar en blanco para no cambiar";
                 document.getElementById('usuario-rol').value = usuario.rol;
                 document.getElementById('usuario-activo').value = usuario.activo.toString();
                 
-                // Si el usuario tiene una gerencia, simular el cambio para cargar sus materias
                 if(usuario.gerenciaId) {
-                    // Llama a handleGerenciaChange (de usuarios.js) y pasa las materias guardadas del usuario
                     handleGerenciaChange(null, usuario.materias || []);
                 }
 
@@ -479,62 +455,63 @@
                 document.getElementById('usuario-contraseña').required = true;
                 document.getElementById('usuario-contraseña').placeholder = "Mínimo 8 caracteres";
                 document.getElementById('usuario-activo').value = 'true';
-                // Asegurarse de que el selector de gerencia esté en "Seleccione"
                 document.getElementById('usuario-gerencia').value = '';
             }
             
             modal.style.display = 'flex';
         }
 
-        // Función openMateriaModal (Sin cambios)
-        function openMateriaModal(materia = null) {
-            const modal = document.getElementById('modal-materia');
-            const title = document.getElementById('modal-materia-title');
-            const form = document.getElementById('form-materia');
-            
-            if (materia) {
-                title.textContent = 'Editar Materia';
-                document.getElementById('materia-id').value = materia.id;
-                document.getElementById('materia-nombre').value = materia.nombre;
-                document.getElementById('materia-descripcion').value = materia.descripcion || '';
-            } else {
-                title.textContent = 'Nueva Materia';
-                form.reset();
-            }
-            
-            modal.style.display = 'flex';
-        }
+        // openMateriaModal(); // ELIMINADO
 
-        // Función openGerenciaModal (MODIFICADA PARA CHECKBOX)
+        // Función openGerenciaModal (SIMPLIFICADA)
         function openGerenciaModal(gerencia = null) {
             const modal = document.getElementById('modal-gerencia');
             const title = document.getElementById('modal-gerencia-title');
             const form = document.getElementById('form-gerencia');
+            form.reset(); // Limpiar siempre
 
             if (gerencia) {
                 title.textContent = 'Editar Gerencia';
                 document.getElementById('gerencia-id').value = gerencia.id;
                 document.getElementById('gerencia-nombre').value = gerencia.nombre;
-                // --- CAMBIO AQUÍ ---
-                // Llamar a la nueva función que crea checkboxes (de usuarios.js)
-                populateAllMateriasCheckboxes('gerencia-materias-checkbox-container', gerencia.materias);
             } else {
                 title.textContent = 'Nueva Gerencia';
-                form.reset();
-                // --- CAMBIO AQUÍ ---
-                // Llamar a la nueva función que crea checkboxes (de usuarios.js)
-                populateAllMateriasCheckboxes('gerencia-materias-checkbox-container');
+                document.getElementById('gerencia-id').value = '';
             }
             
             modal.style.display = 'flex';
         }
+
+        // ===== NUEVA FUNCIÓN: ABRIR MODAL GESTIONAR MATERIAS =====
+        function openManageMateriasModal(gerenciaId) {
+            const modal = document.getElementById('modal-manage-materias');
+            const gerencia = getGerencias().find(g => g.id == gerenciaId);
+            
+            if (!gerencia) {
+                alert('Error: No se encontró la gerencia.');
+                return;
+            }
+            
+            // Guardar el ID de la gerencia en el modal
+            document.getElementById('manage-materias-gerencia-id').value = gerenciaId;
+            
+            // Poner el nombre en el título
+            document.getElementById('manage-materias-gerencia-nombre').textContent = `Gerencia: ${gerencia.nombre}`;
+            
+            // Resetear el formulario de añadir materia
+            cancelEditGerenciaMateria(); // Esta función resetea el form
+            
+            // Cargar la tabla de materias
+            loadGerenciaMaterias(gerenciaId); // Función de usuarios.js
+            
+            modal.style.display = 'flex';
+        }
+
     </script>
     
     <script src="js/components.js"></script>
     <script>
-        // Configurar página actual para el sidebar
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
             if (typeof loadSidebar === 'function') {
                 loadSidebar('usuarios.html');
             }

@@ -1,27 +1,63 @@
 // js/terminos.js
 
+// ===============================================
+// CONFIGURACIÓN DEL SISTEMA
+// ===============================================
+
 // Simula el rol del usuario logueado.
 // Cambia este valor para probar los permisos:
-// 'Abogado' | 'Gerente' | 'Direccion'
-const USER_ROLE = 'Direccion';
+// 'Abogado' | 'JefeDepto' | 'Gerente' | 'Direccion' | 'Subdireccion'
+const USER_ROLE = 'Abogado';
+const USER_NAME = 'Lic. María González'; // Simula el nombre del usuario logueado
 
-// Lista de tribunales existentes - solo declarar si no existe
-if (typeof tribunalesExistentes === 'undefined') {
-    var tribunalesExistentes = [
-        'Primer Tribunal Colegiado en Materia Laboral',
-        'Segundo Tribunal Laboral',
-        'Tercer Tribunal de Enjuiciamiento',
-        'Cuarto Tribunal Colegiado',
-        'Quinto Tribunal Civil',
-        'Sexto Tribunal Penal',
-        'Séptimo Tribunal Administrativo',
-        'Octavo Tribunal de Amparo',
-        'Noveno Tribunal Mercantil',
-        'Décimo Tribunal Familiar'
-    ];
-}
+// Configuración de límites de tiempo por etapa (en días)
+const LIMITES_ETAPAS = {
+    'Proyectista': 2,
+    'Revisión': 3, 
+    'Gerencia': 2,
+    'Dirección': 2,
+    'Liberado': 5,
+    'Presentado': 3,
+    'Concluido': 0
+};
 
-// Lista de estados de México (fija, no se permite agregar más)
+// Responsables por etapa (quién debe actuar en esta etapa)
+const RESPONSABLES_ETAPAS = {
+    'Proyectista': ['Abogado'],
+    'Revisión': ['JefeDepto'],
+    'Gerencia': ['Gerente'],
+    'Dirección': ['Direccion', 'Subdireccion'],
+    'Liberado': ['Abogado'],
+    'Presentado': ['Direccion', 'Subdireccion'],
+    'Concluido': []
+};
+
+// Flujo de etapas (qué acción te lleva a qué etapa)
+const FLUJO_ETAPAS = {
+    'Proyectista': { 'enviarRevision': 'Revisión' },
+    'Revisión': { 
+        'aprobar': 'Gerencia',
+        'rechazar': 'Proyectista' 
+    },
+    'Gerencia': { 
+        'aprobar': 'Dirección',
+        'rechazar': 'Revisión' 
+    },
+    'Dirección': { 
+        'aprobar': 'Liberado',
+        'rechazar': 'Gerencia' 
+    },
+    'Liberado': { 'subirAcuse': 'Presentado' },
+    'Presentado': { 'concluir': 'Concluido' }
+};
+
+// Listas de datos
+const tribunalesExistentes = [
+    'Primer Tribunal Colegiado en Materia Laboral', 'Segundo Tribunal Laboral', 'Tercer Tribunal de Enjuiciamiento',
+    'Cuarto Tribunal Colegiado', 'Quinto Tribunal Civil', 'Sexto Tribunal Penal',
+    'Séptimo Tribunal Administrativo', 'Octavo Tribunal de Amparo', 'Noveno Tribunal Mercantil', 'Décimo Tribunal Familiar'
+];
+
 const estadosMexico = [
     'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche',
     'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima',
@@ -31,183 +67,151 @@ const estadosMexico = [
     'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'
 ];
 
-// Estado global simple
+// Estado global
 let TERMINOS = [];
 
+// ===============================================
+// FUNCIONES DE INICIALIZACIÓN
+// ===============================================
+
 function initTerminos() {
-    // Cargar datos de términos
+    console.log('🚀 Inicializando módulo de términos...');
+    
+    // Asumiendo que tienes un span con id="current-user" en tu HTML
+    const userSpan = document.getElementById('current-user');
+    if (userSpan) {
+        userSpan.textContent = USER_NAME;
+    }
+    
+    // Cargar datos
     loadTerminos();
     
-    // Configurar búsqueda
+    // Configurar componentes
     setupSearchTerminos();
-    
-    // Configurar filtros
     setupFiltersTerminos();
-    
-    // Configurar buscador de tribunales
     setupTribunalSearch();
-    
-    // Configurar buscador de estados
     setupEstadoSearch();
     
-    // Inicializar todos los modales
-    initModalLiberarTermino();
+    // Inicializar modales
     initModalTerminosJS();
+    initModalAprobacion();
+    initModalHistorial();
     initModalReasignar();
     
-    // Configurar subida de archivos
+    // Configurar subida de archivos (para el modal principal, aunque esté oculto)
     setupFileUploadTermino();
     
-    // Listener para el menú de acciones
+    // Listener para acciones
     setupActionMenuListener();
+    
+    console.log('✅ Módulo de términos inicializado correctamente');
 }
 
-function limpiarCamposAutoLlenadosModal() {
-    const campos = [
-        'termino-expediente', 'termino-materia', 'termino-gerencia', 
-        'termino-abogado', 'termino-partes', 'termino-organo', 'termino-prioridad'
-    ];
-    campos.forEach(campoId => {
-        const campo = document.getElementById(campoId);
-        if (campo) campo.value = '';
-    });
-}
+// ===============================================
+// FUNCIONES DE CARGA Y RENDERIZADO
+// ===============================================
 
-// Función para abrir el modal de términos desde JavaScript
-function openTerminoModalJS(termino = null) {
-    console.log('openTerminoModalJS llamada con:', termino);
-    
-    const modal = document.getElementById('modal-termino');
-    const title = document.getElementById('modal-termino-title');
-    const form = document.getElementById('form-termino');
-    
-    if (!modal) {
-        console.error('Modal modal-termino no encontrado');
-        mostrarMensajeGlobal('Error: Modal no encontrado', 'danger');
+function loadTerminos() {
+    const tbody = document.getElementById('terminos-body');
+    if (!tbody) {
+        console.error('No se encontró el body de la tabla #terminos-body');
         return;
     }
     
-    // Cargar lista de asuntos en el selector
-    cargarAsuntosEnSelectorJS();
-    
-    // Ocultamos los campos que ya no deben estar en el modal de edición/creación
-    const camposAOcultar = ['etapa-revision', 'atendido', 'acuse-documento', 'observaciones'];
-    camposAOcultar.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            let parent = el.closest('.form-group') || el.closest('.form-row');
-            if (parent) {
-                parent.style.display = 'none';
-            }
-        }
-    });
-    
-    if (termino) {
-        // Modo edición
-        title.textContent = 'Editar Término';
-        document.getElementById('save-termino').textContent = 'Actualizar Término';
-        document.getElementById('termino-id').value = termino.id;
-        
-        if (termino.asuntoId) {
-            document.getElementById('asunto-selector').value = termino.asuntoId;
-            document.getElementById('asunto-selector').disabled = true;
-            document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '0.7';
-            cargarDatosAsuntoEnModalJS(termino.asuntoId);
+    if (TERMINOS.length === 0) {
+        const localTerminos = JSON.parse(localStorage.getItem('terminos'));
+        if (localTerminos && localTerminos.length > 0) {
+            TERMINOS = localTerminos.map(t => ({
+                ...t,
+                fechaIngresoEtapa: t.fechaIngresoEtapa || t.fechaModificacion || t.fechaCreacion,
+                historial: t.historial || [] // Asegurar que el historial exista
+            }));
         } else {
-            document.getElementById('termino-expediente').value = termino.expediente || '';
-            document.getElementById('termino-materia').value = termino.materia || '';
-            document.getElementById('termino-gerencia').value = termino.estado || termino.gerencia || '';
-            document.getElementById('termino-abogado').value = termino.abogado || '';
-            document.getElementById('termino-partes').value = termino.actor || '';
-            document.getElementById('termino-organo').value = termino.tribunal || '';
-            document.getElementById('termino-prioridad').value = termino.prioridad || '';
+            // Datos de ejemplo
+            TERMINOS = [
+                { 
+                    id: '1', asuntoId: '1698270123456', fechaIngreso: '2025-10-25', fechaVencimiento: '2025-11-12', 
+                    expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', 
+                    actuacion: 'Despido injustificado', prestacion: 'Reinstalación', 
+                    tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', 
+                    estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', 
+                    acuseDocumento: '', historialAcuses: [], fechaIngresoEtapa: '2025-10-25',
+                    historial: [
+                        { fecha: '2025-10-25T10:00:00Z', usuario: 'Sistema', rol: 'Admin', accion: 'Creó término', observaciones: 'Término creado inicialmente' }
+                    ]
+                }
+            ];
+            localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
-        
-        document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
-        document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
-        document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
-        document.getElementById('recordatorio-dias').value = termino.recordatorioDias || 1;
-        document.getElementById('recordatorio-horas').value = termino.recordatorioHoras || 2;
-        
-    } else {
-        // Modo nuevo término
-        title.textContent = 'Nuevo Término';
-        document.getElementById('save-termino').textContent = 'Guardar Término';
-        if (form) form.reset();
-        document.getElementById('termino-id').value = '';
-        
-        document.getElementById('asunto-selector').disabled = false;
-        document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '1';
-        document.getElementById('asunto-selector').value = '';
-        
-        limpiarCamposAutoLlenadosModal();
-        
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('fecha-ingreso').value = today;
-        
-        const vencimiento = new Date();
-        vencimiento.setDate(vencimiento.getDate() + 15);
-        document.getElementById('fecha-vencimiento').value = vencimiento.toISOString().split('T')[0];
     }
     
-    const asuntoSelector = document.getElementById('asunto-selector');
-    if (asuntoSelector) {
-        asuntoSelector.removeEventListener('change', handleAsuntoCambioJS); // Evitar duplicados
-        asuntoSelector.addEventListener('change', handleAsuntoCambioJS);
-    }
-    
-    modal.style.display = 'flex';
-    console.log('Modal abierto correctamente');
-}
+    let html = '';
+    const filtros = getFiltrosAplicados();
+    const terminosFiltrados = filtrarTerminos(TERMINOS, filtros);
 
-// Función para cargar asuntos en el selector desde JavaScript
-function cargarAsuntosEnSelectorJS() {
-    const selector = document.getElementById('asunto-selector');
-    if (!selector) return;
-    
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-    selector.innerHTML = '<option value="">Seleccionar Asunto</option>';
-    
-    asuntos.forEach(asunto => {
-        const option = document.createElement('option');
-        option.value = asunto.id;
-        const descripcion = asunto.descripcion || asunto.partes || 'Asunto sin descripción';
-        option.textContent = `${asunto.expediente} - ${descripcion}`;
-        selector.appendChild(option);
+    terminosFiltrados.forEach(termino => {
+        const fechaIngresoClass = isToday(termino.fechaIngreso) ? 'current-date' : '';
+        const fechaVencimientoClass = isToday(termino.fechaVencimiento) ? 'current-date' : '';
+        const semaforoStatus = getSemaforoStatus(termino.fechaVencimiento);
+        const alertaTiempo = getAlertaTiempo(termino);
+        
+        html += `
+            <tr data-id="${termino.id}" data-tribunal="${termino.tribunal}" data-estado="${termino.estado || termino.gerencia}" data-estatus="${termino.estatus}" data-prioridad="${termino.prioridad}" data-materia="${termino.materia}">
+                <td class="${fechaIngresoClass}">
+                    <div class="semaforo-container">
+                        <div class="semaforo-dot ${semaforoStatus.class}" title="${semaforoStatus.tooltip}"></div>
+                        ${formatDate(termino.fechaIngreso)}
+                    </div>
+                </td>
+                <td class="${fechaVencimientoClass}">${formatDate(termino.fechaVencimiento)}</td>
+                <td>${termino.expediente}</td>
+                <td>${termino.actor}</td>
+                <td>${termino.asunto}</td>
+                <td>${termino.prestacion}</td>
+                <td>${termino.abogado}</td>
+                
+                <td>
+                    <span class="badge-estado ${getEstadoClass(termino.estatus)}">
+                        ${termino.estatus}
+                    </span>
+                </td>
+                
+                <td>
+                    <span class="badge-tiempo ${alertaTiempo.clase}" title="${alertaTiempo.tooltip}">
+                        ${alertaTiempo.texto}
+                    </span>
+                </td>
+                
+                <td class="actions">
+                    <button class="btn btn-primary btn-sm action-edit" title="Editar término">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    
+                    <div class="action-menu-container">
+                        <button class="btn btn-secondary btn-sm action-menu-toggle" title="Acciones rápidas">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="action-menu">
+                            ${generarAccionesRapidas(termino, USER_ROLE)}
+                        </div>
+                    </div>
+                    <input type="file" class="input-acuse-hidden" data-id="${termino.id}" accept=".pdf,.doc,.docx" style="display:none;">
+                </td>
+            </tr>
+        `;
     });
-}
-
-// Función para manejar el cambio de asunto desde JavaScript
-function handleAsuntoCambioJS() {
-    const asuntoId = this.value;
-    if (asuntoId) {
-        cargarDatosAsuntoEnModalJS(asuntoId);
-        document.getElementById('termino-asunto-id').value = asuntoId;
-    } else {
-        limpiarCamposAutoLlenadosModal();
-        document.getElementById('termino-asunto-id').value = '';
-    }
-}
-
-// Función para cargar datos del asunto seleccionado en el modal desde JavaScript
-function cargarDatosAsuntoEnModalJS(asuntoId) {
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-    const asunto = asuntos.find(a => a.id === asuntoId);
     
-    if (asunto) {
-        document.getElementById('termino-expediente').value = asunto.expediente || '';
-        document.getElementById('termino-materia').value = asunto.materia || '';
-        document.getElementById('termino-gerencia').value = asunto.gerencia || '';
-        document.getElementById('termino-abogado').value = asunto.abogado || '';
-        document.getElementById('termino-partes').value = asunto.partes || '';
-        document.getElementById('termino-organo').value = asunto.organoJurisdiccional || '';
-        document.getElementById('termino-prioridad').value = asunto.prioridad || '';
-    }
+    tbody.innerHTML = html;
 }
 
-// Función para inicializar el modal de términos desde JavaScript
+// ===============================================
+// MODAL PRINCIPAL (CREAR/EDITAR)
+// ===============================================
+
 function initModalTerminosJS() {
     const modalTermino = document.getElementById('modal-termino');
+    if (!modalTermino) return;
+    
     const btnAddTermino = document.getElementById('add-termino');
     const btnCloseTermino = document.getElementById('close-modal-termino');
     const btnCancelTermino = document.getElementById('cancel-termino');
@@ -233,19 +237,92 @@ function initModalTerminosJS() {
             guardarTermino();
         });
     }
-    if (modalTermino) {
-        window.addEventListener('click', function(event) {
-            if (event.target === modalTermino) {
-                modalTermino.style.display = 'none';
-            }
-        });
-    }
+    window.addEventListener('click', function(event) {
+        if (event.target === modalTermino) {
+            modalTermino.style.display = 'none';
+        }
+    });
 }
 
-// Lógica de guardado actualizada
+function openTerminoModalJS(termino = null) {
+    const modal = document.getElementById('modal-termino');
+    const title = document.getElementById('modal-termino-title');
+    const form = document.getElementById('form-termino');
+    
+    if (!modal || !form) return;
+    
+    // Cargar lista de asuntos en el selector
+    cargarAsuntosEnSelectorJS();
+    
+    // Ocultar campos de workflow del modal de edición
+    const camposAOcultar = ['etapa-revision', 'atendido', 'acuse-documento', 'observaciones'];
+    camposAOcultar.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            let parent = el.closest('.form-group') || el.closest('.form-row');
+            if (parent) parent.style.display = 'none';
+        }
+    });
+    
+    if (termino) {
+        // Modo edición
+        title.textContent = 'Editar Término';
+        document.getElementById('save-termino').textContent = 'Actualizar Término';
+        document.getElementById('termino-id').value = termino.id;
+        
+        if (termino.asuntoId) {
+            document.getElementById('asunto-selector').value = termino.asuntoId;
+            document.getElementById('asunto-selector').disabled = true;
+            document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '0.7';
+            cargarDatosAsuntoEnModalJS(termino.asuntoId);
+        } else {
+             // Llenar manualmente (si no hay asuntoId)
+            document.getElementById('termino-expediente').value = termino.expediente || '';
+            document.getElementById('termino-materia').value = termino.materia || '';
+            document.getElementById('termino-gerencia').value = termino.estado || termino.gerencia || '';
+            document.getElementById('termino-abogado').value = termino.abogado || '';
+            document.getElementById('termino-partes').value = termino.actor || '';
+            document.getElementById('termino-organo').value = termino.tribunal || '';
+            document.getElementById('termino-prioridad').value = termino.prioridad || '';
+        }
+        
+        // Datos específicos del término
+        document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
+        document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
+        document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
+        document.getElementById('recordatorio-dias').value = termino.recordatorioDias || 1;
+        document.getElementById('recordatorio-horas').value = termino.recordatorioHoras || 2;
+        
+    } else {
+        // Modo nuevo término
+        title.textContent = 'Nuevo Término';
+        document.getElementById('save-termino').textContent = 'Guardar Término';
+        form.reset();
+        document.getElementById('termino-id').value = '';
+        
+        document.getElementById('asunto-selector').disabled = false;
+        document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '1';
+        document.getElementById('asunto-selector').value = '';
+        
+        limpiarCamposAutoLlenadosModal();
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha-ingreso').value = today;
+    }
+    
+    // Configurar evento de cambio para el selector de asunto
+    const asuntoSelector = document.getElementById('asunto-selector');
+    if (asuntoSelector) {
+        asuntoSelector.removeEventListener('change', handleAsuntoCambioJS); // Evitar duplicados
+        asuntoSelector.addEventListener('change', handleAsuntoCambioJS);
+    }
+    
+    modal.style.display = 'flex';
+}
+
 function guardarTermino() {
     const terminoId = document.getElementById('termino-id').value;
-    const isEditing = terminoId && terminoId !== '';
+    const isEditing = !!terminoId;
     
     const terminoData = {
         asuntoId: document.getElementById('asunto-selector').value,
@@ -257,18 +334,11 @@ function guardarTermino() {
     };
     
     if (!terminoData.asuntoId) {
-        mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
-        return;
+        return mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
     }
     
     if (!terminoData.actuacion || !terminoData.fechaIngreso || !terminoData.fechaVencimiento) {
-        mostrarMensajeGlobal('Por favor, completa todos los campos obligatorios.', 'danger');
-        return;
-    }
-    
-    if (new Date(terminoData.fechaVencimiento) <= new Date(terminoData.fechaIngreso)) {
-        mostrarMensajeGlobal('La fecha de vencimiento debe ser posterior a la fecha de ingreso.', 'danger');
-        return;
+        return mostrarMensajeGlobal('Por favor, completa todos los campos obligatorios.', 'danger');
     }
     
     let terminos = JSON.parse(localStorage.getItem('terminos')) || [];
@@ -279,24 +349,33 @@ function guardarTermino() {
             TERMINOS[index] = { ...TERMINOS[index], ...terminoData };
             TERMINOS[index].fechaModificacion = new Date().toISOString().split('T')[0];
             
+            // Actualizar en localStorage
             const localStorageIndex = terminos.findIndex(t => t.id == terminoId);
             if (localStorageIndex !== -1) {
                 terminos[localStorageIndex] = TERMINOS[index];
             }
+            registrarEnHistorial(terminoId, 'Editó término', 'Se modificaron los datos base del término.');
             mostrarMensajeGlobal('Término actualizado exitosamente.', 'success');
         } else {
-            mostrarMensajeGlobal('Error: No se encontró el término a editar.', 'danger');
-            return;
+            return mostrarMensajeGlobal('Error: No se encontró el término a editar.', 'danger');
         }
     } else {
+        // Modo nuevo término
         terminoData.id = Date.now().toString();
         terminoData.fechaCreacion = new Date().toISOString().split('T')[0];
-        terminoData.estatus = 'Proyectista';
-        terminoData.observaciones = '';
-        terminoData.atendido = false;
+        terminoData.fechaIngresoEtapa = new Date().toISOString().split('T')[0];
+        terminoData.estatus = 'Proyectista'; // Estado inicial
         terminoData.acuseDocumento = '';
         terminoData.historialAcuses = [];
+        terminoData.historial = [{
+            fecha: new Date().toISOString(),
+            usuario: USER_NAME,
+            rol: USER_ROLE,
+            accion: 'Creó término',
+            observaciones: 'Término creado inicialmente'
+        }];
 
+        // Llenar datos del asunto
         const asunto = (JSON.parse(localStorage.getItem('asuntos')) || []).find(a => a.id === terminoData.asuntoId);
         if(asunto) {
             terminoData.expediente = asunto.expediente;
@@ -315,16 +394,11 @@ function guardarTermino() {
         mostrarMensajeGlobal('Término guardado exitosamente.', 'success');
     }
     
-    localStorage.setItem('terminos', JSON.stringify(terminos));
+    guardarEnLocalStorage();
     document.getElementById('form-termino').reset();
     limpiarCamposAutoLlenadosModal();
-    
-    const modal = document.getElementById('modal-termino');
-    if (modal) modal.style.display = 'none';
-    
-    if (typeof loadTerminos === 'function') {
-        loadTerminos();
-    }
+    document.getElementById('modal-termino').style.display = 'none';
+    loadTerminos();
 }
 
 // Configuración de subida de archivos (para el modal principal, ahora oculto)
@@ -345,190 +419,63 @@ function setupFileUploadTermino() {
     }
 }
 
-// Lógica del Semáforo
-function getSemaforoStatus(fechaVencimiento) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    const vencimiento = new Date(fechaVencimiento);
-    vencimiento.setHours(0, 0, 0, 0); 
-    
-    const diffTime = vencimiento - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+// ===============================================
+// ACCIONES DEL MENÚ [...]
+// ===============================================
 
-    if (diffDays < 0) {
-        return { color: 'vencido', class: 'semaforo-vencido', tooltip: `Vencido hace ${Math.abs(diffDays)} días` };
-    } else if (diffDays <= 2) {
-        return { color: 'rojo', class: 'semaforo-rojo', tooltip: `Vence en ${diffDays} días` };
-    } else if (diffDays <= 7) {
-        return { color: 'amarillo', class: 'semaforo-amarillo', tooltip: `Vence en ${diffDays} días` };
-    } else if (diffDays <= 30) {
-        return { color: 'verde', class: 'semaforo-verde', tooltip: `Vence en ${diffDays} días` };
-    } else {
-        return { color: 'azul', class: 'semaforo-azul', tooltip: `Vence en ${diffDays} días` };
-    }
-}
-
-function loadTerminos() {
-    const tbody = document.getElementById('terminos-body');
-    
-    if (TERMINOS.length === 0) {
-        const localTerminos = JSON.parse(localStorage.getItem('terminos'));
-        if (localTerminos && localTerminos.length > 0) {
-            TERMINOS = localTerminos;
-        } else {
-            TERMINOS = [
-                { id: 1, asuntoId: '1698270123456', fechaIngreso: '2025-10-25', fechaVencimiento: '2025-11-12', expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', actuacion: 'Despido injustificado', prestacion: 'Reinstalación', tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 2, asuntoId: '1698270234567', fechaIngreso: '2025-10-28', fechaVencimiento: '2025-11-16', expediente: '2012/2025', actor: 'Valdez Sánchez María Elena', asunto: 'Amparo indirecto', actuacion: 'Amparo indirecto', prestacion: 'Suspensión definitiva', tribunal: 'Tercer Tribunal de Enjuiciamiento', abogado: 'Lic. González', estado: 'Jalisco', prioridad: 'Media', estatus: 'En Revision', materia: 'Amparo', acuseDocumento: '', historialAcuses: [] },
-                { id: 3, asuntoId: '1698270345678', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-20', expediente: '2413/2025', actor: 'García López Ana María', asunto: 'Rescisión laboral', actuacion: 'Rescisión laboral', prestacion: 'Indemnización', tribunal: 'Segundo Tribunal Laboral', abogado: 'Lic. Rodríguez', estado: 'Nuevo León', prioridad: 'Alta', estatus: 'Aprobado', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 4, asuntoId: '1698270456789', fechaIngreso: '2025-10-20', fechaVencimiento: '2025-12-15', expediente: '1987/2025', actor: 'Martínez Pérez Carlos', asunto: 'Amparo laboral', actuacion: 'Amparo laboral', prestacion: 'Reinstalación', tribunal: 'Cuarto Tribunal Colegiado', abogado: 'Lic. Hernández', estado: 'Jalisco', prioridad: 'Baja', estatus: 'Presentado', materia: 'Amparo', acuseDocumento: 'Acuse_1987-2025.pdf', historialAcuses: ['Acuse_viejo_1987.pdf'] },
-                { id: 5, asuntoId: '1698270567890', fechaIngreso: '2025-10-01', fechaVencimiento: '2025-11-01', expediente: '1010/2025', actor: 'Soto Reyna Luisa', asunto: 'Cierre de caso', actuacion: 'Cierre de caso', prestacion: 'Finiquito', tribunal: 'Quinto Tribunal Civil', abogado: 'Lic. Sánchez', estado: 'Puebla', prioridad: 'Media', estatus: 'Liberado', materia: 'Civil', acuseDocumento: 'Acuse_FIN_1010.pdf', historialAcuses: [] }
-            ];
-            localStorage.setItem('terminos', JSON.stringify(TERMINOS));
-        }
-    }
-    
-    let html = '';
-    const filtros = getFiltrosAplicados();
-    const terminosFiltrados = filtrarTerminos(TERMINOS, filtros);
-
-    terminosFiltrados.forEach(termino => {
-        const fechaIngresoClass = isToday(termino.fechaIngreso) ? 'current-date' : '';
-        const fechaVencimientoClass = isToday(termino.fechaVencimiento) ? 'current-date' : '';
-        const semaforoStatus = getSemaforoStatus(termino.fechaVencimiento);
-        
-        // Función para obtener la clase CSS según el estado
-        function getEstadoClass(estatus) {
-            const estatusMap = {
-                'Proyectista': 'estado-proyectista',
-                'En Revision': 'estado-revision',
-                'Aprobado': 'estado-aprobado',
-                'Presentado': 'estado-presentado',
-                'Liberado': 'estado-liberado'
-            };
-            return estatusMap[estatus] || 'estado-default';
-        }
-        
-        html += `
-            <tr data-id="${termino.id}" data-tribunal="${termino.tribunal}" data-estado="${termino.estado || termino.gerencia}" data-estatus="${termino.estatus}" data-prioridad="${termino.prioridad}" data-materia="${termino.materia}">
-                <td class="${fechaIngresoClass}">
-                    <div class="semaforo-container">
-                        <div class="semaforo-dot ${semaforoStatus.class}" title="${semaforoStatus.tooltip}"></div>
-                        ${formatDate(termino.fechaIngreso)}
-                    </div>
-                </td>
-                <td class="${fechaVencimientoClass}">${formatDate(termino.fechaVencimiento)}</td>
-                <td>${termino.expediente}</td>
-                <td>${termino.actor}</td>
-                <td>${termino.asunto}</td>
-                <td>${termino.prestacion}</td>
-                <td>${termino.abogado}</td>
-                
-                <!-- NUEVA COLUMNA: ESTADO ACTUAL -->
-                <td>
-                    <span class="badge-estado ${getEstadoClass(termino.estatus)}">
-                        ${termino.estatus}
-                    </span>
-                </td>
-                
-                <td class="actions">
-                    <button class="btn btn-primary btn-sm action-edit" title="Editar término">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    
-                    <div class="action-menu-container">
-                        <button class="btn btn-secondary btn-sm action-menu-toggle" title="Acciones rápidas">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div class="action-menu">
-                            ${generarAccionesRapidas(termino, USER_ROLE)}
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
-    
-    tbody.innerHTML = html;
-}
-
-// Generador de menú de acciones rápidas
 function generarAccionesRapidas(termino, rol) {
     let accionesHTML = '';
+    const etapaActual = termino.estatus;
     
-    accionesHTML += `<a href="#" class="action-item action-view-asunto" title="Ver el asunto principal">
-                        <i class="fas fa-briefcase"></i> Ver Asunto
-                    </a>`;
-    accionesHTML += `<a href="#" class="action-item action-history" title="Ver historial de cambios">
-                        <i class="fas fa-eye"></i> Ver Historial
-                    </a>`;
+    // Verificar si el rol actual puede accionar en esta etapa
+    const puedeAccionar = RESPONSABLES_ETAPAS[etapaActual]?.includes(rol);
 
-    switch (termino.estatus) {
-        case 'Proyectista':
-            if (rol === 'Abogado' || rol === 'Gerente' || rol === 'Direccion') {
-                accionesHTML += `<a href="#" class="action-item action-send-review" title="Enviar a revisión">
-                                    <i class="fas fa-paper-plane"></i> Enviar a Revisión
-                                </a>`;
-            }
-            break;
-            
-        case 'En Revision':
-            if (rol === 'Gerente' || rol === 'Direccion') {
-                accionesHTML += `<a href="#" class="action-item action-approve" title="Aprobar el término">
-                                    <i class="fas fa-check"></i> Aprobar
-                                </a>`;
-                accionesHTML += `<a href="#" class="action-item action-reject" title="Rechazar y devolver">
-                                    <i class="fas fa-times"></i> Rechazar
-                                </a>`;
-            }
-            break;
-            
-        case 'Aprobado':
-            if (rol === 'Abogado' || rol === 'Gerente' || rol === 'Direccion') {
-                accionesHTML += `<a href="#" class="action-item action-upload-acuse" title="Subir acuse de presentación">
-                                    <i class="fas fa-file-upload"></i> Subir Acuse
-                                </a>`;
-            }
-            break;
-            
-        case 'Presentado':
-            if (rol === 'Direccion') {
-                accionesHTML += `<a href="#" class="action-item action-liberar" title="Liberar el término (solo Dirección)">
-                                    <i class="fas fa-lock-open"></i> Liberar Término
-                                </a>`;
-            }
-            break;
+    // 1. Acciones de Workflow (Aprobar, Rechazar, etc.)
+    if (puedeAccionar) {
+        const accionesPosibles = FLUJO_ETAPAS[etapaActual] || {};
+        
+        if (accionesPosibles.enviarRevision) {
+            accionesHTML += `<a href="#" class="action-item action-send-review" title="Enviar a Revisión"><i class="fas fa-paper-plane"></i> Enviar a Revisión</a>`;
+        }
+        if (accionesPosibles.aprobar) {
+            accionesHTML += `<a href="#" class="action-item action-approve" title="Aprobar y avanzar"><i class="fas fa-check"></i> Aprobar</a>`;
+        }
+        if (accionesPosibles.rechazar) {
+            accionesHTML += `<a href="#" class="action-item action-reject danger-action" title="Rechazar y devolver"><i class="fas fa-times"></i> Rechazar</a>`;
+        }
+        if (accionesPosibles.subirAcuse) {
+            accionesHTML += `<a href="#" class="action-item action-upload-acuse" title="Subir acuse de presentación"><i class="fas fa-file-upload"></i> Subir Acuse</a>`;
+        }
+        if (accionesPosibles.concluir) {
+            accionesHTML += `<a href="#" class="action-item action-concluir" title="Marcar como concluido"><i class="fas fa-check-double"></i> Concluir Término</a>`;
+        }
     }
     
-    if (rol === 'Gerente' || rol === 'Direccion') {
-         accionesHTML += `<a href="#" class="action-item action-reasignar" title="Asignar a otro abogado">
-                            <i class="fas fa-user-friends"></i> Reasignar
-                        </a>`;
-    }
+    // 2. Acciones Generales (Ver, Comentar, etc.)
+    accionesHTML += `<div class="action-divider"></div>`;
+    accionesHTML += `<a href="#" class="action-item action-view-asunto" title="Ver el asunto principal"><i class="fas fa-briefcase"></i> Ver Asunto</a>`;
+    accionesHTML += `<a href="#" class="action-item action-history" title="Ver historial de cambios"><i class="fas fa-history"></i> Ver Historial</a>`;
     
+    // 3. Acciones de Acuse (si ya existe)
     if (termino.acuseDocumento) {
-        accionesHTML += `<a href="#" class="action-item action-download-acuse" title="Descargar acuse actual">
-                            <i class="fas fa-download"></i> Ver Acuse Actual
-                        </a>`;
+        accionesHTML += `<a href="#" class="action-item action-download-acuse" title="Descargar acuse actual"><i class="fas fa-download"></i> Ver Acuse Actual</a>`;
     }
     if (termino.historialAcuses && termino.historialAcuses.length > 0) {
-         accionesHTML += `<a href="#" class="action-item action-history-acuse" title="Ver acuses anteriores">
-                            <i class="fas fa-history"></i> Historial Acuses
-                        </a>`;
+         accionesHTML += `<a href="#" class="action-item action-history-acuse" title="Ver acuses anteriores"><i class="fas fa-archive"></i> Historial Acuses</a>`;
     }
 
-    if (rol === 'Direccion') {
-        accionesHTML += `<div class="action-divider"></div>`;
-        accionesHTML += `<a href="#" class="action-item action-delete danger-action" title="Eliminar este término">
-                            <i class="fas fa-trash-alt"></i> Eliminar Término
-                        </a>`;
+    // 4. Acciones Administrativas (Reasignar, Eliminar)
+    if (rol === 'Gerente' || rol === 'Direccion' || rol === 'Subdireccion') {
+         accionesHTML += `<a href="#" class="action-item action-reasignar" title="Asignar a otro abogado"><i class="fas fa-user-friends"></i> Reasignar</a>`;
     }
-    
-    accionesHTML += `<input type="file" class="input-acuse-hidden" data-id="${termino.id}" accept=".pdf,.doc,.docx" style="display:none;">`;
+    if (rol === 'Direccion' || rol === 'Subdireccion') {
+        accionesHTML += `<div class="action-divider"></div>`;
+        accionesHTML += `<a href="#" class="action-item action-delete danger-action" title="Eliminar este término"><i class="fas fa-trash-alt"></i> Eliminar Término</a>`;
+    }
 
     return accionesHTML;
 }
 
-// Listener de delegación para todas las acciones
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if (!tbody) return;
@@ -569,7 +516,7 @@ function setupActionMenuListener() {
             eliminarTermino(id);
         }
         if (target.classList.contains('action-history')) {
-            verHistorial(id);
+            abrirModalHistorial(id);
         }
         if (target.classList.contains('action-send-review')) {
             enviarARevision(id);
@@ -583,8 +530,8 @@ function setupActionMenuListener() {
         if (target.classList.contains('action-upload-acuse')) {
             row.querySelector('.input-acuse-hidden').click();
         }
-        if (target.classList.contains('action-liberar')) {
-            abrirModalLiberarTermino(id);
+        if (target.classList.contains('action-concluir')) {
+            concluirTermino(id);
         }
         if (target.classList.contains('action-download-acuse')) {
             descargarAcuse(termino.acuseDocumento, termino.expediente);
@@ -616,9 +563,169 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// ===== FUNCIONES PARA NUEVO MODAL REASIGNAR =====
+// LÓGICA DE MODALES DE ACCIÓN
 // ===============================================
 
+// --- Modal Aprobación/Rechazo ---
+function initModalAprobacion() {
+    const modal = document.getElementById('modal-aprobacion');
+    if (!modal) return;
+    
+    const btnCerrar = document.getElementById('close-modal-aprobacion');
+    const btnCancelar = document.getElementById('cancel-aprobacion');
+    const btnConfirmar = document.getElementById('confirmar-aprobacion');
+
+    function cerrarModal() {
+        modal.style.display = 'none';
+        document.getElementById('observaciones-aprobacion').value = '';
+    }
+
+    if (btnCerrar) btnCerrar.onclick = cerrarModal;
+    if (btnCancelar) btnCancelar.onclick = cerrarModal;
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) cerrarModal();
+    });
+
+    if (btnConfirmar) {
+        btnConfirmar.onclick = function() {
+            const terminoId = document.getElementById('aprobacion-termino-id').value;
+            const accion = document.getElementById('aprobacion-accion').value;
+            const observaciones = document.getElementById('observaciones-aprobacion').value.trim();
+            
+            if (accion !== 'aprobar' && !observaciones) {
+                mostrarMensajeGlobal('Las observaciones son obligatorias para esta acción.', 'danger');
+                return;
+            }
+            
+            procesarAccion(terminoId, accion, observaciones || 'Aprobado');
+            cerrarModal();
+        };
+    }
+}
+
+function abrirModalAprobacion(terminoId, accion, titulo, descripcion) {
+    const modal = document.getElementById('modal-aprobacion');
+    if (!modal) return;
+    
+    const tituloElement = document.getElementById('modal-aprobacion-title');
+    const mensajeElement = document.getElementById('aprobacion-mensaje');
+    const descripcionElement = document.getElementById('aprobacion-descripcion');
+    
+    tituloElement.textContent = titulo;
+    mensajeElement.textContent = titulo;
+    descripcionElement.textContent = descripcion;
+    
+    document.getElementById('aprobacion-termino-id').value = terminoId;
+    document.getElementById('aprobacion-accion').value = accion;
+    document.getElementById('observaciones-aprobacion').value = '';
+    
+    // Observaciones no obligatorias para aprobar
+    const obsLabel = document.querySelector('label[for="observaciones-aprobacion"]');
+    if (accion === 'aprobar') {
+        obsLabel.textContent = 'Observaciones (Opcional)';
+    } else {
+        obsLabel.textContent = 'Observaciones (Obligatorio)';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function procesarAccion(terminoId, accion, observaciones) {
+    const termino = TERMINOS.find(t => t.id == terminoId);
+    if (!termino) return;
+
+    const etapaAnterior = termino.estatus;
+    const etapaNueva = obtenerEtapaSiguiente(accion, etapaAnterior);
+    
+    if (etapaNueva === etapaAnterior && accion !== 'subirAcuse') {
+        console.error(`Acción ${accion} no válida para la etapa ${etapaAnterior}`);
+        return;
+    }
+    
+    // Actualizar estado
+    termino.estatus = etapaNueva;
+    termino.fechaModificacion = new Date().toISOString().split('T')[0];
+    termino.fechaIngresoEtapa = new Date().toISOString().split('T')[0];
+    
+    // Registrar en historial
+    registrarEnHistorial(terminoId, accion, observaciones, { etapaNueva: etapaNueva, etapaAnterior: etapaAnterior });
+    
+    // Notificar al siguiente responsable
+    if (etapaNueva !== etapaAnterior) {
+        notificarSiguienteResponsable(termino, etapaAnterior, etapaNueva);
+    }
+    
+    const mensajes = {
+        'enviarRevision': 'Término enviado a Revisión',
+        'aprobar': 'Término aprobado y enviado a la siguiente etapa',
+        'rechazar': 'Término rechazado y devuelto',
+        'subirAcuse': 'Acuse subido correctamente',
+        'concluir': 'Término concluido exitosamente'
+    };
+    
+    mostrarMensajeGlobal(mensajes[accion] || 'Acción completada', 'success');
+    guardarEnLocalStorage();
+    loadTerminos();
+}
+
+// --- Modal Historial ---
+function initModalHistorial() {
+    const modal = document.getElementById('modal-historial');
+    if (!modal) return;
+    
+    const btnCerrar = document.getElementById('close-modal-historial');
+    const btnCancelar = document.getElementById('cancel-historial');
+
+    if (btnCerrar) btnCerrar.onclick = () => modal.style.display = 'none';
+    if (btnCancelar) btnCancelar.onclick = () => modal.style.display = 'none';
+    
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) modal.style.display = 'none';
+    });
+}
+
+function abrirModalHistorial(terminoId) {
+    const termino = TERMINOS.find(t => t.id == terminoId);
+    if (!termino) return;
+
+    const contenido = document.getElementById('historial-contenido');
+    if (!contenido) return;
+
+    let htmlHistorial = '';
+    
+    if (termino.historial && termino.historial.length > 0) {
+        // Ordenar del más reciente al más antiguo
+        [...termino.historial].reverse().forEach(registro => {
+            htmlHistorial += `
+                <div class="historial-item">
+                    <div class="historial-header">
+                        <strong>${registro.usuario || 'Usuario'}</strong> 
+                        <span class="historial-rol">(${registro.rol || 'Rol'})</span>
+                        <span class="historial-fecha">${formatDateTime(registro.fecha)}</span>
+                    </div>
+                    <div class="historial-accion">
+                        <span class="badge-accion">${registro.accion}</span>
+                        ${registro.datosAdicionales?.etapaAnterior ? `de <strong>${registro.datosAdicionales.etapaAnterior}</strong>` : ''}
+                        ${registro.datosAdicionales?.etapaNueva ? `a <strong>${registro.datosAdicionales.etapaNueva}</strong>` : ''}
+                    </div>
+                    ${registro.observaciones ? `
+                        <div class="historial-observaciones">
+                            <em>${registro.observaciones}</em>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    } else {
+        htmlHistorial = '<p>No hay historial registrado para este término.</p>';
+    }
+
+    contenido.innerHTML = htmlHistorial;
+    document.getElementById('modal-historial').style.display = 'flex';
+}
+
+// --- Modal Reasignar ---
 function initModalReasignar() {
     const modal = document.getElementById('modal-reasignar');
     if (!modal) return;
@@ -639,13 +746,10 @@ function initModalReasignar() {
         btnSave.onclick = function() {
             const terminoId = document.getElementById('reasignar-termino-id').value;
             const nuevoAbogadoSelect = document.getElementById('select-nuevo-abogado');
-            
-            // Obtenemos el TEXTO (nombre) del abogado seleccionado
             const nuevoAbogadoNombre = nuevoAbogadoSelect.options[nuevoAbogadoSelect.selectedIndex].text;
             
-            if (!nuevoAbogadoSelect.value) { // Validar que se haya seleccionado uno
-                mostrarMensajeGlobal('Por favor, seleccione un nuevo abogado.', 'danger');
-                return;
+            if (!nuevoAbogadoSelect.value) {
+                return mostrarMensajeGlobal('Por favor, seleccione un nuevo abogado.', 'danger');
             }
             
             guardarReasignacion(terminoId, nuevoAbogadoNombre);
@@ -654,209 +758,119 @@ function initModalReasignar() {
     }
     
     window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
-}
-
-function cargarAbogadosSelector() {
-    const selector = document.getElementById('select-nuevo-abogado');
-    if (!selector) return;
-
-    // --- SIMULACIÓN ---
-    // En un futuro, esto vendría de tu tabla `Usuarios`
-    // const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-    const usuarios = [
-        { id: 'user1', nombre: 'Lic. Martínez' },
-        { id: 'user2', nombre: 'Lic. González' },
-        { id: 'user3', nombre: 'Lic. Rodríguez' },
-        { id: 'user4', nombre: 'Lic. Hernández' },
-        { id: 'user5', nombre: 'Lic. Sánchez' },
-        { id: 'user6', nombre: 'Lic. Pérez (Nuevo)' }
-    ];
-    // --- FIN SIMULACIÓN ---
-    
-    selector.innerHTML = '<option value="">Seleccione un abogado...</option>'; // Limpiar
-    
-    usuarios.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id; // Usar el ID
-        option.textContent = user.nombre; // Mostrar el Nombre
-        selector.appendChild(option);
+        if (event.target === modal) closeModal();
     });
 }
 
 function abrirModalReasignar(terminoId) {
     const modal = document.getElementById('modal-reasignar');
-    if (!modal) {
-        console.error('Modal de reasignar no encontrado');
-        return;
-    }
+    if (!modal) return;
 
     const termino = TERMINOS.find(t => t.id == terminoId);
-    if (!termino) {
-        mostrarMensajeGlobal('Error: No se encontró el término.', 'danger');
-        return;
-    }
+    if (!termino) return;
 
-    // 1. Cargar la lista de abogados en el selector
     cargarAbogadosSelector();
 
-    // 2. Llenar la info actual en el modal
     document.getElementById('reasignar-termino-id').value = terminoId;
     document.getElementById('reasignar-actuacion').value = termino.asunto || 'N/A';
     document.getElementById('reasignar-abogado-actual').value = termino.abogado || 'No asignado';
     
-    // 3. Mostrar el modal
     modal.style.display = 'flex';
 }
 
 function guardarReasignacion(terminoId, nuevoAbogadoNombre) {
-    const termino = TERMINOS.find(t => t.id == terminoId);
-    if (!termino) return;
-
-    console.log(`Reasignando término ID ${terminoId} a: ${nuevoAbogadoNombre}`);
-
-    // Lógica de actualización
     const index = TERMINOS.findIndex(t => t.id == terminoId);
+    if (index === -1) return;
+
     TERMINOS[index].abogado = nuevoAbogadoNombre;
     
-    // Persistir en localStorage
-    let terminosLS = JSON.parse(localStorage.getItem('terminos'));
-    const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
-    terminosLS[lsIndex].abogado = nuevoAbogadoNombre;
-    localStorage.setItem('terminos', JSON.stringify(terminosLS));
-    
-    // (Simulación de log)
-    actualizarEstatusTermino(terminoId, termino.estatus, `Reasignado a ${nuevoAbogadoNombre} por ${USER_ROLE}`);
+    registrarEnHistorial(terminoId, 'Reasignado', `Término reasignado a ${nuevoAbogadoNombre}`);
     
     mostrarMensajeGlobal('Término reasignado exitosamente', 'success');
-    // No es necesario llamar a loadTerminos(), porque actualizarEstatusTermino() ya lo hace.
+    guardarEnLocalStorage();
+    loadTerminos();
 }
 
 // ===============================================
-// ===== FUNCIONES DE ACCIÓN (STUBS Y REALES) =====
+// LÓGICA DE ACCIONES (STUBS Y REALES)
 // ===============================================
+
+function registrarEnHistorial(terminoId, accion, observaciones, datosAdicionales = {}) {
+    const index = TERMINOS.findIndex(t => t.id == terminoId);
+    if (index === -1) return;
+
+    if (!TERMINOS[index].historial) {
+        TERMINOS[index].historial = [];
+    }
+
+    const nuevoRegistro = {
+        fecha: new Date().toISOString(),
+        usuario: USER_NAME,
+        rol: USER_ROLE,
+        accion: accion,
+        observaciones: observaciones,
+        datosAdicionales: datosAdicionales
+    };
+    
+    TERMINOS[index].historial.push(nuevoRegistro);
+    guardarEnLocalStorage(); // Guardar en LS cada que hay un cambio
+}
 
 function verDetallesAsunto(asuntoId) {
     if (!asuntoId) {
-        mostrarMensajeGlobal('Error: Este término no tiene un asunto asociado.', 'danger');
-        return;
+        return mostrarMensajeGlobal('Error: Este término no tiene un asunto asociado.', 'danger');
     }
-    // Asumiendo que tu página de detalles se llama 'asuntos-detalle.html'
-    // y recibe el ID por la URL.
     console.log(`Redirigiendo a detalles del asunto ID: ${asuntoId}`);
     window.location.href = `asuntos-detalle.html?id=${asuntoId}`;
 }
 
 function eliminarTermino(terminoId) {
-    // ¡Siempre confirmar una acción destructiva!
     const confirmacion = confirm('¿Estás seguro de que deseas ELIMINAR este término?\n\nEsta acción no se puede deshacer.');
     
     if (confirmacion) {
-        console.log(`Eliminando término ID: ${terminoId}`);
-        
         TERMINOS = TERMINOS.filter(t => t.id != terminoId);
-        
-        let terminosLS = JSON.parse(localStorage.getItem('terminos'));
-        terminosLS = terminosLS.filter(t => t.id != terminoId);
-        localStorage.setItem('terminos', JSON.stringify(terminosLS));
-        
+        guardarEnLocalStorage();
         mostrarMensajeGlobal('Término eliminado.', 'success');
-        loadTerminos(); // Recargar la tabla
+        loadTerminos();
     }
-}
-
-function verHistorial(id) {
-    alert(`(Simulación) Viendo historial para el término ID: ${id}. Aquí se mostraría un modal con la tabla 'Historial_Terminos'.`);
 }
 
 function verHistorialAcuses(id) {
     const termino = TERMINOS.find(t => t.id == id);
-    if (termino && termino.historialAcuses.length > 0) {
+    if (termino && termino.historialAcuses && termino.historialAcuses.length > 0) {
         alert(`(Simulación) Historial de Acuses para ID ${id}:\n\n- ${termino.historialAcuses.join('\n- ')}`);
     } else {
         mostrarMensajeGlobal('Este término no tiene historial de acuses.', 'info');
     }
 }
 
-function enviarARevision(id) {
-    console.log(`Enviando a revisión término ID: ${id}`);
-    actualizarEstatusTermino(id, 'En Revision', `Enviado a revisión por ${USER_ROLE}`);
-}
-
-function aprobarTermino(id) {
-    console.log(`Aprobando término ID: ${id}`);
-    actualizarEstatusTermino(id, 'Aprobado', `Aprobado por ${USER_ROLE}`);
-}
-
-function rechazarTermino(id) {
-    const motivo = prompt('Motivo del rechazo (se devolverá a "Proyectista"):');
-    if (motivo) {
-        console.log(`Rechazando término ID: ${id} por: ${motivo}`);
-        actualizarEstatusTermino(id, 'Proyectista', `Rechazado por ${USER_ROLE}: ${motivo}`);
+function descargarAcuse(nombreArchivo, expediente) {
+    if (!nombreArchivo) {
+        return mostrarMensajeGlobal('Este término no tiene un acuse para descargar.', 'info');
     }
-}
-
-function subirAcuse(id, file) {
-    const termino = TERMINOS.find(t => t.id == id);
-    if (!termino) return;
-
-    const nuevoNombreArchivo = file.name;
+    console.log('📥 Descargando acuse:', nombreArchivo, 'para expediente:', expediente);
     
-    // Lógica de Versionamiento
-    if (termino.acuseDocumento) {
-        if (!termino.historialAcuses) {
-            termino.historialAcuses = [];
-        }
-        termino.historialAcuses.push(termino.acuseDocumento); // Guardar el acuse anterior
-        console.log(`Acuse anterior '${termino.acuseDocumento}' guardado en historial.`);
-    }
+    const enlace = document.createElement('a');
+    enlace.href = '#'; // Simulación
+    enlace.download = nombreArchivo;
+    enlace.click();
     
-    termino.acuseDocumento = nuevoNombreArchivo;
-    
-    actualizarEstatusTermino(id, 'Presentado', `Nuevo acuse '${nuevoNombreArchivo}' subido por ${USER_ROLE}`);
-    
-    mostrarMensajeGlobal(`Acuse '${nuevoNombreArchivo}' subido. El término ahora está 'Presentado'.`, 'success');
-}
-
-// Función genérica para actualizar estatus y persistir
-function actualizarEstatusTermino(terminoId, nuevoEstatus, log) {
-    const index = TERMINOS.findIndex(t => t.id == terminoId);
-    if (index === -1) return;
-
-    TERMINOS[index].estatus = nuevoEstatus;
-    
-    if (!TERMINOS[index].log) TERMINOS[index].log = [];
-    TERMINOS[index].log.push({ fecha: new Date().toISOString(), accion: log });
-    console.log(log);
-
-    let terminosLS = JSON.parse(localStorage.getItem('terminos')) || [];
-    const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
-    if (lsIndex !== -1) {
-        terminosLS[lsIndex].estatus = nuevoEstatus;
-        localStorage.setItem('terminos', JSON.stringify(terminosLS));
-    }
-
-    loadTerminos();
+    mostrarMensajeGlobal(`Descarga simulada de: ${nombreArchivo}`, 'success');
 }
 
 // ===============================================
-// ===== FUNCIONES DE FILTROS Y BÚSQUEDA =====
+// LÓGICA DE FILTROS Y BÚSQUEDA (COMPLETADA)
 // ===============================================
 
 function setupSearchTerminos() {
     const searchInput = document.getElementById('search-terminos');
-    
-    searchInput.addEventListener('input', function() {
-        applyFiltersTerminos();
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFiltersTerminos);
+    }
 }
 
 function setupFiltersTerminos() {
     const filters = ['filter-tribunal-termino', 'filter-estado-termino', 'filter-estatus-termino', 'filter-prioridad-termino', 'filter-materia-termino'];
-    
     filters.forEach(filterId => {
         const filter = document.getElementById(filterId);
         if (filter) {
@@ -866,14 +880,15 @@ function setupFiltersTerminos() {
 }
 
 function getFiltrosAplicados() {
-    return {
-        tribunal: document.getElementById('filter-tribunal-termino').value.trim().toLowerCase(),
-        estado: document.getElementById('filter-estado-termino').value.trim().toLowerCase(),
-        estatus: document.getElementById('filter-estatus-termino').value,
-        prioridad: document.getElementById('filter-prioridad-termino').value,
-        materia: document.getElementById('filter-materia-termino').value,
-        search: document.getElementById('search-terminos').value.toLowerCase()
+    const filtros = {
+        tribunal: document.getElementById('filter-tribunal-termino')?.value.trim().toLowerCase() || '',
+        estado: document.getElementById('filter-estado-termino')?.value.trim().toLowerCase() || '',
+        estatus: document.getElementById('filter-estatus-termino')?.value || '',
+        prioridad: document.getElementById('filter-prioridad-termino')?.value || '',
+        materia: document.getElementById('filter-materia-termino')?.value || '',
+        search: document.getElementById('search-terminos')?.value.toLowerCase() || ''
     };
+    return filtros;
 }
 
 function filtrarTerminos(terminos, filtros) {
@@ -912,9 +927,10 @@ function setupTribunalSearch() {
     const input = document.getElementById('filter-tribunal-termino');
     const suggestionsDiv = document.getElementById('tribunal-suggestions');
     const clearBtn = document.getElementById('clear-tribunal');
+    if (!input || !suggestionsDiv || !clearBtn) return;
+    
     let selectedIndex = -1;
-
-    // Manejar entrada de texto
+      // Manejar entrada de texto
     input.addEventListener('input', function() {
         const query = this.value.trim();
         updateClearButton();
@@ -1056,15 +1072,17 @@ function setupTribunalSearch() {
             clearBtn.style.display = 'none';
         }
     }
+
 }
 
 function setupEstadoSearch() {
     const input = document.getElementById('filter-estado-termino');
     const suggestionsDiv = document.getElementById('estado-suggestions');
     const clearBtn = document.getElementById('clear-estado');
-    let selectedIndex = -1;
+    if (!input || !suggestionsDiv || !clearBtn) return;
 
-    // Manejar entrada de texto
+    let selectedIndex = -1;
+      // Manejar entrada de texto
     input.addEventListener('input', function() {
         const query = this.value.trim();
         updateClearButtonEstado();
@@ -1181,6 +1199,8 @@ function setupEstadoSearch() {
         selectedIndex = -1;
     }
 
+
+
     function updateClearButtonEstado() {
         if (input.value.trim()) {
             clearBtn.style.display = 'block';
@@ -1190,134 +1210,154 @@ function setupEstadoSearch() {
     }
 }
 
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString + 'T00:00:00-06:00'); // Asumir zona horaria local
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return date.toLocaleDateString('es-ES', options);
-}
+// ===============================================
+// HELPERS DE UI (NUEVOS Y ANTIGUOS)
+// ===============================================
 
-function isToday(dateString) {
-    const today = new Date().toISOString().split('T')[0];
-    return dateString === today;
-}
-
-// Modal de Liberar Término
-function initModalLiberarTermino() {
-    const modal = document.getElementById('modal-presentar-termino');
-    const btnCerrar = document.getElementById('close-modal-presentar');
-    const btnCancelar = document.getElementById('cancel-presentar');
-    const btnConfirmar = document.getElementById('confirmar-presentar');
-
-    if (!modal) return; 
-
-    function cerrarModal() {
-        modal.style.display = 'none';
-        const observacionesField = document.getElementById('observaciones-presentacion');
-        const idField = document.getElementById('presentar-termino-id');
-        if (observacionesField) observacionesField.value = '';
-        if (idField) idField.value = '';
+function getAlertaTiempo(termino) {
+    const limiteDias = LIMITES_ETAPAS[termino.estatus];
+    if (limiteDias === undefined || limiteDias === 0) {
+        return { texto: '-', clase: 'tiempo-ok', tooltip: 'No aplica límite de tiempo para esta etapa' };
     }
 
-    if (btnCerrar) btnCerrar.onclick = cerrarModal;
-    if (btnCancelar) btnCancelar.onclick = cerrarModal;
+    const fechaEtapa = new Date(termino.fechaIngresoEtapa);
+    const hoy = new Date();
+    const diffTime = hoy - fechaEtapa;
+    const diasEnEtapa = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            cerrarModal();
-        }
-    });
+    const diasRestantes = limiteDias - diasEnEtapa;
 
-    if (btnConfirmar) {
-        btnConfirmar.onclick = function() {
-            const terminoId = document.getElementById('presentar-termino-id').value;
-            const observaciones = document.getElementById('observaciones-presentacion').value.trim();
-            
-            if (!observaciones) {
-                mostrarMensajeGlobal('Las observaciones son obligatorias para liberar el término', 'danger');
-                return;
-            }
-            
-            liberarTermino(terminoId, observaciones);
-        };
-    }
-}
-
-function abrirModalLiberarTermino(terminoId) {
-    console.log('Abriendo modal para LIBERAR término ID:', terminoId); 
-    
-    if (USER_ROLE !== 'Direccion') {
-        mostrarMensajeGlobal('Acción no permitida. Solo "Direccion" puede liberar términos.', 'danger');
-        return;
-    }
-
-    const modal = document.getElementById('modal-presentar-termino');
-    const idField = document.getElementById('presentar-termino-id');
-    
-    // Cambiar textos del modal
-    const modalTitle = modal.querySelector('.modal-header h2');
-    const modalWarning = modal.querySelector('.alert-warning h3');
-    const modalWarningP = modal.querySelector('.alert-warning p');
-    const modalObsLabel = modal.querySelector('label[for="observaciones-presentacion"]');
-    const modalConfirmBtn = document.getElementById('confirmar-presentar');
-
-    if (modalTitle) modalTitle.textContent = 'Liberar Término';
-    if (modalWarning) modalWarning.textContent = '¿Confirma que desea liberar este término?';
-    if (modalWarningP) modalWarningP.textContent = 'El término cambiará su estatus a "Liberado" y se marcará como finalizado.';
-    if (modalObsLabel) modalObsLabel.textContent = 'Observaciones de Liberación';
-    if (modalConfirmBtn) modalConfirmBtn.textContent = 'Liberar Término';
-
-    if (modal && idField) {
-        idField.value = terminoId;
-        modal.style.display = 'flex';
+    if (diasRestantes < 0) {
+        return { texto: `Vencido (${diasEnEtapa}d)`, clase: 'tiempo-vencido', tooltip: `Límite de ${limiteDias} días. Lleva ${diasEnEtapa} días.` };
+    } else if (diasRestantes <= 1) {
+        return { texto: `${diasEnEtapa}d (Rest. 1)`, clase: 'tiempo-alerta', tooltip: `Límite de ${limiteDias} días. Queda 1 día.` };
     } else {
-        console.error('Modal o campo ID no encontrado');
+        return { texto: `${diasEnEtapa}d / ${limiteDias}d`, clase: 'tiempo-ok', tooltip: `Límite de ${limiteDias} días. Quedan ${diasRestantes} días.` };
     }
 }
 
-function liberarTermino(terminoId, observaciones) {
-    console.log('Liberando término:', terminoId, 'Observaciones:', observaciones);
-    
-    const index = TERMINOS.findIndex(t => t.id == terminoId);
-    if (index !== -1) {
-        TERMINOS[index].observaciones = observaciones;
-    }
-    
-    actualizarEstatusTermino(terminoId, 'Liberado', `Término liberado por ${USER_ROLE}. Obs: ${observaciones}`);
-
-    mostrarMensajeGlobal(`Término ${terminoId} liberado correctamente`, 'success');
-          
-    const modal = document.getElementById('modal-presentar-termino');
-    const observacionesField = document.getElementById('observaciones-presentacion');
-    if (modal) modal.style.display = 'none';
-    if (observacionesField) observacionesField.value = '';
+function getEstadoClass(estatus) {
+    const estatusMap = {
+        'Proyectista': 'estado-proyectista',
+        'Revisión': 'estado-revision',
+        'Gerencia': 'estado-gerencia',
+        'Dirección': 'estado-direccion',
+        'Liberado': 'estado-liberado',
+        'Presentado': 'estado-presentado',
+        'Concluido': 'estado-concluido'
+    };
+    return estatusMap[estatus] || 'estado-default';
 }
 
-// Función global para descargar acuse
-function descargarAcuse(nombreArchivo, expediente) {
-    if (!nombreArchivo) {
-        mostrarMensajeGlobal('Este término no tiene un acuse para descargar.', 'info');
-        return;
+function getSemaforoStatus(fechaVencimiento) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const vencimiento = new Date(fechaVencimiento);
+    vencimiento.setHours(0, 0, 0, 0); 
+    
+    const diffTime = vencimiento - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        return { color: 'vencido', class: 'semaforo-vencido', tooltip: `Vencido hace ${Math.abs(diffDays)} días` };
+    } else if (diffDays <= 2) {
+        return { color: 'rojo', class: 'semaforo-rojo', tooltip: `Vence en ${diffDays} días` };
+    } else if (diffDays <= 7) {
+        return { color: 'amarillo', class: 'semaforo-amarillo', tooltip: `Vence en ${diffDays} días` };
+    } else if (diffDays <= 30) {
+        return { color: 'verde', class: 'semaforo-verde', tooltip: `Vence en ${diffDays} días` };
+    } else {
+        return { color: 'azul', class: 'semaforo-azul', tooltip: `Vence en ${diffDays} días` };
     }
-    console.log('📥 Descargando acuse:', nombreArchivo, 'para expediente:', expediente);
-    
-    const enlace = document.createElement('a');
-    enlace.href = '#'; // Simulación
-    enlace.download = nombreArchivo;
-    enlace.click();
-    
-    mostrarMensajeGlobal(`Descarga simulada de: ${nombreArchivo}`, 'success');
 }
 
-// Función de utilidad para mensajes
+function cargarAsuntosEnSelectorJS() {
+    const selector = document.getElementById('asunto-selector');
+    if (!selector) return;
+    
+    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
+    selector.innerHTML = '<option value="">Seleccionar Asunto</option>';
+    
+    asuntos.forEach(asunto => {
+        const option = document.createElement('option');
+        option.value = asunto.id;
+        const descripcion = asunto.descripcion || asunto.partes || 'Asunto sin descripción';
+        option.textContent = `${asunto.expediente} - ${descripcion}`;
+        selector.appendChild(option);
+    });
+}
+
+function handleAsuntoCambioJS() {
+    const asuntoId = this.value;
+    if (asuntoId) {
+        cargarDatosAsuntoEnModalJS(asuntoId);
+        document.getElementById('termino-asunto-id').value = asuntoId;
+    } else {
+        limpiarCamposAutoLlenadosModal();
+        document.getElementById('termino-asunto-id').value = '';
+    }
+}
+
+function cargarDatosAsuntoEnModalJS(asuntoId) {
+    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
+    const asunto = asuntos.find(a => a.id === asuntoId);
+    
+    if (asunto) {
+        document.getElementById('termino-expediente').value = asunto.expediente || '';
+        document.getElementById('termino-materia').value = asunto.materia || '';
+        document.getElementById('termino-gerencia').value = asunto.gerencia || '';
+        document.getElementById('termino-abogado').value = asunto.abogado || '';
+        document.getElementById('termino-partes').value = asunto.partes || '';
+        document.getElementById('termino-organo').value = asunto.organoJurisdiccional || '';
+        document.getElementById('termino-prioridad').value = asunto.prioridad || '';
+    }
+}
+
+function limpiarCamposAutoLlenadosModal() {
+    const campos = [
+        'termino-expediente', 'termino-materia', 'termino-gerencia', 
+        'termino-abogado', 'termino-partes', 'termino-organo', 'termino-prioridad'
+    ];
+    campos.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) campo.value = '';
+    });
+}
+
+function cargarAbogadosSelector() {
+    const selector = document.getElementById('select-nuevo-abogado');
+    if (!selector) return;
+
+    // --- SIMULACIÓN ---
+    const usuarios = [
+        { id: 'user1', nombre: 'Lic. Martínez' },
+        { id: 'user2', nombre: 'Lic. González' },
+        { id: 'user3', nombre: 'Lic. Rodríguez' },
+        { id: 'user4', nombre: 'Lic. Hernández' },
+        { id: 'user5', nombre: 'Lic. Sánchez' },
+        { id: 'user6', nombre: 'Lic. Pérez (Nuevo)' }
+    ];
+    // --- FIN SIMULACIÓN ---
+    
+    selector.innerHTML = '<option value="">Seleccione un abogado...</option>';
+    
+    usuarios.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.nombre;
+        selector.appendChild(option);
+    });
+}
+
+// ===============================================
+// FUNCIÓN DE UTILIDAD PARA MENSAJES (TU CÓDIGO)
+// ===============================================
+
 function mostrarMensajeGlobal(mensaje, tipo = 'success') {
     const msgDiv = document.createElement('div');
-    // Asignar clase de alerta base y clase de tipo específico
     msgDiv.className = `alert alert-${tipo}`;
-    // Estilos para posicionarlo
     msgDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000; padding: 15px; border-radius: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);';
     
-    // Asignar colores de fondo y texto basados en el tipo (¡Usando tus variables CSS!)
     if (tipo === 'success') {
         msgDiv.style.backgroundColor = '#d4edda';
         msgDiv.style.color = '#155724';

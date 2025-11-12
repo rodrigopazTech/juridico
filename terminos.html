@@ -49,6 +49,153 @@
             margin-top: 5px;
             display: block;
         }
+
+        /* Nuevos estilos para el historial */
+        .historial-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .historial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .historial-rol {
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .historial-fecha {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .historial-accion {
+            margin-bottom: 4px;
+        }
+
+        .badge-accion {
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .historial-observaciones {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+            font-size: 0.9em;
+        }
+
+        /* Estilos para notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            z-index: 10000;
+            border-left: 4px solid #3498db;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .notification-success {
+            border-left-color: #28a745;
+        }
+
+        .notification-warning {
+            border-left-color: #ffc107;
+        }
+
+        .notification-info {
+            border-left-color: #17a2b8;
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+            color: #3498db;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .notification-destinatarios {
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Estilos para alertas de tiempo */
+        .badge-tiempo {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .alerta-roja {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .alerta-amarilla {
+            background-color: #fff3e0;
+            color: #ef6c00;
+            border: 1px solid #ffe0b2;
+        }
+
+        .alerta-verde {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
     </style>
 </head>
 <body>
@@ -60,7 +207,7 @@
                 <div class="header-content">
                     <h1><i class="fas fa-clock"></i> Términos - Agenda Legal</h1>
                     <div class="user-info">
-                        <i class="fas fa-user-circle"></i> Usuario Abogado
+                        <i class="fas fa-user-circle"></i> <span id="current-user">Usuario Abogado</span>
                     </div>
                 </div>
             </header>
@@ -119,10 +266,12 @@
                             <select id="filter-estatus-termino">
                                 <option value="">Todos los estatus</option>
                                 <option value="Proyectista">Proyectista</option>
-                                <option value="En Revision">En Revisión</option>
-                                <option value="Aprobado">Aprobado</option>
-                                <option value="Presentado">Presentado</option>
+                                <option value="Revisión">Revisión</option>
+                                <option value="Gerencia">Gerencia</option>
+                                <option value="Dirección">Dirección</option>
                                 <option value="Liberado">Liberado</option>
+                                <option value="Presentado">Presentado</option>
+                                <option value="Concluido">Concluido</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -166,6 +315,7 @@
                                 <th>Prestación</th>
                                 <th>Abogado</th>
                                 <th>Estado Actual</th>
+                                <th>Tiempo</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -177,6 +327,7 @@
         </div>
     </div>
     
+    <!-- Modal Principal de Términos -->
     <div class="modal" id="modal-termino">
         <div class="modal-content">
             <div class="modal-header">
@@ -268,40 +419,6 @@
                             <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
                         </div>
                         
-                        <div class="form-row" style="display: none;">
-                            <div class="form-group">
-                                <label for="etapa-revision">Etapa de Revisión*</label>
-                                <select id="etapa-revision" required>
-                                    <option value="">Seleccione etapa</option>
-                                    <option value="Proyectista">Proyectista</option>
-                                    <option value="Liberado">Liberado</option>
-                                    <option value="Revisión">Revisión</option>
-                                    <option value="Presentado">Presentado</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="atendido">¿Atendido?</label>
-                                <select id="atendido">
-                                    <option value="false">No</option>
-                                    <option value="true">Sí</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" style="display: none;">
-                            <label for="acuse-documento">Acuse (Subir Documento)</label>
-                            <div class="file-upload-container">
-                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
-                                <label for="acuse-documento" class="file-upload-btn">
-                                    <i class="fas fa-file-upload"></i>
-                                    Subir Acuse del Término
-                                </label>
-                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
-                            </div>
-                        </div>
-                        <div class="form-group" style="display: none;">
-                            <label for="observaciones">Observaciones</label>
-                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
-                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="recordatorio-dias">Recordatorio Días Antes</label>
@@ -324,33 +441,58 @@
         </div>
     </div>
 
-    <div class="modal" id="modal-presentar-termino">
+    <!-- Modal de Aprobación/Rechazo -->
+    <div class="modal" id="modal-aprobacion">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>Presentar Término</h2>
-                <button class="btn btn-danger" id="close-modal-presentar">
+                <h2 id="modal-aprobacion-title">Aprobar Término</h2>
+                <button class="btn btn-danger" id="close-modal-aprobacion">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="presentar-termino-id">
+                <input type="hidden" id="aprobacion-termino-id">
+                <input type="hidden" id="aprobacion-accion">
+                
                 <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
-                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
+                    <h3 style="margin: 0 0 10px 0; color: #0c5460;" id="aprobacion-mensaje">¿Confirma que desea aprobar este término?</h3>
+                    <p style="margin: 0; color: #0c5460;" id="aprobacion-descripcion">El término avanzará a la siguiente etapa.</p>
                 </div>
+                
                 <div class="form-group">
-                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
-                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
-                    <small>Las observaciones son obligatorias para presentar el término</small>
+                    <label for="observaciones-aprobacion">Observaciones *</label>
+                    <textarea id="observaciones-aprobacion" rows="4" placeholder="Escriba las observaciones sobre esta acción..." required></textarea>
+                    <small>Las observaciones son obligatorias para esta acción</small>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
-                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
+                <button class="btn btn-danger" id="cancel-aprobacion">Cancelar</button>
+                <button class="btn btn-success" id="confirmar-aprobacion">Confirmar</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal de Historial -->
+    <div class="modal" id="modal-historial">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Historial de Cambios</h2>
+                <button class="btn btn-danger" id="close-modal-historial">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="historial-contenido">
+                    <!-- El contenido del historial se carga dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-historial">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Reasignación -->
     <div class="modal" id="modal-reasignar">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
@@ -386,6 +528,7 @@
             </div>
         </div>
     </div>
+
     <script src="js/excel-export.js"></script>
     <script src="js/notificaciones.js"></script>
     <script src="js/components.js"></script>
@@ -399,22 +542,20 @@
                 loadSidebar('terminos.html');
             }
             
-            // Inicializar la página de términos (esto llama a todo desde terminos.js)
+            // Inicializar la página de términos
             if (typeof initTerminos === 'function') {
                 initTerminos();
             }
 
-            // Inicializar la exportación (esta función SÍ puede vivir aquí)
+            // Inicializar la exportación
             initExportacionTerminos();
         });
 
         function initExportacionTerminos() {
-            // Configurar botón de exportar a Excel
             const btnExportTerminos = document.getElementById('export-terminos');
             if (btnExportTerminos) {
                 btnExportTerminos.addEventListener('click', function() {
                     console.log('Iniciando exportación de términos...');
-                    // Esta función 'exportarTerminosAExcel' debe existir en tu 'excel-export.js'
                     if (typeof exportarTerminosAExcel === 'function') {
                         exportarTerminosAExcel();
                     } else {
@@ -422,8 +563,6 @@
                         console.error('Función exportarTerminosAExcel no encontrada');
                     }
                 });
-            } else {
-                console.warn('Botón export-terminos no encontrado');
             }
         }
     </script>

@@ -261,26 +261,93 @@ class AsuntoDetalleManager {
                 </div>
                 <div class="modal-body">
                     <div class="form-grid">
+                        
+                        <!-- Expediente -->
                         <div class="form-group">
                             <label for="edit-expediente">Expediente *</label>
                             <input id="edit-expediente" type="text" required placeholder="2375/2025">
                         </div>
+    
+                        <!-- Gerencia (corporativa) -->
                         <div class="form-group">
                             <label for="edit-gerencia">Gerencia *</label>
-                            <input id="edit-gerencia" type="text" required placeholder="Gerencia Legal / Norte / Operaciones">
+                            <select id="edit-gerencia" required>
+                                <option value="">Selecciona...</option>
+                                <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">
+                                    Gerencia de Civil Mercantil, Fiscal y Administrativo
+                                </option>
+                                <option value="Gerencia Jurídica y Financiera">Gerencia Jurídica y Financiera</option>
+                                <option value="Gerencia Laboral y Penal">Gerencia Laboral y Penal</option>
+                            </select>
                         </div>
+    
+                        <!-- Sede (Estado) -->
                         <div class="form-group">
                             <label for="edit-sede">Sede (Estado) *</label>
-                            <input id="edit-sede" type="text" required placeholder="CDMX / Jalisco / Nuevo León">
+                            <select id="edit-sede" required>
+                                <option value="">Seleccione un estado</option>
+                                <option>Aguascalientes</option>
+                                <option>Baja California</option>
+                                <option>Baja California Sur</option>
+                                <option>Campeche</option>
+                                <option>Chiapas</option>
+                                <option>Chihuahua</option>
+                                <option>Ciudad de México</option>
+                                <option>Coahuila</option>
+                                <option>Colima</option>
+                                <option>Durango</option>
+                                <option>Estado de México</option>
+                                <option>Guanajuato</option>
+                                <option>Guerrero</option>
+                                <option>Hidalgo</option>
+                                <option>Jalisco</option>
+                                <option>Michoacán</option>
+                                <option>Morelos</option>
+                                <option>Nayarit</option>
+                                <option>Nuevo León</option>
+                                <option>Oaxaca</option>
+                                <option>Puebla</option>
+                                <option>Querétaro</option>
+                                <option>Quintana Roo</option>
+                                <option>San Luis Potosí</option>
+                                <option>Sinaloa</option>
+                                <option>Sonora</option>
+                                <option>Tabasco</option>
+                                <option>Tamaulipas</option>
+                                <option>Tlaxcala</option>
+                                <option>Veracruz</option>
+                                <option>Yucatán</option>
+                                <option>Zacatecas</option>
+                            </select>
                         </div>
+    
+                        <!-- Materia -->
+                        <div class="form-group">
+                            <label for="edit-materia">Materia *</label>
+                            <select id="edit-materia" required>
+                                <option value="">Seleccione...</option>
+                                <option>Laboral</option>
+                                <option>Civil</option>
+                                <option>Mercantil</option>
+                                <option>Fiscal</option>
+                                <option>Administrativo</option>
+                                <option>Penal</option>
+                            </select>
+                        </div>
+    
+                        <!-- Abogado Responsable -->
                         <div class="form-group">
                             <label for="edit-abogado">Abogado Responsable *</label>
                             <input id="edit-abogado" type="text" required placeholder="Lic. Martínez">
                         </div>
+    
+                        <!-- Partes Procesales -->
                         <div class="form-group two-col">
                             <label for="edit-partes">Partes Procesales (Actor/Quejoso/Partes) *</label>
                             <input id="edit-partes" type="text" required placeholder="Juan Pérez vs. Empresa S.A. de C.V.">
                         </div>
+    
+                        <!-- Tipo de Asunto -->
                         <div class="form-group">
                             <label for="edit-tipo-asunto">Tipo de Asunto *</label>
                             <select id="edit-tipo-asunto" required>
@@ -289,6 +356,8 @@ class AsuntoDetalleManager {
                                 <option value="Procedimiento">Procedimiento</option>
                             </select>
                         </div>
+    
+                        <!-- Órgano Jurisdiccional -->
                         <div class="form-group">
                             <label for="edit-organo">Órgano Jurisdiccional *</label>
                             <select id="edit-organo" required>
@@ -297,6 +366,8 @@ class AsuntoDetalleManager {
                                 <option value="Autoridad">Autoridad</option>
                             </select>
                         </div>
+    
+                        <!-- Prioridad -->
                         <div class="form-group">
                             <label for="edit-prioridad">Prioridad del Asunto *</label>
                             <select id="edit-prioridad" required>
@@ -305,6 +376,8 @@ class AsuntoDetalleManager {
                                 <option>Baja</option>
                             </select>
                         </div>
+    
+                        <!-- Descripción -->
                         <div class="form-group two-col">
                             <label for="edit-descripcion">Descripción</label>
                             <textarea id="edit-descripcion" placeholder="Descripción general del asunto..."></textarea>
@@ -313,22 +386,24 @@ class AsuntoDetalleManager {
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" id="btn-cancelar-edicion">Cancelar</button>
-                    <button class="btn btn-primary" id="btn-guardar-edicion"><i class="fas fa-check"></i> Guardar cambios</button>
+                    <button class="btn btn-primary" id="btn-guardar-edicion">
+                        <i class="fas fa-check"></i> Guardar cambios
+                    </button>
                 </div>
             </div>
         `;
-
+    
         document.body.appendChild(modal);
-
-        // Cerrar
+    
+        // Cerrar modal
         document.getElementById('close-modal-editar').addEventListener('click', () => this.cerrarModalEditarAsunto());
         document.getElementById('btn-cancelar-edicion').addEventListener('click', () => this.cerrarModalEditarAsunto());
         modal.addEventListener('click', (e) => { if (e.target === modal) this.cerrarModalEditarAsunto(); });
-
+    
         // Guardar
         document.getElementById('btn-guardar-edicion').addEventListener('click', () => this.confirmarEdicionAsunto());
-
-        // Estilos mínimos
+    
+        // Estilos
         if (!document.getElementById('edit-modal-styles')) {
             const styles = document.createElement('style');
             styles.id = 'edit-modal-styles';
@@ -345,7 +420,7 @@ class AsuntoDetalleManager {
             document.head.appendChild(styles);
         }
     }
-
+    
     cerrarModalEditarAsunto() {
         const modal = document.getElementById('modal-editar-asunto');
         if (modal) modal.style.display = 'none';

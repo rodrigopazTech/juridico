@@ -17,11 +17,16 @@ function initUsuarios() {
 // ==================== GESTIÓN DE USUARIOS ====================
 
 function loadUsuarios() {
-    // ... (Esta función no cambia) ...
     const tbody = document.getElementById('usuarios-body');
     if (!tbody) return;
+
     let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    // 1. Cargamos también las gerencias para poder consultar los nombres
+    let gerencias = JSON.parse(localStorage.getItem('gerencias')) || [];
+
+    // Datos de prueba (si está vacío)
     if (usuarios.length === 0) {
+        // ... (Tu lógica de datos de prueba existente se mantiene igual) ...
         usuarios = [
             { id: 1, nombre: 'Lic. María González Ruiz', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECTOR', activo: true, fechaCreacion: '2025-01-15', gerenciaId: 1, materias: [1, 4] },
             { id: 2, nombre: 'Lic. Carlos Hernández López', correo: 'carlos.hernandez@juridico.com', rol: 'GERENTE', activo: true, fechaCreacion: '2025-02-10', gerenciaId: 1, materias: [1, 4, 5, 7] },
@@ -31,17 +36,23 @@ function loadUsuarios() {
         ];
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
     }
+
     let html = '';
     usuarios.forEach(usuario => {
         const estadoClass = usuario.activo ? 'status-active' : 'status-inactive';
         const estadoText = usuario.activo ? 'Activo' : 'Inactivo';
         const rolBadge = getRolBadge(usuario.rol);
+
+        // 2. Buscar el nombre de la gerencia usando el gerenciaId del usuario
+        const gerenciaEncontrada = gerencias.find(g => g.id === usuario.gerenciaId);
+        const nombreGerencia = gerenciaEncontrada ? gerenciaEncontrada.nombre : '<span class="text-muted">Sin asignar</span>';
+
         html += `
             <tr data-rol="${usuario.rol}" data-activo="${usuario.activo}">
                 <td>${usuario.nombre}</td>
                 <td>${usuario.correo}</td>
                 <td>${rolBadge}</td>
-                <td><span class="${estadoClass}">${estadoText}</span></td>
+                <td>${nombreGerencia}</td> <td><span class="${estadoClass}">${estadoText}</span></td>
                 <td>${formatDate(usuario.fechaCreacion)}</td>
                 <td class="actions">
                     <button class="btn btn-primary btn-sm edit-usuario" data-id="${usuario.id}" title="Editar">

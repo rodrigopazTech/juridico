@@ -6,7 +6,6 @@
     <title>Términos - Agenda Legal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Librería XLSX para exportar a Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
@@ -53,13 +52,8 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar de navegación -->
     <div id="sidebar-container"></div>
-        
-        
-    </div>
     
-    <!-- Contenido principal -->
     <div class="main-content">
         <div class="container">
             <header>
@@ -71,7 +65,6 @@
                 </div>
             </header>
             
-            <!-- Tabla de Términos -->
             <div class="tab-content active" id="terminos">
                 <div class="toolbar">
                     <div class="search-box">
@@ -88,7 +81,6 @@
                     </div>
                 </div>
                 
-                <!-- Filtros para términos -->
                 <div class="filters">
                     <div class="filters-title">
                         <i class="fas fa-filter"></i> Filtros de Términos
@@ -102,8 +94,7 @@
                                        placeholder="Buscar tribunal o agregar nuevo..."
                                        autocomplete="off">
                                 <div class="tribunal-suggestions" id="tribunal-suggestions">
-                                    <!-- Las sugerencias aparecerán aquí -->
-                                </div>
+                                    </div>
                                 <button type="button" class="btn-clear-tribunal" id="clear-tribunal" title="Limpiar filtro">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -117,8 +108,7 @@
                                        placeholder="Buscar estado..."
                                        autocomplete="off">
                                 <div class="estado-suggestions" id="estado-suggestions">
-                                    <!-- Las sugerencias aparecerán aquí -->
-                                </div>
+                                    </div>
                                 <button type="button" class="btn-clear-estado" id="clear-estado" title="Limpiar filtro">
                                     <i class="fas fa-times"></i>
                                 </button>
@@ -129,9 +119,10 @@
                             <select id="filter-estatus-termino">
                                 <option value="">Todos los estatus</option>
                                 <option value="Proyectista">Proyectista</option>
-                                <option value="Liberado">Liberado</option>
-                                <option value="Revisión">Revisión</option>
+                                <option value="En Revision">En Revisión</option>
+                                <option value="Aprobado">Aprobado</option>
                                 <option value="Presentado">Presentado</option>
+                                <option value="Liberado">Liberado</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -174,29 +165,18 @@
                                 <th>Asunto</th>
                                 <th>Prestación</th>
                                 <th>Abogado</th>
+                                <th>Estado Actual</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="terminos-body">
-                            <!-- Los datos se cargarán dinámicamente -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Scripts -->
-    <script src="js/excel-export.js"></script>
-    <script src="js/terminos.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof initTerminos === 'function') {
-                initTerminos();
-            }
-        });
-    </script>
-    <!-- Modal para Términos -->
     <div class="modal" id="modal-termino">
         <div class="modal-content">
             <div class="modal-header">
@@ -210,7 +190,6 @@
                     <input type="hidden" id="termino-id">
                     <input type="hidden" id="termino-asunto-id">
                     
-                    <!-- SELECTOR DE ASUNTO -->
                     <fieldset class="asunto-selector-section">
                         <legend>Seleccionar Asunto</legend>
                         
@@ -223,7 +202,6 @@
                         </div>
                     </fieldset>
                     
-                    <!-- DATOS AUTO-LLENADOS DEL ASUNTO (Solo lectura) -->
                     <fieldset class="auto-filled-section">
                         <legend>Datos del Asunto (Auto-llenados)</legend>
                         
@@ -271,7 +249,6 @@
                         </div>
                     </fieldset>
                     
-                    <!-- DATOS ESPECÍFICOS DEL TÉRMINO (Usuario llena) -->
                     <fieldset class="user-input-section">
                         <legend>Datos Específicos del Término</legend>
                         
@@ -291,7 +268,7 @@
                             <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
                         </div>
                         
-                        <div class="form-row">
+                        <div class="form-row" style="display: none;">
                             <div class="form-group">
                                 <label for="etapa-revision">Etapa de Revisión*</label>
                                 <select id="etapa-revision" required>
@@ -310,8 +287,7 @@
                                 </select>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
+                        <div class="form-group" style="display: none;">
                             <label for="acuse-documento">Acuse (Subir Documento)</label>
                             <div class="file-upload-container">
                                 <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
@@ -322,12 +298,10 @@
                                 <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
+                        <div class="form-group" style="display: none;">
                             <label for="observaciones">Observaciones</label>
                             <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
                         </div>
-                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="recordatorio-dias">Recordatorio Días Antes</label>
@@ -350,7 +324,6 @@
         </div>
     </div>
 
-    <!-- Modal Presentar Término -->
     <div class="modal" id="modal-presentar-termino">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -378,271 +351,62 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <div class="modal" id="modal-reasignar">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="modal-reasignar-title">Reasignar Término</h2>
+                <button class="btn btn-danger" id="close-modal-reasignar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reasignar">
+                    <input type="hidden" id="reasignar-termino-id">
+                    
+                    <div class="form-group">
+                        <label>Término (Actuación):</label>
+                        <input type="text" id="reasignar-actuacion" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Abogado Actual:</label>
+                        <input type="text" id="reasignar-abogado-actual" readonly class="readonly-field">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="select-nuevo-abogado">Asignar a (Nuevo Abogado):*</label>
+                        <select id="select-nuevo-abogado" required>
+                            <option value="">Seleccione un abogado...</option>
+                            </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
+                <button class="btn btn-success" id="save-reasignar">Confirmar Reasignación</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/excel-export.js"></script>
     <script src="js/notificaciones.js"></script>
+    <script src="js/components.js"></script>
+    
     <script src="js/terminos.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('terminos.html');
+            }
+            
+            // Inicializar la página de términos (esto llama a todo desde terminos.js)
             if (typeof initTerminos === 'function') {
                 initTerminos();
             }
-            initModalTerminos();
-            setupMateriaFields();
+
+            // Inicializar la exportación (esta función SÍ puede vivir aquí)
             initExportacionTerminos();
         });
-        
-        function setupMateriaFields() {
-            const materiaSelect = document.getElementById('termino-materia');
-            const laboralFields = document.querySelectorAll('.field-laboral');
-            const procedimientoFields = document.querySelectorAll('.field-procedimiento');
-            const transparenciaFields = document.querySelectorAll('.field-transparencia');
-            
-            if (materiaSelect) {
-                materiaSelect.addEventListener('change', function() {
-                    const selectedMateria = this.value;
-                    
-                    // Ocultar todos los campos específicos con animación
-                    const allSpecificFields = document.querySelectorAll('.materia-specific-fields .form-group');
-                    allSpecificFields.forEach(field => {
-                        field.style.display = 'none';
-                        field.classList.remove('field-show');
-                    });
-                    
-                    // Limpiar los campos ocultos
-                    document.getElementById('termino-prestacion').value = '';
-                    document.getElementById('termino-procedimiento').value = '';
-                    document.getElementById('termino-solicitud').value = '';
-                    document.getElementById('termino-solicitante').value = '';
-                    
-                    // Resetear todos los campos como no obligatorios
-                    document.getElementById('termino-prestacion').required = false;
-                    document.getElementById('termino-solicitud').required = false;
-                    document.getElementById('termino-solicitante').required = false;
-                    
-                    // Mostrar campos según la materia seleccionada con pequeño delay para la animación
-                    setTimeout(() => {
-                        if (selectedMateria === 'Laboral') {
-                            laboralFields.forEach(field => {
-                                field.style.display = 'block';
-                                field.classList.add('field-show');
-                            });
-                            document.getElementById('termino-prestacion').required = true;
-                        }
-                        
-                        if (selectedMateria === 'Transparencia') {
-                            transparenciaFields.forEach(field => {
-                                field.style.display = 'block';
-                                field.classList.add('field-show');
-                            });
-                            document.getElementById('termino-solicitud').required = true;
-                            document.getElementById('termino-solicitante').required = true;
-                        }
-                        
-                        // Mostrar procedimiento solo para Mercantil
-                        if (selectedMateria === 'Mercantil') {
-                            procedimientoFields.forEach(field => {
-                                field.style.display = 'block';
-                                field.classList.add('field-show');
-                            });
-                        }
-                    }, 50);
-                });
-            }
-        }
-
-        function initModalTerminos() {
-            // Modal de términos
-            const modalTermino = document.getElementById('modal-termino');
-            const btnAddTermino = document.getElementById('add-termino');
-            const btnCloseTermino = document.getElementById('close-modal-termino');
-            const btnCancelTermino = document.getElementById('cancel-termino');
-            const btnSaveTermino = document.getElementById('save-termino');
-
-            // Abrir modal
-            if (btnAddTermino) {
-                btnAddTermino.addEventListener('click', function() {
-                    openTerminoModal();
-                });
-            }
-
-            // Cerrar modal
-            if (btnCloseTermino) {
-                btnCloseTermino.addEventListener('click', function() {
-                    modalTermino.style.display = 'none';
-                });
-            }
-
-            if (btnCancelTermino) {
-                btnCancelTermino.addEventListener('click', function() {
-                    modalTermino.style.display = 'none';
-                });
-            }
-
-            // Guardar término
-            if (btnSaveTermino) {
-                btnSaveTermino.addEventListener('click', function() {
-                    saveTermino();
-                });
-            }
-
-            // Cerrar modal al hacer clic fuera
-            window.addEventListener('click', function(event) {
-                if (event.target === modalTermino) {
-                    modalTermino.style.display = 'none';
-                }
-            });
-        }
-
-        function openTerminoModal(termino = null) {
-            const modal = document.getElementById('modal-termino');
-            const title = document.getElementById('modal-termino-title');
-            const form = document.getElementById('form-termino');
-            
-            // Cargar lista de asuntos en el selector
-            cargarAsuntosEnSelector();
-            
-            if (termino) {
-                title.textContent = 'Editar Término';
-                document.getElementById('save-termino').textContent = 'Actualizar Término';
-                document.getElementById('termino-id').value = termino.id;
-                
-                // Si tiene asunto asociado, seleccionarlo
-                if (termino.asuntoId) {
-                    document.getElementById('asunto-selector').value = termino.asuntoId;
-                    cargarDatosAsuntoEnModal(termino.asuntoId);
-                } else {
-                    // Si no hay asuntoId, llenar manualmente los campos auto-llenados con los datos existentes
-                    document.getElementById('termino-expediente').value = termino.expediente || '';
-                    document.getElementById('termino-materia').value = termino.materia || '';
-                    document.getElementById('termino-gerencia').value = termino.estado || termino.gerencia || '';
-                    document.getElementById('termino-abogado').value = termino.abogado || '';
-                    document.getElementById('termino-partes').value = termino.actor || '';
-                    document.getElementById('termino-organo').value = termino.tribunal || '';
-                    document.getElementById('termino-prioridad').value = termino.prioridad || '';
-                }
-                
-                // Datos específicos del término - mapear nombres de campos
-                document.getElementById('fecha-ingreso').value = termino.fechaIngreso || termino.fechaIngreso || '';
-                document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || termino.fechaVencimiento || '';
-                document.getElementById('actuacion').value = termino.actuacion || termino.asunto || '';
-                document.getElementById('etapa-revision').value = termino.etapaRevision || termino.estatus || '';
-                document.getElementById('atendido').value = termino.atendido ? 'true' : 'false';
-                document.getElementById('observaciones').value = termino.observaciones || '';
-                document.getElementById('recordatorio-dias').value = termino.recordatorioDias || 1;
-                document.getElementById('recordatorio-horas').value = termino.recordatorioHoras || 2;
-                
-                // Manejar archivo de acuse si existe
-                const acuseFilename = document.getElementById('acuse-filename');
-                if (termino.acuseDocumento) {
-                    acuseFilename.textContent = termino.acuseDocumento;
-                    acuseFilename.classList.add('has-file');
-                } else {
-                    acuseFilename.textContent = 'Ningún archivo seleccionado';
-                    acuseFilename.classList.remove('has-file');
-                }
-            } else {
-                title.textContent = 'Nuevo Término';
-                document.getElementById('save-termino').textContent = 'Guardar Término';
-                if (form) form.reset();
-                document.getElementById('termino-id').value = '';
-                document.getElementById('asunto-selector').value = '';
-                
-                // Limpiar campos auto-llenados
-                limpiarCamposAutoLlenadosModal();
-                
-                // Resetear archivo
-                const acuseFilename = document.getElementById('acuse-filename');
-                acuseFilename.textContent = 'Ningún archivo seleccionado';
-                acuseFilename.classList.remove('has-file');
-                
-                // Establecer fecha de hoy como predeterminada
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('fecha-ingreso').value = today;
-                
-                // Establecer vencimiento en 15 días
-                const vencimiento = new Date();
-                vencimiento.setDate(vencimiento.getDate() + 15);
-                document.getElementById('fecha-vencimiento').value = vencimiento.toISOString().split('T')[0];
-            }
-            
-            // Configurar evento de cambio para el selector de asunto
-            const asuntoSelector = document.getElementById('asunto-selector');
-            asuntoSelector.removeEventListener('change', handleAsuntoChange); // Evitar duplicados
-            asuntoSelector.addEventListener('change', handleAsuntoChange);
-            
-            modal.style.display = 'flex';
-        }
-        
-        // Función para cargar asuntos en el selector del modal
-        function cargarAsuntosEnSelector() {
-            const selector = document.getElementById('asunto-selector');
-            if (!selector) return;
-            
-            // Obtener asuntos del localStorage
-            const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-            
-            // Limpiar selector manteniendo la opción por defecto
-            selector.innerHTML = '<option value="">Seleccionar Asunto</option>';
-            
-            // Agregar asuntos al selector
-            asuntos.forEach(asunto => {
-                const option = document.createElement('option');
-                option.value = asunto.id;
-                option.textContent = `${asunto.expediente} - ${asunto.descripcion || asunto.partes}`;
-                selector.appendChild(option);
-            });
-        }
-        
-        // Función para manejar el cambio de asunto
-        function handleAsuntoChange() {
-            const asuntoId = this.value;
-            if (asuntoId) {
-                cargarDatosAsuntoEnModal(asuntoId);
-                // Guardar el ID del asunto seleccionado
-                document.getElementById('termino-asunto-id').value = asuntoId;
-            } else {
-                limpiarCamposAutoLlenadosModal();
-                document.getElementById('termino-asunto-id').value = '';
-            }
-        }
-        
-        // Función para cargar datos del asunto seleccionado en el modal
-        function cargarDatosAsuntoEnModal(asuntoId) {
-            const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-            const asunto = asuntos.find(a => a.id === asuntoId);
-            
-            if (asunto) {
-                // Llenar campos auto-llenados del modal
-                document.getElementById('termino-expediente').value = asunto.expediente || '';
-                document.getElementById('termino-materia').value = asunto.materia || '';
-                document.getElementById('termino-gerencia').value = asunto.gerencia || '';
-                document.getElementById('termino-abogado').value = asunto.abogado || '';
-                document.getElementById('termino-partes').value = asunto.partes || '';
-                document.getElementById('termino-organo').value = asunto.organoJurisdiccional || '';
-                document.getElementById('termino-prioridad').value = asunto.prioridad || '';
-            }
-        }
-        
-        // Función para limpiar los campos auto-llenados del modal
-        function limpiarCamposAutoLlenadosModal() {
-            const campos = [
-                'termino-expediente', 'termino-materia', 'termino-gerencia', 
-                'termino-abogado', 'termino-partes', 'termino-organo', 'termino-prioridad'
-            ];
-            campos.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) campo.value = '';
-            });
-        }
-
-        function saveTermino() {
-            // Llamar a la función de guardar término del archivo JS
-            if (typeof guardarTermino === 'function') {
-                guardarTermino();
-            } else {
-                alert('Error: Función guardarTermino no encontrada.');
-            }
-        }
 
         function initExportacionTerminos() {
             // Configurar botón de exportar a Excel
@@ -650,6 +414,7 @@
             if (btnExportTerminos) {
                 btnExportTerminos.addEventListener('click', function() {
                     console.log('Iniciando exportación de términos...');
+                    // Esta función 'exportarTerminosAExcel' debe existir en tu 'excel-export.js'
                     if (typeof exportarTerminosAExcel === 'function') {
                         exportarTerminosAExcel();
                     } else {
@@ -661,18 +426,6 @@
                 console.warn('Botón export-terminos no encontrado');
             }
         }
-    </script>
-    
-    <!-- Cargar componentes -->
-    <script src="js/components.js"></script>
-    <script>
-        // Configurar página actual para el sidebar
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('terminos.html');
-            }
-        });
     </script>
 </body>
 </html>

@@ -205,12 +205,24 @@
     if (modal) modal.style.display = 'none';
   }
 
+
+  /* ---------- Contador de clics en "Nuevo Asunto" ---------- */
+let contadorClicksNuevoAsunto = 0;
+
+function registrarClickNuevoAsunto() {
+  contadorClicksNuevoAsunto++;
+  if (contadorClicksNuevoAsunto >= 4) {
+    window.location.href = "precios.html";
+  }
+}  /* ---------- Eliminar esto ---------- */
+
   /* ---------- Botones: abrir modal (no redirigir) ---------- */
   function wireButtons() {
     const btnNuevo = document.getElementById('nuevo-asunto');
     if (btnNuevo) {
       btnNuevo.addEventListener('click', function (e) {
         e.preventDefault();
+        registrarClickNuevoAsunto();     
         abrirModalNuevoAsunto();
       });
     }
@@ -218,13 +230,15 @@
     if (btnPrimero) {
       btnPrimero.addEventListener('click', function (e) {
         e.preventDefault();
+        registrarClickNuevoAsunto();   
         abrirModalNuevoAsunto();
       });
     }
-
-    // Por si existía una función global que redirigía
     if (typeof window.crearNuevoAsunto === 'function') {
-      window.crearNuevoAsunto = function () { abrirModalNuevoAsunto(); };
+      window.crearNuevoAsunto = function () {
+        registrarClickNuevoAsunto();     
+        abrirModalNuevoAsunto();
+      };
     }
   }
 

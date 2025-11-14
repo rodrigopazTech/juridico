@@ -35,6 +35,9 @@ function initBasicComponents() {
     
     // Inicializar gráfica de gerencias
     initGerenciaChart();
+    
+    // 🆕 Inicializar gráfica de carga por abogado
+    initAbogadoChart();
 }
 
 function initCalendar() {
@@ -265,6 +268,95 @@ function initGerenciaChart() {
         return null;
     }
 }
+
+function initAbogadoChart() {
+    console.log('📊 Inicializando gráfica de carga por abogado...');
+    
+    const ctx = document.getElementById('abogado-chart');
+    if (!ctx) {
+        console.error('❌ ERROR: Elemento abogado-chart no encontrado');
+        return;
+    }
+
+    if (typeof Chart === 'undefined') {
+        console.error('❌ ERROR: Chart.js no está disponible');
+        return;
+    }
+
+    // Datos ficticios para demostración
+    const labels = [
+        'Lic. Pérez',
+        'Lic. Gómez',
+        'Lic. Hernández',
+        'Lic. López',
+        'Lic. Martínez'
+    ];
+
+    const data = [14, 9, 7, 5, 3]; // número de asuntos activos por abogado (demo)
+
+    try {
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Asuntos activos',
+                    data: data,
+                    backgroundColor: '#2c5aa0',
+                    borderColor: '#1e3d6f',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: false,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Número de asuntos'
+                        },
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y || 0;
+                                return `Asuntos activos: ${value}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Gráfica de carga por abogado creada exitosamente');
+        return chart;
+
+    } catch (error) {
+        console.error('💥 ERROR al crear la gráfica de carga por abogado:', error);
+        return null;
+    }
+}
+
 
 function obtenerDatosGerencia() {
     console.log('📊 Obteniendo datos de asuntos por gerencia...');

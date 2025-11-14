@@ -24,14 +24,16 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        /* Estilos para la gráfica */
+        /* Estilos para las gráficas */
         .chart-container {
             height: 450px;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
-        }        .chart-info {
+        }
+
+        .chart-info {
             text-align: center;
             padding: 10px 0;
             color: #666;
@@ -87,8 +89,7 @@
             
             <div class="tab-content active" id="dashboard">
                 <div class="dashboard">
-                   
-                    
+                    <!-- 📊 Distribución de Asuntos por Gerencia -->
                     <div class="dashboard-card">
                         <h3><i class="fas fa-chart-pie"></i> Distribución de Asuntos por Gerencia</h3>
                         <div class="chart-container">
@@ -96,7 +97,12 @@
                         </div>
                         <div class="chart-info">
                             <h4>Distribución por Gerencia</h4>
-                            <p><small><i class="fas fa-info-circle"></i> Distribución basada en los asuntos registrados por cada gerencia estatal</small></p>
+                            <p>
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    Distribución basada en los asuntos registrados por cada gerencia estatal
+                                </small>
+                            </p>
                             <div class="chart-stats" id="chart-stats">
                                 <div class="stat-item">
                                     <span class="stat-label">Total de Asuntos:</span>
@@ -110,18 +116,25 @@
                         </div>
                     </div>
                     
+                    <!-- 👩‍⚖️ Carga de Trabajo por Abogado -->
                     <div class="dashboard-card">
                         <h3><i class="fas fa-users"></i> Carga de Trabajo por Abogado</h3>
-                        <div class="chart-container" style="padding: 10px;">
+                        <div class="chart-container" style="padding: 10px; height: 350px;">
                             <canvas id="abogado-chart"></canvas>
                         </div>
                         <div class="chart-info">
                             <h4>Asuntos Asignados</h4>
-                            <p><small><i class="fas fa-info-circle"></i> Asuntos activos asignados a cada abogado responsable</small></p>
+                            <p>
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    Asuntos activos asignados a cada abogado responsable
+                                </small>
+                            </p>
                         </div>
                     </div>
 
-                     <div class="dashboard-card">
+                    <!-- 📋 Resumen General -->
+                    <div class="dashboard-card">
                         <h3><i class="fas fa-chart-bar"></i> Resumen General</h3>
                         <div class="stats-container">
                             <div class="stat-card stat-audiencias">
@@ -132,35 +145,15 @@
                                 <div class="stat-value" id="total-terminos">0</div>
                                 <div class="stat-label">Términos</div>
                             </div>
-                               <div class="stat-card stat-presentado">
+                            <div class="stat-card stat-presentado">
                                 <div class="stat-value" id="total-presentado">0</div>
                                 <div class="stat-label">Presentados</div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="dashboard-card">
-                        <h3><i class="fas fa-chart-pie"></i> Distribución de Asuntos por Gerencia</h3>
-                        <div class="chart-container">
-                            <canvas id="gerencia-chart" width="400" height="200"></canvas>
-                        </div>
-                        <div class="chart-info">
-                            <h4>Distribución por Gerencia</h4>
-                            <p><small><i class="fas fa-info-circle"></i> Distribución basada en los asuntos registrados por cada gerencia estatal</small></p>
-                            <div class="chart-stats" id="chart-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Total de Asuntos:</span>
-                                    <span class="stat-value" id="total-asuntos">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Gerencias Activas:</span>
-                                    <span class="stat-value" id="total-gerencias">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
+                <!-- 📅 Calendario de Eventos -->
                 <div class="dashboard-card">
                     <h3><i class="fas fa-calendar-alt"></i> Calendario de Eventos</h3>
                     <div class="toolbar">
@@ -194,9 +187,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div> <!-- /tab-content -->
+        </div> <!-- /container -->
+    </div> <!-- /main-content -->
     
     <script src="js/components.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>

@@ -222,7 +222,7 @@ function registrarClickNuevoAsunto() {
     if (btnNuevo) {
       btnNuevo.addEventListener('click', function (e) {
         e.preventDefault();
-        registrarClickNuevoAsunto();     
+        registrarClickNuevoAsunto();     /* ---------- Eliminar esto ---------- */
         abrirModalNuevoAsunto();
       });
     }
@@ -230,17 +230,17 @@ function registrarClickNuevoAsunto() {
     if (btnPrimero) {
       btnPrimero.addEventListener('click', function (e) {
         e.preventDefault();
-        registrarClickNuevoAsunto();   
+        registrarClickNuevoAsunto();   /* ---------- Eliminar esto ---------- */
         abrirModalNuevoAsunto();
       });
     }
     if (typeof window.crearNuevoAsunto === 'function') {
-      window.crearNuevoAsunto = function () {
-        registrarClickNuevoAsunto();     
-        abrirModalNuevoAsunto();
+      window.crearNuevoAsunto = function () { /* ---------- Eliminar esto ---------- */
+        registrarClickNuevoAsunto();     /* ---------- Eliminar esto ---------- */
+        abrirModalNuevoAsunto();/* ---------- Eliminar esto ---------- */
       };
     }
-  }
+  }   /* ---------- Eliminar esto ---------- */
 
   /* ---------- Delegación: "Ver detalle" en TODAS las cards ---------- */
   function wireDelegationVerDetalle() {

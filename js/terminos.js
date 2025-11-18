@@ -3,7 +3,7 @@
 // Simula el rol del usuario logueado.
 // Cambia este valor para probar los permisos:
 // 'Abogado' | 'Gerente' | 'Direccion'
-const USER_ROLE = 'Gerente';
+const USER_ROLE = 'Direccion';
 
 // Lista de tribunales existentes - solo declarar si no existe
 if (typeof tribunalesExistentes === 'undefined') {
@@ -90,7 +90,7 @@ function openTerminoModalJS(termino = null) {
     // Cargar lista de asuntos en el selector
     cargarAsuntosEnSelectorJS();
     
-    // Ocultar campos que no se usan en el nuevo sistema
+    // Ocultamos los campos que ya no deben estar en el modal de edición/creación
     const camposAOcultar = ['etapa-revision', 'atendido', 'acuse-documento', 'observaciones'];
     camposAOcultar.forEach(id => {
         const el = document.getElementById(id);
@@ -101,9 +101,6 @@ function openTerminoModalJS(termino = null) {
             }
         }
     });
-    
-    // Configurar controles de etapa
-    configurarControlesEtapa(termino);
     
     if (termino) {
         // Modo edición
@@ -155,116 +152,14 @@ function openTerminoModalJS(termino = null) {
     
     const asuntoSelector = document.getElementById('asunto-selector');
     if (asuntoSelector) {
-        asuntoSelector.removeEventListener('change', handleAsuntoCambioJS);
+        asuntoSelector.removeEventListener('change', handleAsuntoCambioJS); // Evitar duplicados
         asuntoSelector.addEventListener('change', handleAsuntoCambioJS);
     }
     
     modal.style.display = 'flex';
     console.log('Modal abierto correctamente');
 }
-// ===============================================
-// ===== CONTROLES DE ETAPA - FASE 2 =====
-// ===============================================
 
-function configurarControlesEtapa(termino) {
-    const stageControls = document.getElementById('stage-controls');
-    const approvalControls = document.getElementById('approval-controls');
-    const acuseControls = document.getElementById('acuse-controls');
-    const concluirControls = document.getElementById('concluir-controls');
-    
-    // Ocultar todos los controles primero
-    stageControls.style.display = 'none';
-    approvalControls.style.display = 'none';
-    acuseControls.style.display = 'none';
-    concluirControls.style.display = 'none';
-    
-    // Si no hay término (nuevo) o el usuario no puede modificar, no mostrar controles
-    if (!termino || !puedeRealizarAccion(termino, 'modificar')) {
-        return;
-    }
-    
-    const etapa = termino.etapa;
-    const userRole = USER_ROLE.toLowerCase();
-    
-    // Mostrar controles según la etapa y permisos
-    switch (etapa) {
-        case 'proyectista':
-            if (userRole === 'abogado') {
-                // Abogado puede enviar a revisión desde el modal
-                stageControls.style.display = 'block';
-                approvalControls.style.display = 'block';
-                
-                // Modificar los botones para envío a revisión
-                document.getElementById('btn-aprobar').innerHTML = '<i class="fas fa-paper-plane"></i> Enviar a Revisión';
-                document.getElementById('btn-aprobar').onclick = () => enviarARevision(termino.id);
-                document.getElementById('btn-rechazar').style.display = 'none';
-                document.getElementById('comentarios-etapa').placeholder = 'Comentarios para la etapa de revisión...';
-            }
-            break;
-            
-        case 'revision':
-            if (['jefe departamento', 'gerente', 'subdireccion', 'direccion'].includes(userRole)) {
-                stageControls.style.display = 'block';
-                approvalControls.style.display = 'block';
-                
-                document.getElementById('btn-aprobar').innerHTML = '<i class="fas fa-check"></i> Aprobar y Enviar a Gerencia';
-                document.getElementById('btn-aprobar').onclick = () => aprobarTermino(termino.id);
-                document.getElementById('btn-rechazar').innerHTML = '<i class="fas fa-times"></i> Rechazar y Devolver';
-                document.getElementById('btn-rechazar').onclick = () => rechazarTermino(termino.id);
-                document.getElementById('btn-rechazar').style.display = 'block';
-            }
-            break;
-            
-        case 'gerencia':
-            if (['gerente', 'subdireccion', 'direccion'].includes(userRole)) {
-                stageControls.style.display = 'block';
-                approvalControls.style.display = 'block';
-                
-                document.getElementById('btn-aprobar').innerHTML = '<i class="fas fa-check"></i> Aprobar y Enviar a Dirección';
-                document.getElementById('btn-aprobar').onclick = () => aprobarTermino(termino.id);
-                document.getElementById('btn-rechazar').innerHTML = '<i class="fas fa-times"></i> Rechazar y Devolver';
-                document.getElementById('btn-rechazar').onclick = () => rechazarTermino(termino.id);
-                document.getElementById('btn-rechazar').style.display = 'block';
-            }
-            break;
-            
-        case 'direccion':
-            if (['direccion', 'subdireccion'].includes(userRole)) {
-                stageControls.style.display = 'block';
-                approvalControls.style.display = 'block';
-                
-                document.getElementById('btn-aprobar').innerHTML = '<i class="fas fa-check"></i> Aprobar y Liberar';
-                document.getElementById('btn-aprobar').onclick = () => aprobarTermino(termino.id);
-                document.getElementById('btn-rechazar').innerHTML = '<i class="fas fa-times"></i> Rechazar y Devolver';
-                document.getElementById('btn-rechazar').onclick = () => rechazarTermino(termino.id);
-                document.getElementById('btn-rechazar').style.display = 'block';
-            }
-            break;
-            
-        case 'liberado':
-            if (userRole === 'abogado') {
-                stageControls.style.display = 'block';
-                acuseControls.style.display = 'block';
-                
-                // Configurar subida de acuse
-                configurarSubidaAcuse(termino.id);
-            }
-            break;
-            
-        case 'presentado':
-            if (userRole === 'direccion') {
-                stageControls.style.display = 'block';
-                concluirControls.style.display = 'block';
-                
-                document.getElementById('btn-concluir').onclick = () => concluirTermino(termino.id);
-            }
-            break;
-    }
-    
-    // Limpiar campos de comentarios
-    document.getElementById('comentarios-etapa').value = '';
-    document.getElementById('comentarios-conclusion').value = '';
-}
 // Función para cargar asuntos en el selector desde JavaScript
 function cargarAsuntosEnSelectorJS() {
     const selector = document.getElementById('asunto-selector');
@@ -557,281 +452,80 @@ function loadTerminos() {
 }
 
 // Generador de menú de acciones rápidas
-function loadTerminos() {
-    const tbody = document.getElementById('terminos-body');
+function generarAccionesRapidas(termino, rol) {
+    let accionesHTML = '';
     
-    if (TERMINOS.length === 0) {
-        const localTerminos = JSON.parse(localStorage.getItem('terminos'));
-        if (localTerminos && localTerminos.length > 0) {
-            TERMINOS = localTerminos;
-        } else {
-            // Datos de ejemplo con el nuevo sistema de etapas
-            TERMINOS = [
-                { 
-                    id: 1, 
-                    asuntoId: '1698270123456', 
-                    fechaIngreso: '2025-10-25', 
-                    fechaVencimiento: '2025-11-12', 
-                    expediente: '2375/2025', 
-                    actor: 'Ortega Ibarra Juan Carlos', 
-                    asunto: 'Despido injustificado', 
-                    actuacion: 'Despido injustificado', 
-                    prestacion: 'Reinstalación', 
-                    tribunal: 'Primer Tribunal Colegiado en Materia Laboral', 
-                    abogado: 'Lic. Martínez', 
-                    estado: 'Ciudad de México', 
-                    prioridad: 'Alta', 
-                    estatus: 'Proyectista', 
-                    etapa: 'proyectista', // NUEVO CAMPO
-                    responsable: 'Lic. Martínez', // NUEVO CAMPO
-                    materia: 'Laboral', 
-                    acuseDocumento: '', 
-                    historialAcuses: [] 
-                },
-                { 
-                    id: 2, 
-                    asuntoId: '1698270234567', 
-                    fechaIngreso: '2025-10-28', 
-                    fechaVencimiento: '2025-11-16', 
-                    expediente: '2012/2025', 
-                    actor: 'Valdez Sánchez María Elena', 
-                    asunto: 'Amparo indirecto', 
-                    actuacion: 'Amparo indirecto', 
-                    prestacion: 'Suspensión definitiva', 
-                    tribunal: 'Tercer Tribunal de Enjuiciamiento', 
-                    abogado: 'Lic. González', 
-                    estado: 'Jalisco', 
-                    prioridad: 'Media', 
-                    estatus: 'En Revision', 
-                    etapa: 'revision', // NUEVO CAMPO
-                    responsable: 'Jefe de Departamento', // NUEVO CAMPO
-                    materia: 'Amparo', 
-                    acuseDocumento: '', 
-                    historialAcuses: [] 
-                }
-                // ... más términos de ejemplo
-            ];
-            localStorage.setItem('terminos', JSON.stringify(TERMINOS));
-        }
+    accionesHTML += `<a href="#" class="action-item action-view-asunto" title="Ver el asunto principal">
+                        <i class="fas fa-briefcase"></i> Ver Asunto
+                    </a>`;
+    accionesHTML += `<a href="#" class="action-item action-history" title="Ver historial de cambios">
+                        <i class="fas fa-eye"></i> Ver Historial
+                    </a>`;
+
+    switch (termino.estatus) {
+        case 'Proyectista':
+            if (rol === 'Abogado' || rol === 'Gerente' || rol === 'Direccion') {
+                accionesHTML += `<a href="#" class="action-item action-send-review" title="Enviar a revisión">
+                                    <i class="fas fa-paper-plane"></i> Enviar a Revisión
+                                </a>`;
+            }
+            break;
+            
+        case 'En Revision':
+            if (rol === 'Gerente' || rol === 'Direccion') {
+                accionesHTML += `<a href="#" class="action-item action-approve" title="Aprobar el término">
+                                    <i class="fas fa-check"></i> Aprobar
+                                </a>`;
+                accionesHTML += `<a href="#" class="action-item action-reject" title="Rechazar y devolver">
+                                    <i class="fas fa-times"></i> Rechazar
+                                </a>`;
+            }
+            break;
+            
+        case 'Aprobado':
+            if (rol === 'Abogado' || rol === 'Gerente' || rol === 'Direccion') {
+                accionesHTML += `<a href="#" class="action-item action-upload-acuse" title="Subir acuse de presentación">
+                                    <i class="fas fa-file-upload"></i> Subir Acuse
+                                </a>`;
+            }
+            break;
+            
+        case 'Presentado':
+            if (rol === 'Direccion') {
+                accionesHTML += `<a href="#" class="action-item action-liberar" title="Liberar el término (solo Dirección)">
+                                    <i class="fas fa-lock-open"></i> Liberar Término
+                                </a>`;
+            }
+            break;
     }
     
-    let html = '';
-    const filtros = getFiltrosAplicados();
-    const terminosFiltrados = filtrarTerminos(TERMINOS, filtros);
+    if (rol === 'Gerente' || rol === 'Direccion') {
+         accionesHTML += `<a href="#" class="action-item action-reasignar" title="Asignar a otro abogado">
+                            <i class="fas fa-user-friends"></i> Reasignar
+                        </a>`;
+    }
+    
+    if (termino.acuseDocumento) {
+        accionesHTML += `<a href="#" class="action-item action-download-acuse" title="Descargar acuse actual">
+                            <i class="fas fa-download"></i> Ver Acuse Actual
+                        </a>`;
+    }
+    if (termino.historialAcuses && termino.historialAcuses.length > 0) {
+         accionesHTML += `<a href="#" class="action-item action-history-acuse" title="Ver acuses anteriores">
+                            <i class="fas fa-history"></i> Historial Acuses
+                        </a>`;
+    }
 
-    terminosFiltrados.forEach(termino => {
-        const fechaIngresoClass = isToday(termino.fechaIngreso) ? 'current-date' : '';
-        const fechaVencimientoClass = isToday(termino.fechaVencimiento) ? 'current-date' : '';
-        const semaforoStatus = getSemaforoStatus(termino.fechaVencimiento);
-        
-        // Función para obtener la clase CSS según la etapa
-        function getEtapaClass(etapa) {
-            const etapaMap = {
-                'proyectista': 'etapa-proyectista',
-                'revision': 'etapa-revision',
-                'gerencia': 'etapa-gerencia',
-                'direccion': 'etapa-direccion',
-                'liberado': 'etapa-liberado',
-                'presentado': 'etapa-presentado',
-                'concluido': 'etapa-concluido'
-            };
-            return etapaMap[etapa] || 'etapa-default';
-        }
-        
-        html += `
-            <tr data-id="${termino.id}" data-tribunal="${termino.tribunal}" data-estado="${termino.estado || termino.gerencia}" data-estatus="${termino.estatus}" data-etapa="${termino.etapa}" data-prioridad="${termino.prioridad}" data-materia="${termino.materia}">
-                <td class="${fechaIngresoClass}">
-                    <div class="semaforo-container">
-                        <div class="semaforo-dot ${semaforoStatus.class}" title="${semaforoStatus.tooltip}"></div>
-                        ${formatDate(termino.fechaIngreso)}
-                    </div>
-                </td>
-                <td class="${fechaVencimientoClass}">${formatDate(termino.fechaVencimiento)}</td>
-                <td>${termino.expediente}</td>
-                <td>${termino.actor}</td>
-                <td>${termino.asunto}</td>
-                
-                <!-- NUEVA COLUMNA: ETAPA ACTUAL -->
-                <td>
-                    <span class="badge-etapa ${getEtapaClass(termino.etapa)}">
-                        ${getEtapaDisplayName(termino.etapa)}
-                    </span>
-                </td>
-                
-                <!-- NUEVA COLUMNA: RESPONSABLE ACTUAL -->
-                <td>
-                    <span class="responsable-actual">
-                        ${termino.responsable || termino.abogado}
-                        ${esMiResponsabilidad(termino) ? ' <i class="fas fa-user-check" style="color: #28a745;" title="Requiere tu acción"></i>' : ''}
-                    </span>
-                </td>
-                
-                <td class="actions">
-                    <button class="btn btn-primary btn-sm action-edit" title="Editar término">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    
-                    <div class="action-menu-container">
-                        <button class="btn btn-secondary btn-sm action-menu-toggle" title="Acciones rápidas">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div class="action-menu">
-                            ${generarAccionesRapidas(termino, USER_ROLE)}
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
+    if (rol === 'Direccion') {
+        accionesHTML += `<div class="action-divider"></div>`;
+        accionesHTML += `<a href="#" class="action-item action-delete danger-action" title="Eliminar este término">
+                            <i class="fas fa-trash-alt"></i> Eliminar Término
+                        </a>`;
+    }
     
-    tbody.innerHTML = html;
-    
-    // Agregar estilos dinámicamente si no existen
-    agregarEstilosEtapas();
-}
+    accionesHTML += `<input type="file" class="input-acuse-hidden" data-id="${termino.id}" accept=".pdf,.doc,.docx" style="display:none;">`;
 
-// ===============================================
-// ===== SISTEMA DE ETAPAS Y ROLES - FASE 1 =====
-// ===============================================
-
-// Mapeo de etapas a nombres display
-function getEtapaDisplayName(etapa) {
-    const etapasMap = {
-        'proyectista': 'Proyectista',
-        'revision': 'Revisión',
-        'gerencia': 'Gerencia', 
-        'direccion': 'Dirección',
-        'liberado': 'Liberado',
-        'presentado': 'Presentado',
-        'concluido': 'Concluido'
-    };
-    return etapasMap[etapa] || etapa;
-}
-
-// Determinar si el término requiere mi acción
-function esMiResponsabilidad(termino) {
-    const userRole = USER_ROLE.toLowerCase();
-    const etapa = termino.etapa;
-    
-    const responsabilidades = {
-        'proyectista': ['abogado', 'jefe departamento', 'gerente', 'subdireccion', 'direccion'],
-        'revision': ['jefe departamento', 'gerente', 'subdireccion', 'direccion'],
-        'gerencia': ['gerente', 'subdireccion', 'direccion'],
-        'direccion': ['direccion', 'subdireccion'],
-        'liberado': ['abogado'],
-        'presentado': ['direccion'],
-        'concluido': [] // Nadie puede modificar en concluido
-    };
-    
-    return responsabilidades[etapa]?.includes(userRole) || false;
-}
-
-// Sistema de permisos mejorado
-function puedeRealizarAccion(termino, accion) {
-    const userRole = USER_ROLE.toLowerCase();
-    const etapa = termino.etapa;
-    
-    const permisos = {
-        'proyectista': {
-            'modificar': ['abogado', 'jefe departamento', 'gerente', 'subdireccion', 'direccion'],
-            'enviar_revision': ['abogado']
-        },
-        'revision': {
-            'modificar': ['jefe departamento', 'gerente', 'subdireccion', 'direccion'],
-            'aprobar': ['jefe departamento'],
-            'rechazar': ['jefe departamento']
-        },
-        'gerencia': {
-            'modificar': ['gerente', 'subdireccion', 'direccion'],
-            'aprobar': ['gerente'],
-            'rechazar': ['gerente']
-        },
-        'direccion': {
-            'modificar': ['direccion', 'subdireccion'],
-            'aprobar': ['direccion'],
-            'rechazar': ['direccion']
-        },
-        'liberado': {
-            'subir_acuse': ['abogado']
-        },
-        'presentado': {
-            'concluir': ['direccion']
-        }
-    };
-    
-    return permisos[etapa]?.[accion]?.includes(userRole) || false;
-}
-
-// Agregar estilos para las etapas
-function agregarEstilosEtapas() {
-    if (document.getElementById('estilos-etapas')) return;
-    
-    const styles = `
-        <style id="estilos-etapas">
-            .badge-etapa {
-                padding: 4px 8px;
-                border-radius: 12px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            .etapa-proyectista {
-                background-color: #e3f2fd;
-                color: #1565c0;
-                border: 1px solid #bbdefb;
-            }
-            
-            .etapa-revision {
-                background-color: #fff3e0;
-                color: #ef6c00;
-                border: 1px solid #ffe0b2;
-            }
-            
-            .etapa-gerencia {
-                background-color: #e8f5e8;
-                color: #2e7d32;
-                border: 1px solid #c8e6c9;
-            }
-            
-            .etapa-direccion {
-                background-color: #f3e5f5;
-                color: #7b1fa2;
-                border: 1px solid #e1bee7;
-            }
-            
-            .etapa-liberado {
-                background-color: #e0f2f1;
-                color: #00695c;
-                border: 1px solid #b2dfdb;
-            }
-            
-            .etapa-presentado {
-                background-color: #fff8e1;
-                color: #ff8f00;
-                border: 1px solid #ffecb3;
-            }
-            
-            .etapa-concluido {
-                background-color: #f5f5f5;
-                color: #424242;
-                border: 1px solid #e0e0e0;
-            }
-            
-            .responsable-actual {
-                font-weight: 500;
-                color: #333;
-            }
-            
-            .fila-mi-accion {
-                background-color: #fff8e1 !important;
-                border-left: 4px solid #ffc107;
-            }
-        </style>
-    `;
-    
-    document.head.insertAdjacentHTML('beforeend', styles);
+    return accionesHTML;
 }
 
 // Listener de delegación para todas las acciones
@@ -877,35 +571,18 @@ function setupActionMenuListener() {
         if (target.classList.contains('action-history')) {
             verHistorial(id);
         }
-        // En setupActionMenuListener, actualiza estos casos:
         if (target.classList.contains('action-send-review')) {
             enviarARevision(id);
         }
         if (target.classList.contains('action-approve')) {
-            aprobarTermino(id); // Ahora usa la función actualizada
+            aprobarTermino(id);
         }
         if (target.classList.contains('action-reject')) {
-            rechazarTermino(id); // Ahora usa la función actualizada
+            rechazarTermino(id);
         }
         if (target.classList.contains('action-upload-acuse')) {
-            // Para el menú rápido, usar un input file oculto
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.pdf,.jpg,.jpeg,.png';
-            fileInput.style.display = 'none';
-            fileInput.onchange = function(e) {
-                if (e.target.files.length > 0) {
-                    subirAcuse(id, e.target.files[0]);
-                }
-            };
-            document.body.appendChild(fileInput);
-            fileInput.click();
-            document.body.removeChild(fileInput);
+            row.querySelector('.input-acuse-hidden').click();
         }
-        if (target.classList.contains('action-concluir')) {
-            concluirTerminoRapido(id);
-        }
-        
         if (target.classList.contains('action-liberar')) {
             abrirModalLiberarTermino(id);
         }
@@ -1104,111 +781,27 @@ function verHistorialAcuses(id) {
     }
 }
 
-// Función para enviar a revisión desde menú rápido
 function enviarARevision(id) {
-    const termino = TERMINOS.find(t => t.id == id);
-    if (!termino) return;
-
-    // Verificar permisos
-    if (!puedeRealizarAccion(termino, 'enviar_revision')) {
-        mostrarMensajeGlobal('Solo el Abogado puede enviar términos a revisión.', 'danger');
-        return;
-    }
-
-    const comentarios = prompt('Comentarios para la etapa de revisión:');
-    if (comentarios !== null) {
-        console.log(`Enviando a revisión término ID: ${id}`);
-        
-        const logMessage = comentarios 
-            ? `Enviado a revisión por ${USER_ROLE}. Comentarios: ${comentarios}`
-            : `Enviado a revisión por ${USER_ROLE}`;
-            
-        avanzarEtapa(id, 'revision', logMessage);
-    }
+    console.log(`Enviando a revisión término ID: ${id}`);
+    actualizarEstatusTermino(id, 'En Revision', `Enviado a revisión por ${USER_ROLE}`);
 }
 
-// ===============================================
-// ===== FUNCIONES DE ACCIÓN ACTUALIZADAS - FASE 2 =====
-// ===============================================
+function aprobarTermino(id) {
+    console.log(`Aprobando término ID: ${id}`);
+    actualizarEstatusTermino(id, 'Aprobado', `Aprobado por ${USER_ROLE}`);
+}
 
-// Función para rechazar término (actualizada para menú rápido)
 function rechazarTermino(id) {
-    const termino = TERMINOS.find(t => t.id == id);
-    if (!termino) return;
-
-    // Verificar permisos
-    if (!puedeRealizarAccion(termino, 'rechazar')) {
-        mostrarMensajeGlobal('No tienes permisos para rechazar términos en esta etapa.', 'danger');
-        return;
-    }
-
     const motivo = prompt('Motivo del rechazo (se devolverá a "Proyectista"):');
     if (motivo) {
         console.log(`Rechazando término ID: ${id} por: ${motivo}`);
-        
-        let etapaAnterior;
-        switch (termino.etapa) {
-            case 'revision':
-            case 'gerencia':
-            case 'direccion':
-                etapaAnterior = 'proyectista';
-                break;
-            default:
-                etapaAnterior = 'proyectista';
-        }
-        
-        avanzarEtapa(id, etapaAnterior, `Rechazado por ${USER_ROLE}. Motivo: ${motivo}`);
+        actualizarEstatusTermino(id, 'Proyectista', `Rechazado por ${USER_ROLE}: ${motivo}`);
     }
 }
 
-// Función para aprobar término (actualizada para menú rápido)
-function aprobarTermino(id) {
-    const termino = TERMINOS.find(t => t.id == id);
-    if (!termino) return;
-
-    // Verificar permisos
-    if (!puedeRealizarAccion(termino, 'aprobar')) {
-        mostrarMensajeGlobal('No tienes permisos para aprobar términos en esta etapa.', 'danger');
-        return;
-    }
-
-    const comentarios = prompt('Comentarios para la siguiente etapa:');
-    if (comentarios !== null) { // El usuario presionó OK (puede ser string vacío)
-        console.log(`Aprobando término ID: ${id}`);
-        
-        let siguienteEtapa;
-        switch (termino.etapa) {
-            case 'revision':
-                siguienteEtapa = 'gerencia';
-                break;
-            case 'gerencia':
-                siguienteEtapa = 'direccion';
-                break;
-            case 'direccion':
-                siguienteEtapa = 'liberado';
-                break;
-            default:
-                siguienteEtapa = termino.etapa;
-        }
-        
-        const logMessage = comentarios 
-            ? `Aprobado por ${USER_ROLE}. Comentarios: ${comentarios}`
-            : `Aprobado por ${USER_ROLE}`;
-            
-        avanzarEtapa(id, siguienteEtapa, logMessage);
-    }
-}
-
-// Función para subir acuse (actualizada para menú rápido)
 function subirAcuse(id, file) {
     const termino = TERMINOS.find(t => t.id == id);
     if (!termino) return;
-
-    // Verificar permisos
-    if (!puedeRealizarAccion(termino, 'subir_acuse')) {
-        mostrarMensajeGlobal('No tienes permisos para subir acuses en esta etapa.', 'danger');
-        return;
-    }
 
     const nuevoNombreArchivo = file.name;
     
@@ -1217,181 +810,32 @@ function subirAcuse(id, file) {
         if (!termino.historialAcuses) {
             termino.historialAcuses = [];
         }
-        termino.historialAcuses.push(termino.acuseDocumento);
+        termino.historialAcuses.push(termino.acuseDocumento); // Guardar el acuse anterior
         console.log(`Acuse anterior '${termino.acuseDocumento}' guardado en historial.`);
     }
     
     termino.acuseDocumento = nuevoNombreArchivo;
     
-    avanzarEtapa(id, 'presentado', `Nuevo acuse '${nuevoNombreArchivo}' subido por ${USER_ROLE}`);
+    actualizarEstatusTermino(id, 'Presentado', `Nuevo acuse '${nuevoNombreArchivo}' subido por ${USER_ROLE}`);
     
     mostrarMensajeGlobal(`Acuse '${nuevoNombreArchivo}' subido. El término ahora está 'Presentado'.`, 'success');
 }
 
-// Nueva función para concluir desde el menú rápido
-function concluirTerminoRapido(id) {
-    const termino = TERMINOS.find(t => t.id == id);
-    if (!termino) return;
-
-    // Verificar permisos
-    if (!puedeRealizarAccion(termino, 'concluir')) {
-        mostrarMensajeGlobal('Solo Dirección puede concluir términos.', 'danger');
-        return;
-    }
-
-    const comentarios = prompt('Comentarios de conclusión:');
-    if (comentarios !== null) {
-        console.log(`Concluyendo término ID: ${id}`);
-        
-        const logMessage = comentarios 
-            ? `Concluido por ${USER_ROLE}. Comentarios: ${comentarios}`
-            : `Concluido por ${USER_ROLE}`;
-            
-        avanzarEtapa(id, 'concluido', logMessage);
-    }
-}
-// Nueva función para subir acuse
-function configurarSubidaAcuse(terminoId) {
-    const fileInput = document.getElementById('acuse-documento-modal');
-    const fileName = document.getElementById('acuse-filename-modal');
-    const btnSubir = document.getElementById('btn-subir-acuse');
-    
-    // Configurar visualización del nombre del archivo
-    fileInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            fileName.textContent = this.files[0].name;
-            fileName.classList.add('has-file');
-        } else {
-            fileName.textContent = 'Ningún archivo seleccionado';
-            fileName.classList.remove('has-file');
-        }
-    });
-    
-    // Configurar botón de subir
-    btnSubir.onclick = function() {
-        const file = fileInput.files[0];
-        if (!file) {
-            mostrarMensajeGlobal('Por favor, seleccione un archivo de acuse.', 'warning');
-            return;
-        }
-        
-        // Validar tipo de archivo
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-        if (!allowedTypes.includes(file.type)) {
-            mostrarMensajeGlobal('Tipo de archivo no permitido. Use PDF, JPG o PNG.', 'danger');
-            return;
-        }
-        
-        // Validar tamaño (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            mostrarMensajeGlobal('El archivo es demasiado grande. Máximo 10MB.', 'danger');
-            return;
-        }
-        
-        subirAcuse(terminoId, file);
-        document.getElementById('modal-termino').style.display = 'none';
-    };
-}
-
-
-// Función centralizada para manejar cambios de etapa
-function avanzarEtapa(terminoId, nuevaEtapa, log) {
-    const index = TERMINOS.findIndex(t => t.id == terminoId);
-    if (index === -1) {
-        mostrarMensajeGlobal('Error: No se encontró el término.', 'danger');
-        return;
-    }
-    
-    const termino = TERMINOS[index];
-    const etapaAnterior = termino.etapa;
-    
-    // Actualizar etapa y responsable
-    TERMINOS[index].etapa = nuevaEtapa;
-    TERMINOS[index].estatus = getEtapaDisplayName(nuevaEtapa);
-    
-    // Actualizar responsable según la nueva etapa
-    const nuevoResponsable = obtenerResponsablePorEtapa(nuevaEtapa, termino.abogado);
-    TERMINOS[index].responsable = nuevoResponsable;
-    
-    // Registrar en el log
-    if (!TERMINOS[index].log) TERMINOS[index].log = [];
-    TERMINOS[index].log.push({ 
-        fecha: new Date().toISOString(), 
-        accion: log,
-        etapaAnterior: etapaAnterior,
-        etapaNueva: nuevaEtapa,
-        usuario: USER_ROLE
-    });
-    
-    console.log(`Etapa cambiada: ${etapaAnterior} -> ${nuevaEtapa}. ${log}`);
-    
-    // Persistir en localStorage
-    let terminosLS = JSON.parse(localStorage.getItem('terminos')) || [];
-    const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
-    if (lsIndex !== -1) {
-        terminosLS[lsIndex] = TERMINOS[index];
-        localStorage.setItem('terminos', JSON.stringify(terminosLS));
-    }
-    
-    // Mostrar mensaje de éxito
-    mostrarMensajeGlobal(`Término ${etapaAnterior} → ${nuevaEtapa} exitosamente`, 'success');
-    
-    // Recargar la tabla
-    loadTerminos();
-}
-
-// Función para determinar el responsable por etapa
-function obtenerResponsablePorEtapa(etapa, abogadoOriginal) {
-    const responsables = {
-        'proyectista': abogadoOriginal,
-        'revision': 'Jefe de Departamento',
-        'gerencia': 'Gerente',
-        'direccion': 'Dirección',
-        'liberado': abogadoOriginal,
-        'presentado': 'Dirección',
-        'concluido': 'Sistema'
-    };
-    
-    return responsables[etapa] || abogadoOriginal;
-}
-
-
-
 // Función genérica para actualizar estatus y persistir
-// Función mejorada para actualizar estatus (mantener compatibilidad)
 function actualizarEstatusTermino(terminoId, nuevoEstatus, log) {
     const index = TERMINOS.findIndex(t => t.id == terminoId);
     if (index === -1) return;
 
-    // Mapear estatus antiguos a nuevas etapas
-    const estatusToEtapa = {
-        'Proyectista': 'proyectista',
-        'En Revision': 'revision', 
-        'Aprobado': 'gerencia',
-        'Presentado': 'presentado',
-        'Liberado': 'liberado'
-    };
-    
-    const nuevaEtapa = estatusToEtapa[nuevoEstatus] || 'proyectista';
-    
     TERMINOS[index].estatus = nuevoEstatus;
-    TERMINOS[index].etapa = nuevaEtapa;
-    
-    // Actualizar responsable
-    const nuevoResponsable = obtenerResponsablePorEtapa(nuevaEtapa, TERMINOS[index].abogado);
-    TERMINOS[index].responsable = nuevoResponsable;
     
     if (!TERMINOS[index].log) TERMINOS[index].log = [];
-    TERMINOS[index].log.push({ 
-        fecha: new Date().toISOString(), 
-        accion: log,
-        usuario: USER_ROLE
-    });
+    TERMINOS[index].log.push({ fecha: new Date().toISOString(), accion: log });
+    console.log(log);
 
     let terminosLS = JSON.parse(localStorage.getItem('terminos')) || [];
     const lsIndex = terminosLS.findIndex(t => t.id == terminoId);
     if (lsIndex !== -1) {
-        terminosLS[lsIndex] = TERMINOS[index];
+        terminosLS[lsIndex].estatus = nuevoEstatus;
         localStorage.setItem('terminos', JSON.stringify(terminosLS));
     }
 
@@ -1411,15 +855,7 @@ function setupSearchTerminos() {
 }
 
 function setupFiltersTerminos() {
-    const filters = [
-        'filter-tribunal-termino', 
-        'filter-estado-termino', 
-        'filter-estatus-termino', 
-        'filter-etapa-termino', // NUEVO FILTRO
-        'filter-prioridad-termino', 
-        'filter-materia-termino',
-        'filter-mi-accion' // NUEVO FILTRO
-    ];
+    const filters = ['filter-tribunal-termino', 'filter-estado-termino', 'filter-estatus-termino', 'filter-prioridad-termino', 'filter-materia-termino'];
     
     filters.forEach(filterId => {
         const filter = document.getElementById(filterId);
@@ -1434,10 +870,8 @@ function getFiltrosAplicados() {
         tribunal: document.getElementById('filter-tribunal-termino').value.trim().toLowerCase(),
         estado: document.getElementById('filter-estado-termino').value.trim().toLowerCase(),
         estatus: document.getElementById('filter-estatus-termino').value,
-        etapa: document.getElementById('filter-etapa-termino').value, // NUEVO FILTRO
         prioridad: document.getElementById('filter-prioridad-termino').value,
         materia: document.getElementById('filter-materia-termino').value,
-        miAccion: document.getElementById('filter-mi-accion').value, // NUEVO FILTRO
         search: document.getElementById('search-terminos').value.toLowerCase()
     };
 }
@@ -1447,31 +881,26 @@ function filtrarTerminos(terminos, filtros) {
         const rowTribunal = (termino.tribunal || '').toLowerCase();
         const rowEstado = (termino.estado || termino.gerencia || '').toLowerCase();
         const rowEstatus = (termino.estatus || '');
-        const rowEtapa = (termino.etapa || ''); // NUEVO FILTRO
         const rowPrioridad = (termino.prioridad || '');
         const rowMateria = (termino.materia || '');
         
         const rowText = [
-            rowTribunal, rowEstado, rowEstatus, rowEtapa, rowPrioridad, rowMateria,
+            rowTribunal, rowEstado, rowEstatus, rowPrioridad, rowMateria,
             (termino.expediente || ''),
             (termino.actor || ''),
             (termino.asunto || ''),
             (termino.prestacion || ''),
-            (termino.abogado || ''),
-            (termino.responsable || '')
+            (termino.abogado || '')
         ].join(' ').toLowerCase();
 
         const matchesTribunal = !filtros.tribunal || rowTribunal.includes(filtros.tribunal);
         const matchesEstado = !filtros.estado || rowEstado.includes(filtros.estado);
         const matchesEstatus = !filtros.estatus || rowEstatus === filtros.estatus;
-        const matchesEtapa = !filtros.etapa || rowEtapa === filtros.etapa; // NUEVO FILTRO
         const matchesPrioridad = !filtros.prioridad || rowPrioridad === filtros.prioridad;
         const matchesMateria = !filtros.materia || rowMateria === filtros.materia;
-        const matchesMiAccion = !filtros.miAccion || (filtros.miAccion === 'si' && esMiResponsabilidad(termino)); // NUEVO FILTRO
         const matchesSearch = !filtros.search || rowText.includes(filtros.search);
 
-        return matchesTribunal && matchesEstado && matchesEstatus && matchesEtapa && 
-               matchesPrioridad && matchesMateria && matchesMiAccion && matchesSearch;
+        return matchesTribunal && matchesEstado && matchesEstatus && matchesPrioridad && matchesMateria && matchesSearch;
     });
 }
 

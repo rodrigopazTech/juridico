@@ -1,784 +1,431 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Términos - Agenda Legal</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+    
     <style>
-      /* Estilos para controles de etapa */
-      .stage-control-section {
-        background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
-        border: 2px solid #4e73df;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-      }
-
-      .stage-control-section legend {
-        background: #4e73df;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
-        font-size: 0.9rem;
-      }
-
-      .approval-controls .action-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-      }
-
-      .approval-controls .btn {
-        flex: 1;
-        padding: 12px;
-        font-weight: 600;
-      }
-
-      .file-upload-container {
-        position: relative;
-        margin-bottom: 10px;
-      }
-
-      .file-input {
-        position: absolute;
-        left: -9999px;
-      }
-
-      .file-upload-btn {
-        display: inline-block;
-        padding: 10px 20px;
-        background: #007bff;
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-
-      .file-upload-btn:hover {
-        background: #0056b3;
-      }
-
-      .file-name {
-        margin-left: 10px;
-        color: #6c757d;
-      }
-
-      .file-name.has-file {
-        color: #28a745;
-        font-weight: 500;
-      }
-
-      .alert-info {
-        background: #d1ecf1;
-        border: 1px solid #bee5eb;
-        color: #0c5460;
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 15px;
-      }
-      /* Estilos específicos para el selector de asunto */
-      .asunto-selector-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: 2px solid #007bff;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-      }
-
-      .asunto-selector-section legend {
-        background: #007bff;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
-        font-size: 0.9rem;
-      }
-
-      #asunto-selector {
-        width: 100%;
-        padding: 10px;
-        border: 2px solid #007bff;
-        border-radius: 6px;
-        font-size: 1rem;
-        background: white;
-        transition: border-color 0.3s ease;
-      }
-
-      #asunto-selector:focus {
-        outline: none;
-        border-color: #0056b3;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-      }
-
-      .form-text {
-        color: #6c757d;
-        font-size: 0.875rem;
-        margin-top: 5px;
-        display: block;
-      }
+        /* Estilos específicos para el selector de asunto */
+        .asunto-selector-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .asunto-selector-section legend {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        #asunto-selector {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        #asunto-selector:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: block;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div id="sidebar-container"></div>
-
+    
     <div class="main-content">
-      <div class="container">
-        <header>
-          <div class="header-content">
-            <h1><i class="fas fa-clock"></i> Términos - Agenda Legal</h1>
-            <div class="user-info">
-              <i class="fas fa-user-circle"></i> Usuario Abogado
-            </div>
-          </div>
-        </header>
-
-        <div class="tab-content active" id="terminos">
-          <div class="toolbar">
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input
-                type="text"
-                id="search-terminos"
-                placeholder="Buscar en términos..."
-              />
-            </div>
-            <div class="toolbar-buttons">
-              <button
-                class="btn btn-success"
-                id="export-terminos"
-                title="Exportar a Excel"
-              >
-                <i class="fas fa-file-excel"></i> Exportar Excel
-              </button>
-              <button class="btn btn-primary" id="add-termino">
-                <i class="fas fa-plus"></i> Nuevo Término
-              </button>
-            </div>
-          </div>
-
-          <div class="filters">
-            <div class="filters-title">
-              <i class="fas fa-filter"></i> Filtros de Términos
-            </div>
-            <div class="filter-row">
-              <div class="filter-group">
-                <label for="filter-tribunal-termino">Tribunal</label>
-                <div class="tribunal-search-container">
-                  <input
-                    type="text"
-                    id="filter-tribunal-termino"
-                    placeholder="Buscar tribunal o agregar nuevo..."
-                    autocomplete="off"
-                  />
-                  <div
-                    class="tribunal-suggestions"
-                    id="tribunal-suggestions"
-                  ></div>
-                  <button
-                    type="button"
-                    class="btn-clear-tribunal"
-                    id="clear-tribunal"
-                    title="Limpiar filtro"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="filter-group">
-                <label for="filter-estado-termino">Gerencias</label>
-                <div class="estado-search-container">
-                  <input
-                    type="text"
-                    id="filter-estado-termino"
-                    placeholder="Buscar estado..."
-                    autocomplete="off"
-                  />
-                  <div class="estado-suggestions" id="estado-suggestions"></div>
-                  <button
-                    type="button"
-                    class="btn-clear-estado"
-                    id="clear-estado"
-                    title="Limpiar filtro"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="filter-group">
-                <label for="filter-estatus-termino">Estatus</label>
-                <select id="filter-estatus-termino">
-                  <option value="">Todos los estatus</option>
-                  <option value="Proyectista">Proyectista</option>
-                  <option value="En Revision">En Revisión</option>
-                  <option value="Aprobado">Aprobado</option>
-                  <option value="Presentado">Presentado</option>
-                  <option value="Liberado">Liberado</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="filter-prioridad-termino">Prioridad</label>
-                <select id="filter-prioridad-termino">
-                  <option value="">Todas las prioridades</option>
-                  <option value="Alta">Alta</option>
-                  <option value="Media">Media</option>
-                  <option value="Baja">Baja</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="filter-materia-termino">Materia</label>
-                <select id="filter-materia-termino">
-                  <option value="">Todas las materias</option>
-                  <option value="Civil">Civil</option>
-                  <option value="Penal">Penal</option>
-                  <option value="Laboral">Laboral</option>
-                  <option value="Mercantil">Mercantil</option>
-                  <option value="Fiscal">Fiscal</option>
-                  <option value="Familiar">Familiar</option>
-                  <option value="Administrativo">Administrativo</option>
-                  <option value="Constitucional">Constitucional</option>
-                  <option value="Amparo">Amparo</option>
-                  <option value="Transparencia">Unidad de Transparencia</option>
-                  <option value="Agrario">Agrario</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="filter-etapa-termino">Etapa</label>
-                <select id="filter-etapa-termino">
-                  <option value="">Todas las etapas</option>
-                  <option value="proyectista">Proyectista</option>
-                  <option value="revision">Revisión</option>
-                  <option value="gerencia">Gerencia</option>
-                  <option value="direccion">Dirección</option>
-                  <option value="liberado">Liberado</option>
-                  <option value="presentado">Presentado</option>
-                  <option value="concluido">Concluido</option>
-                </select>
-              </div>
-
-              <div class="filter-group">
-                <label for="filter-mi-accion">Requiere mi acción</label>
-                <select id="filter-mi-accion">
-                  <option value="">Todos</option>
-                  <option value="si">Sí, requiere mi acción</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="table-container">
-            <table id="tabla-terminos">
-              <thead>
-                <tr>
-                  <th>F. Ingreso</th>
-                  <th>F. Vencimiento</th>
-                  <th>Expediente</th>
-                  <th>Actor/Quejoso</th>
-                  <th>Asunto</th>
-                  <th>Etapa Actual</th>
-                  <!-- NUEVA COLUMNA -->
-                  <th>Responsable Actual</th>
-                  <!-- NUEVA COLUMNA -->
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="terminos-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal" id="modal-termino">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="modal-termino-title">Nuevo Término</h2>
-          <button class="btn btn-danger" id="close-modal-termino">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form id="form-termino">
-            <input type="hidden" id="termino-id" />
-            <input type="hidden" id="termino-asunto-id" />
-
-            <fieldset class="asunto-selector-section">
-              <legend>Seleccionar Asunto</legend>
-
-              <div class="form-group">
-                <label for="asunto-selector">Asunto*</label>
-                <select id="asunto-selector" required>
-                  <option value="">Seleccionar Asunto</option>
-                </select>
-                <small class="form-text"
-                  >Selecciona el asunto al que pertenece este término. Los datos
-                  se llenarán automáticamente.</small
-                >
-              </div>
-            </fieldset>
-
-            <fieldset class="auto-filled-section">
-              <legend>Datos del Asunto (Auto-llenados)</legend>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="termino-expediente">Expediente</label>
-                  <input
-                    type="text"
-                    id="termino-expediente"
-                    readonly
-                    class="readonly-field"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="termino-materia">Materia</label>
-                  <input
-                    type="text"
-                    id="termino-materia"
-                    readonly
-                    class="readonly-field"
-                  />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="termino-gerencia">Gerencia (Estado)</label>
-                  <input
-                    type="text"
-                    id="termino-gerencia"
-                    readonly
-                    class="readonly-field"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="termino-abogado">Abogado Responsable</label>
-                  <input
-                    type="text"
-                    id="termino-abogado"
-                    readonly
-                    class="readonly-field"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="termino-partes">Partes Procesales</label>
-                <input
-                  type="text"
-                  id="termino-partes"
-                  readonly
-                  class="readonly-field"
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="termino-tipo-asunto"
-                  >Tipo de Asunto (Prestación/Procedimiento)</label
-                >
-                <input
-                  type="text"
-                  id="termino-tipo-asunto"
-                  readonly
-                  class="readonly-field"
-                />
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="termino-organo">Órgano Jurisdiccional</label>
-                  <input
-                    type="text"
-                    id="termino-organo"
-                    placeholder="Puede editarse si es necesario"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="termino-prioridad">Prioridad del Asunto</label>
-                  <input
-                    type="text"
-                    id="termino-prioridad"
-                    readonly
-                    class="readonly-field"
-                  />
-                </div>
-              </div>
-            </fieldset>
-
-            <fieldset class="user-input-section">
-              <legend>Datos Específicos del Término</legend>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="fecha-ingreso">Fecha de Ingreso*</label>
-                  <input type="date" id="fecha-ingreso" required />
-                </div>
-                <div class="form-group">
-                  <label for="fecha-vencimiento">Fecha de Vencimiento*</label>
-                  <input type="date" id="fecha-vencimiento" required />
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="actuacion"
-                  >Actuación (Etapa/Movimiento Procesal)*</label
-                >
-                <textarea
-                  id="actuacion"
-                  rows="2"
-                  required
-                  placeholder="Descripción de la etapa procesal o movimiento procesal específico"
-                ></textarea>
-              </div>
-
-              <div class="form-row" style="display: none">
-                <div class="form-group">
-                  <label for="etapa-revision">Etapa de Revisión*</label>
-                  <select id="etapa-revision" required>
-                    <option value="">Seleccione etapa</option>
-                    <option value="Proyectista">Proyectista</option>
-                    <option value="Liberado">Liberado</option>
-                    <option value="Revisión">Revisión</option>
-                    <option value="Presentado">Presentado</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="atendido">¿Atendido?</label>
-                  <select id="atendido">
-                    <option value="false">No</option>
-                    <option value="true">Sí</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group" style="display: none">
-                <label for="acuse-documento">Acuse (Subir Documento)</label>
-                <div class="file-upload-container">
-                  <input
-                    type="file"
-                    id="acuse-documento"
-                    accept=".pdf,.doc,.docx"
-                    class="file-input"
-                  />
-                  <label for="acuse-documento" class="file-upload-btn">
-                    <i class="fas fa-file-upload"></i>
-                    Subir Acuse del Término
-                  </label>
-                  <span class="file-name" id="acuse-filename"
-                    >Ningún archivo seleccionado</span
-                  >
-                </div>
-              </div>
-              <div class="form-group" style="display: none">
-                <label for="observaciones">Observaciones</label>
-                <textarea
-                  id="observaciones"
-                  rows="3"
-                  placeholder="Observaciones adicionales del término"
-                ></textarea>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="recordatorio-dias">Recordatorio Días Antes</label>
-                  <input
-                    type="number"
-                    id="recordatorio-dias"
-                    min="1"
-                    value="1"
-                    placeholder="Ej. 7 días"
-                  />
-                  <small>Por defecto: 1 día antes</small>
-                </div>
-                <div class="form-group">
-                  <label for="recordatorio-horas"
-                    >Recordatorio Horas Antes</label
-                  >
-                  <input
-                    type="number"
-                    id="recordatorio-horas"
-                    min="1"
-                    value="2"
-                    placeholder="Ej. 24 horas"
-                  />
-                  <small>Por defecto: 2 horas antes</small>
-                </div>
-              </div>
-            </fieldset>
-            <!-- AGREGAR ESTO DENTRO DEL MODAL TERMINO, después del fieldset de "Datos Específicos del Término" -->
-            <div
-              class="stage-control-section"
-              id="stage-controls"
-              style="display: none"
-            >
-              <fieldset>
-                <legend>Control de Etapa</legend>
-
-                <!-- Para etapas de aprobación (Revisión, Gerencia, Dirección) -->
-                <div class="approval-controls" id="approval-controls">
-                  <div class="form-group">
-                    <label for="comentarios-etapa"
-                      >Comentarios para la siguiente etapa</label
-                    >
-                    <textarea
-                      id="comentarios-etapa"
-                      rows="3"
-                      placeholder="Ingrese comentarios, observaciones o instrucciones para la siguiente etapa..."
-                    ></textarea>
-                  </div>
-                  <div
-                    class="action-buttons"
-                    style="display: flex; gap: 10px; margin-top: 15px"
-                  >
-                    <button
-                      type="button"
-                      class="btn btn-success"
-                      id="btn-aprobar"
-                      style="flex: 1"
-                    >
-                      <i class="fas fa-check"></i> Aprobar y Avanzar
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-danger"
-                      id="btn-rechazar"
-                      style="flex: 1"
-                    >
-                      <i class="fas fa-times"></i> Rechazar y Regresar
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Para etapa Liberado (subir acuse) -->
-                <div
-                  class="acuse-controls"
-                  id="acuse-controls"
-                  style="display: none"
-                >
-                  <div class="form-group">
-                    <label for="acuse-documento-modal"
-                      >Subir Acuse de Presentación*</label
-                    >
-                    <div class="file-upload-container">
-                      <input
-                        type="file"
-                        id="acuse-documento-modal"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        class="file-input"
-                        required
-                      />
-                      <label
-                        for="acuse-documento-modal"
-                        class="file-upload-btn"
-                      >
-                        <i class="fas fa-file-upload"></i>
-                        Seleccionar Archivo
-                      </label>
-                      <span class="file-name" id="acuse-filename-modal"
-                        >Ningún archivo seleccionado</span
-                      >
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <h1><i class="fas fa-clock"></i> Términos - Agenda Legal</h1>
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i> Usuario Abogado
                     </div>
-                    <small
-                      >Formatos permitidos: PDF, JPG, PNG (Máx. 10MB)</small
-                    >
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    id="btn-subir-acuse"
-                  >
-                    <i class="fas fa-upload"></i> Subir Acuse y Continuar
-                  </button>
                 </div>
-
-                <!-- Para etapa Presentado (solo Dirección puede concluir) -->
-                <div
-                  class="concluir-controls"
-                  id="concluir-controls"
-                  style="display: none"
-                >
-                  <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Este término está listo
-                    para ser concluido.
-                  </div>
-                  <div class="form-group">
-                    <label for="comentarios-conclusion"
-                      >Comentarios de Conclusión</label
-                    >
-                    <textarea
-                      id="comentarios-conclusion"
-                      rows="3"
-                      placeholder="Comentarios finales del término..."
-                    ></textarea>
-                  </div>
-                  <button
-                    type="button"
-                    class="btn btn-success"
-                    id="btn-concluir"
-                  >
-                    <i class="fas fa-flag-checkered"></i> Concluir Término
-                  </button>
+            </header>
+            
+            <div class="tab-content active" id="terminos">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-terminos" placeholder="Buscar en términos...">
+                    </div>
+                    <div class="toolbar-buttons">
+                        <button class="btn btn-success" id="export-terminos" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-primary" id="add-termino">
+                            <i class="fas fa-plus"></i> Nuevo Término
+                        </button>
+                    </div>
                 </div>
-              </fieldset>
+                
+                <div class="filters">
+                    <div class="filters-title">
+                        <i class="fas fa-filter"></i> Filtros de Términos
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-tribunal-termino">Tribunal</label>
+                            <div class="tribunal-search-container">
+                                <input type="text" 
+                                       id="filter-tribunal-termino" 
+                                       placeholder="Buscar tribunal o agregar nuevo..."
+                                       autocomplete="off">
+                                <div class="tribunal-suggestions" id="tribunal-suggestions">
+                                    </div>
+                                <button type="button" class="btn-clear-tribunal" id="clear-tribunal" title="Limpiar filtro">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-estado-termino">Gerencias</label>
+                            <div class="estado-search-container">
+                                <input type="text" 
+                                       id="filter-estado-termino" 
+                                       placeholder="Buscar estado..."
+                                       autocomplete="off">
+                                <div class="estado-suggestions" id="estado-suggestions">
+                                    </div>
+                                <button type="button" class="btn-clear-estado" id="clear-estado" title="Limpiar filtro">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-estatus-termino">Estatus</label>
+                            <select id="filter-estatus-termino">
+                                <option value="">Todos los estatus</option>
+                                <option value="Proyectista">Proyectista</option>
+                                <option value="En Revision">En Revisión</option>
+                                <option value="Aprobado">Aprobado</option>
+                                <option value="Presentado">Presentado</option>
+                                <option value="Liberado">Liberado</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-prioridad-termino">Prioridad</label>
+                            <select id="filter-prioridad-termino">
+                                <option value="">Todas las prioridades</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Media">Media</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-materia-termino">Materia</label>
+                            <select id="filter-materia-termino">
+                                <option value="">Todas las materias</option>
+                                <option value="Civil">Civil</option>
+                                <option value="Penal">Penal</option>
+                                <option value="Laboral">Laboral</option>
+                                <option value="Mercantil">Mercantil</option>
+                                <option value="Fiscal">Fiscal</option>
+                                <option value="Familiar">Familiar</option>
+                                <option value="Administrativo">Administrativo</option>
+                                <option value="Constitucional">Constitucional</option>
+                                <option value="Amparo">Amparo</option>
+                                <option value="Transparencia">Unidad de Transparencia</option>
+                                <option value="Agrario">Agrario</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="tabla-terminos">
+                        <thead>
+                            <tr>
+                                <th>F. Ingreso</th>
+                                <th>F. Vencimiento</th>
+                                <th>Expediente</th>
+                                <th>Partes procesales</th>
+                                <th>Actuación</th>
+                                <th>Tipo de Asunto</th>
+                                <th>Abogado responsable</th>
+                                <th>Estado Actual</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="terminos-body">
+                            </tbody>
+                    </table>
+                </div>
             </div>
-          </form>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-danger" id="cancel-termino">Cancelar</button>
-          <button class="btn btn-success" id="save-termino">
-            Guardar Término
-          </button>
+    </div>
+    
+    <div class="modal" id="modal-termino">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-termino-title">Nuevo Término</h2>
+                <button class="btn btn-danger" id="close-modal-termino">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-termino">
+                    <input type="hidden" id="termino-id">
+                    <input type="hidden" id="termino-asunto-id">
+                    
+                    <fieldset class="asunto-selector-section">
+                        <legend>Seleccionar Asunto</legend>
+                        
+                        <div class="form-group">
+                            <label for="asunto-selector">Asunto*</label>
+                            <select id="asunto-selector" required>
+                                <option value="">Seleccionar Asunto</option>
+                            </select>
+                            <small class="form-text">Selecciona el asunto al que pertenece este término. Los datos se llenarán automáticamente.</small>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="auto-filled-section">
+                        <legend>Datos del Asunto (Auto-llenados)</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-expediente">Expediente</label>
+                                <input type="text" id="termino-expediente" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-materia">Materia</label>
+                                <input type="text" id="termino-materia" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-gerencia">Gerencia estatal</label>
+                                <input type="text" id="termino-gerencia" readonly class="readonly-field">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-abogado">Abogado Responsable</label>
+                                <input type="text" id="termino-abogado" readonly class="readonly-field">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-partes">Partes Procesales</label>
+                            <input type="text" id="termino-partes" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="termino-tipo-asunto">Tipo de Asunto (Prestación/Procedimiento)</label>
+                            <input type="text" id="termino-tipo-asunto" readonly class="readonly-field">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="termino-organo">Órgano Jurisdiccional</label>
+                                <input type="text" id="termino-organo" placeholder="Puede editarse si es necesario">
+                            </div>
+                            <div class="form-group">
+                                <label for="termino-prioridad">Prioridad del Asunto</label>
+                                <input type="text" id="termino-prioridad" readonly class="readonly-field">
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset class="user-input-section">
+                        <legend>Datos Específicos del Término</legend>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fecha-ingreso">Fecha de Ingreso*</label>
+                                <input type="date" id="fecha-ingreso" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha-vencimiento">Fecha de Vencimiento*</label>
+                                <input type="date" id="fecha-vencimiento" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="actuacion">Actuación (Etapa/Movimiento Procesal)*</label>
+                            <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
+                        </div>
+                        
+                        <div class="form-row" style="display: none;">
+                            <div class="form-group">
+                                <label for="etapa-revision">Etapa de Revisión*</label>
+                                <select id="etapa-revision" required>
+                                    <option value="">Seleccione etapa</option>
+                                    <option value="Proyectista">Proyectista</option>
+                                    <option value="Liberado">Liberado</option>
+                                    <option value="Revisión">Revisión</option>
+                                    <option value="Presentado">Presentado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="atendido">¿Atendido?</label>
+                                <select id="atendido">
+                                    <option value="false">No</option>
+                                    <option value="true">Sí</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label for="acuse-documento">Acuse (Subir Documento)</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
+                                <label for="acuse-documento" class="file-upload-btn">
+                                    <i class="fas fa-file-upload"></i>
+                                    Subir Acuse del Término
+                                </label>
+                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label for="observaciones">Observaciones</label>
+                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordatorio-dias">Recordatorio Días Antes</label>
+                                <input type="number" id="recordatorio-dias" min="1" value="1" placeholder="Ej. 7 días">
+                                <small>Por defecto: 1 día antes</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordatorio-horas">Recordatorio Horas Antes</label>
+                                <input type="number" id="recordatorio-horas" min="1" value="2" placeholder="Ej. 24 horas">
+                                <small>Por defecto: 2 horas antes</small>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-termino">Cancelar</button>
+                <button class="btn btn-success" id="save-termino">Guardar Término</button>
+            </div>
         </div>
-      </div>
     </div>
 
     <div class="modal" id="modal-presentar-termino">
-      <div class="modal-content" style="max-width: 600px">
-        <div class="modal-header">
-          <h2>Presentar Término</h2>
-          <button class="btn btn-danger" id="close-modal-presentar">
-            <i class="fas fa-times"></i>
-          </button>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Presentar Término</h2>
+                <button class="btn btn-danger" id="close-modal-presentar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="presentar-termino-id">
+                <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
+                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
+                </div>
+                <div class="form-group">
+                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
+                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
+                    <small>Las observaciones son obligatorias para presentar el término</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
+                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
+            </div>
         </div>
-        <div class="modal-body">
-          <input type="hidden" id="presentar-termino-id" />
-          <div
-            class="alert-warning"
-            style="
-              background: #d1ecf1;
-              border: 1px solid #b8daff;
-              padding: 15px;
-              border-radius: 5px;
-              margin-bottom: 20px;
-            "
-          >
-            <h3 style="margin: 0 0 10px 0; color: #0c5460">
-              ¿Confirma que desea presentar este término?
-            </h3>
-            <p style="margin: 0; color: #0c5460">
-              El término cambiará su estatus a "Presentado" y se mostrará en la
-              Agenda General
-            </p>
-          </div>
-          <div class="form-group">
-            <label for="observaciones-presentacion"
-              >Observaciones de Presentación</label
-            >
-            <textarea
-              id="observaciones-presentacion"
-              rows="4"
-              placeholder="Escriba las observaciones sobre la presentación del término..."
-              required
-            ></textarea>
-            <small
-              >Las observaciones son obligatorias para presentar el
-              término</small
-            >
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
-          <button class="btn btn-success" id="confirmar-presentar">
-            Presentar Término
-          </button>
-        </div>
-      </div>
     </div>
 
     <div class="modal" id="modal-reasignar">
-      <div class="modal-content" style="max-width: 500px">
-        <div class="modal-header">
-          <h2 id="modal-reasignar-title">Reasignar Término</h2>
-          <button class="btn btn-danger" id="close-modal-reasignar">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form id="form-reasignar">
-            <input type="hidden" id="reasignar-termino-id" />
-
-            <div class="form-group">
-              <label>Término (Actuación):</label>
-              <input
-                type="text"
-                id="reasignar-actuacion"
-                readonly
-                class="readonly-field"
-              />
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="modal-reasignar-title">Reasignar Término</h2>
+                <button class="btn btn-danger" id="close-modal-reasignar">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="form-group">
-              <label>Abogado Actual:</label>
-              <input
-                type="text"
-                id="reasignar-abogado-actual"
-                readonly
-                class="readonly-field"
-              />
+            <div class="modal-body">
+                <form id="form-reasignar">
+                    <input type="hidden" id="reasignar-termino-id">
+                    
+                    <div class="form-group">
+                        <label>Término (Actuación):</label>
+                        <input type="text" id="reasignar-actuacion" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Abogado Actual:</label>
+                        <input type="text" id="reasignar-abogado-actual" readonly class="readonly-field">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="select-nuevo-abogado">Asignar a (Nuevo Abogado):*</label>
+                        <select id="select-nuevo-abogado" required>
+                            <option value="">Seleccione un abogado...</option>
+                            </select>
+                    </div>
+                </form>
             </div>
-
-            <div class="form-group">
-              <label for="select-nuevo-abogado"
-                >Asignar a (Nuevo Abogado):*</label
-              >
-              <select id="select-nuevo-abogado" required>
-                <option value="">Seleccione un abogado...</option>
-              </select>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
+                <button class="btn btn-success" id="save-reasignar">Confirmar Reasignación</button>
             </div>
-          </form>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
-          <button class="btn btn-success" id="save-reasignar">
-            Confirmar Reasignación
-          </button>
-        </div>
-      </div>
     </div>
     <script src="js/excel-export.js"></script>
     <script src="js/notificaciones.js"></script>
     <script src="js/components.js"></script>
-
+    
     <script src="js/terminos.js"></script>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Cargar sidebar y marcar la página activa
-        if (typeof loadSidebar === "function") {
-          loadSidebar("terminos.html");
-        }
-
-        // Inicializar la página de términos (esto llama a todo desde terminos.js)
-        if (typeof initTerminos === "function") {
-          initTerminos();
-        }
-
-        // Inicializar la exportación (esta función SÍ puede vivir aquí)
-        initExportacionTerminos();
-      });
-
-      function initExportacionTerminos() {
-        // Configurar botón de exportar a Excel
-        const btnExportTerminos = document.getElementById("export-terminos");
-        if (btnExportTerminos) {
-          btnExportTerminos.addEventListener("click", function () {
-            console.log("Iniciando exportación de términos...");
-            // Esta función 'exportarTerminosAExcel' debe existir en tu 'excel-export.js'
-            if (typeof exportarTerminosAExcel === "function") {
-              exportarTerminosAExcel();
-            } else {
-              alert("Error: La función de exportación no está disponible.");
-              console.error("Función exportarTerminosAExcel no encontrada");
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar sidebar y marcar la página activa
+            if (typeof loadSidebar === 'function') {
+                loadSidebar('terminos.html');
             }
-          });
-        } else {
-          console.warn("Botón export-terminos no encontrado");
+            
+            // Inicializar la página de términos (esto llama a todo desde terminos.js)
+            if (typeof initTerminos === 'function') {
+                initTerminos();
+            }
+
+            // Inicializar la exportación (esta función SÍ puede vivir aquí)
+            initExportacionTerminos();
+        });
+
+        function initExportacionTerminos() {
+            // Configurar botón de exportar a Excel
+            const btnExportTerminos = document.getElementById('export-terminos');
+            if (btnExportTerminos) {
+                btnExportTerminos.addEventListener('click', function() {
+                    console.log('Iniciando exportación de términos...');
+                    // Esta función 'exportarTerminosAExcel' debe existir en tu 'excel-export.js'
+                    if (typeof exportarTerminosAExcel === 'function') {
+                        exportarTerminosAExcel();
+                    } else {
+                        alert('Error: La función de exportación no está disponible.');
+                        console.error('Función exportarTerminosAExcel no encontrada');
+                    }
+                });
+            } else {
+                console.warn('Botón export-terminos no encontrado');
+            }
         }
-      }
     </script>
-  </body>
+</body>
 </html>

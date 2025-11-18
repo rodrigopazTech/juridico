@@ -92,23 +92,6 @@ class AsuntoDetalleManager {
 
         return `
             <div class="vista-360">
-                <div class="caso-header">
-                    <div class="caso-info">
-                        <h2>Expediente: ${this.asunto.expediente}</h2>
-                        <div class="caso-estado">
-                            <span class="badge badge-${prioridad.toLowerCase()}">${prioridad} Prioridad</span>
-                            <span class="badge badge-info">${this.capitalize(materia)}</span>
-                            <span class="badge badge-secondary">${this.capitalize(organo)}</span>
-                        </div>
-                    </div>
-                    <div class="caso-meta">
-                        <p><strong>Gerencia:</strong> ${gerencia}</p>
-                        <p><strong>Sede (Estado):</strong> ${sede}</p>
-                        <p><strong>Abogado Responsable:</strong> ${abogado}</p>
-                        <p><strong>Partes Procesales:</strong> ${this.asunto.partesProcesales || `${this.partes.actor} vs. ${this.partes.demandado}`}</p>
-                        <p><strong>Fecha creación:</strong> ${this.formatDate(this.asunto.fechaCreacion)}</p>
-                    </div>
-                </div>
 
                 <div class="caso-stats">
                     <div class="stat-card">
@@ -133,6 +116,28 @@ class AsuntoDetalleManager {
                     </div>
                 </div>
 
+
+                <div class="caso-header">
+                    <div class="caso-meta">
+                        <p><strong>Gerencia:</strong> ${gerencia}</p>
+                        <p><strong>Sede (Estado):</strong> ${sede}</p>
+                        <p><strong>Abogado Responsable:</strong> ${abogado}</p>
+                        <p><strong>Partes Procesales:</strong> ${this.asunto.partesProcesales || `${this.partes.actor} vs. ${this.partes.demandado}`}</p>
+                        <p><strong>Fecha creación:</strong> ${this.formatDate(this.asunto.fechaCreacion)}</p>
+                        <p><strong>Tipo de asunto:</strong> ${this.capitalize(materia)}</p>
+                        <p><strong>Órgano Jurisdiccional:</strong> ${this.capitalize(organo)}</p>
+
+
+                    </div>
+                    <div class="caso-info">
+                        <h2>Expediente: ${this.asunto.expediente}</h2>
+                        <div class="caso-estado">
+                            <span class="badge badge-${prioridad.toLowerCase()}">${prioridad} Prioridad</span>
+                        </div>
+                    </div>
+
+                </div>
+                
                 <div class="timeline-caso">
                     <div class="timeline-header">
                         <h3>Línea de Tiempo del Caso</h3>

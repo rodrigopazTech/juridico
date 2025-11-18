@@ -35,30 +35,24 @@ const estadosMexico = [
 let TERMINOS = [];
 
 function initTerminos() {
-    // Cargar datos de términos
-    loadTerminos();
+console.log("Iniciando módulo Términos...");
+    loadTerminos(); // Cargar y pintar tabla
     
-    // Configurar búsqueda
+    // Configurar UI
     setupSearchTerminos();
-    
-    // Configurar filtros
     setupFiltersTerminos();
-    
-    // Configurar buscador de tribunales
     setupTribunalSearch();
-    
-    // Configurar buscador de estados
     setupEstadoSearch();
     
-    // Inicializar todos los modales
-    initModalLiberarTermino();
-    initModalTerminosJS();
-    initModalReasignar();
+    // Inicializar Modales
+    initModalTerminosJS();      // Crear/Editar
+    initModalLiberarTermino();  // Presentar/Liberar
+    initModalReasignar();       // Reasignar
     
-    // Configurar subida de archivos
+    // Configurar subida de archivo del modal principal
     setupFileUploadTermino();
     
-    // Listener para el menú de acciones
+    // Activar el menú de 3 puntos
     setupActionMenuListener();
 }
 
@@ -377,10 +371,10 @@ function loadTerminos() {
             TERMINOS = localTerminos;
         } else {
             TERMINOS = [
-                { id: 1, asuntoId: '1698270123456', fechaIngreso: '2025-10-25', fechaVencimiento: '2025-11-12', expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', actuacion: 'Despido injustificado', prestacion: 'Reinstalación', tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 2, asuntoId: '1698270234567', fechaIngreso: '2025-10-28', fechaVencimiento: '2025-11-16', expediente: '2012/2025', actor: 'Valdez Sánchez María Elena', asunto: 'Amparo indirecto', actuacion: 'Amparo indirecto', prestacion: 'Suspensión definitiva', tribunal: 'Tercer Tribunal de Enjuiciamiento', abogado: 'Lic. González', estado: 'Jalisco', prioridad: 'Media', estatus: 'En Revision', materia: 'Amparo', acuseDocumento: '', historialAcuses: [] },
-                { id: 3, asuntoId: '1698270345678', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-20', expediente: '2413/2025', actor: 'García López Ana María', asunto: 'Rescisión laboral', actuacion: 'Rescisión laboral', prestacion: 'Indemnización', tribunal: 'Segundo Tribunal Laboral', abogado: 'Lic. Rodríguez', estado: 'Nuevo León', prioridad: 'Alta', estatus: 'Aprobado', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 4, asuntoId: '1698270456789', fechaIngreso: '2025-10-20', fechaVencimiento: '2025-12-15', expediente: '1987/2025', actor: 'Martínez Pérez Carlos', asunto: 'Amparo laboral', actuacion: 'Amparo laboral', prestacion: 'Reinstalación', tribunal: 'Cuarto Tribunal Colegiado', abogado: 'Lic. Hernández', estado: 'Jalisco', prioridad: 'Baja', estatus: 'Presentado', materia: 'Amparo', acuseDocumento: 'Acuse_1987-2025.pdf', historialAcuses: ['Acuse_viejo_1987.pdf'] },
+                { id: 1, asuntoId: '1698270123456', fechaIngreso: '2025-10-30', fechaVencimiento: '2025-11-21', expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', actuacion: 'Despido injustificado', prestacion: 'Reinstalación', tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
+                { id: 2, asuntoId: '1698270234567', fechaIngreso: '2025-10-30', fechaVencimiento: '2025-11-26', expediente: '2012/2025', actor: 'Valdez Sánchez María Elena', asunto: 'Amparo indirecto', actuacion: 'Amparo indirecto', prestacion: 'Suspensión definitiva', tribunal: 'Tercer Tribunal de Enjuiciamiento', abogado: 'Lic. González', estado: 'Jalisco', prioridad: 'Media', estatus: 'En Revision', materia: 'Amparo', acuseDocumento: '', historialAcuses: [] },
+                { id: 3, asuntoId: '1698270345678', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-30', expediente: '2413/2025', actor: 'García López Ana María', asunto: 'Rescisión laboral', actuacion: 'Rescisión laboral', prestacion: 'Indemnización', tribunal: 'Segundo Tribunal Laboral', abogado: 'Lic. Rodríguez', estado: 'Nuevo León', prioridad: 'Alta', estatus: 'Aprobado', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
+                { id: 4, asuntoId: '1698270456789', fechaIngreso: '2025-10-03', fechaVencimiento: '2025-12-15', expediente: '1987/2025', actor: 'Martínez Pérez Carlos', asunto: 'Amparo laboral', actuacion: 'Amparo laboral', prestacion: 'Reinstalación', tribunal: 'Cuarto Tribunal Colegiado', abogado: 'Lic. Hernández', estado: 'Jalisco', prioridad: 'Baja', estatus: 'Presentado', materia: 'Amparo', acuseDocumento: 'Acuse_1987-2025.pdf', historialAcuses: ['Acuse_viejo_1987.pdf'] },
                 { id: 5, asuntoId: '1698270567890', fechaIngreso: '2025-10-01', fechaVencimiento: '2025-11-01', expediente: '1010/2025', actor: 'Soto Reyna Luisa', asunto: 'Cierre de caso', actuacion: 'Cierre de caso', prestacion: 'Finiquito', tribunal: 'Quinto Tribunal Civil', abogado: 'Lic. Sánchez', estado: 'Puebla', prioridad: 'Media', estatus: 'Liberado', materia: 'Civil', acuseDocumento: 'Acuse_FIN_1010.pdf', historialAcuses: [] }
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));

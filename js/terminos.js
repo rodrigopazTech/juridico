@@ -5,6 +5,13 @@
 // 'Abogado' | 'Gerente' | 'Direccion'
 const USER_ROLE = 'Direccion';
 
+// js/terminos.js
+
+// Simula el rol del usuario logueado.
+// Cambia este valor para probar los permisos:
+// 'Abogado' | 'Gerente' | 'Direccion'
+const USER_ROLE = 'Direccion';
+
 // Lista de tribunales existentes - solo declarar si no existe
 if (typeof tribunalesExistentes === 'undefined') {
     var tribunalesExistentes = [
@@ -35,8 +42,8 @@ const estadosMexico = [
 let TERMINOS = [];
 
 function initTerminos() {
-console.log("Iniciando módulo Términos...");
-    loadTerminos(); // Cargar y pintar tabla
+    // Cargar datos de términos - Updated Nov 1, 2025
+    loadTerminos();
     
     // Configurar UI
     setupSearchTerminos();
@@ -44,16 +51,93 @@ console.log("Iniciando módulo Términos...");
     setupTribunalSearch();
     setupEstadoSearch();
     
-    // Inicializar Modales
-    initModalTerminosJS();      // Crear/Editar
-    initModalLiberarTermino();  // Presentar/Liberar
-    initModalReasignar();       // Reasignar
+    // Inicializar modal de presentar término
+    initModalPresentarTermino();
+    
+    // Configurar selector de asunto y carga de datos
+    setupAsuntoSelector();
     
     // Configurar subida de archivo del modal principal
     setupFileUploadTermino();
     
-    // Activar el menú de 3 puntos
-    setupActionMenuListener();
+    // Inicializar modal de términos
+    initModalTerminosJS();
+    
+    // El botón para nuevo término ahora está manejado en el HTML
+}
+
+// Función para configurar el selector de asunto
+function setupAsuntoSelector() {
+    const selector = document.getElementById('asunto-selector');
+    if (selector) {
+        // Cargar asuntos disponibles
+        cargarAsuntosEnSelector();
+        
+        // Configurar evento de cambio
+        selector.addEventListener('change', function() {
+            cargarDatosAsunto(this.value);
+        });
+    }
+}
+
+// Función para cargar asuntos en el selector
+function cargarAsuntosEnSelector() {
+    const selector = document.getElementById('asunto-selector');
+    if (!selector) return;
+    
+    // Obtener asuntos del localStorage
+    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
+    
+    // Limpiar selector
+    selector.innerHTML = '<option value="">Seleccionar Asunto</option>';
+    
+    // Agregar asuntos al selector
+    asuntos.forEach(asunto => {
+        const option = document.createElement('option');
+        option.value = asunto.id;
+        option.textContent = `${asunto.expediente} - ${asunto.descripcion}`;
+        selector.appendChild(option);
+    });
+    
+    console.log(`${asuntos.length} asuntos cargados en el selector`);
+}
+
+// Función para cargar datos auto-llenados del asunto seleccionado
+function cargarDatosAsunto(asuntoId) {
+    console.log('Cargando datos del asunto:', asuntoId);
+    
+    if (!asuntoId) {
+        limpiarCamposAutoLlenados();
+        return;
+    }
+    
+    // Obtener asuntos del localStorage
+    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
+    const asunto = asuntos.find(a => a.id === asuntoId);
+    
+    if (asunto) {
+        // Llenar campos auto-llenados
+        document.getElementById('expediente-auto').value = asunto.expediente || '';
+        document.getElementById('materia-auto').value = asunto.materia || '';
+        document.getElementById('gerencia-auto').value = asunto.gerencia || '';
+        document.getElementById('abogado-auto').value = asunto.abogado || '';
+        document.getElementById('partes-auto').value = asunto.partes || '';
+        document.getElementById('organo-auto').value = asunto.organoJurisdiccional || '';
+        document.getElementById('prioridad-auto').value = asunto.prioridad || '';
+        
+        console.log('Datos del asunto cargados:', asunto);
+    } else {
+        limpiarCamposAutoLlenados();
+        console.log('Asunto no encontrado');
+    }
+}
+
+function limpiarCamposAutoLlenados() {
+    const campos = ['expediente-auto', 'materia-auto', 'gerencia-auto', 'abogado-auto', 'partes-auto', 'organo-auto', 'prioridad-auto'];
+    campos.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) campo.value = '';
+    });
 }
 
 function limpiarCamposAutoLlenadosModal() {
@@ -132,6 +216,9 @@ function openTerminoModalJS(termino = null) {
         
         document.getElementById('asunto-selector').disabled = false;
         document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '1';
+        
+        document.getElementById('asunto-selector').disabled = false;
+        document.getElementById('asunto-selector').closest('.asunto-selector-section').style.opacity = '1';
         document.getElementById('asunto-selector').value = '';
         
         limpiarCamposAutoLlenadosModal();
@@ -165,6 +252,8 @@ function cargarAsuntosEnSelectorJS() {
     asuntos.forEach(asunto => {
         const option = document.createElement('option');
         option.value = asunto.id;
+        const descripcion = asunto.descripcion || asunto.partes || 'Asunto sin descripción';
+        option.textContent = `${asunto.expediente} - ${descripcion}`;
         const descripcion = asunto.descripcion || asunto.partes || 'Asunto sin descripción';
         option.textContent = `${asunto.expediente} - ${descripcion}`;
         selector.appendChild(option);
@@ -238,6 +327,9 @@ function initModalTerminosJS() {
 
 // Lógica de guardado actualizada
 function guardarTermino() {
+    console.log('Guardando término...');
+    
+    // Verificar si es edición o nuevo término
     const terminoId = document.getElementById('termino-id').value;
     const isEditing = terminoId && terminoId !== '';
     
@@ -251,6 +343,7 @@ function guardarTermino() {
     };
     
     if (!terminoData.asuntoId) {
+        mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
         mostrarMensajeGlobal('Por favor, selecciona un asunto.', 'danger');
         return;
     }
@@ -366,19 +459,68 @@ function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     
     if (TERMINOS.length === 0) {
-        const localTerminos = JSON.parse(localStorage.getItem('terminos'));
-        if (localTerminos && localTerminos.length > 0) {
-            TERMINOS = localTerminos;
-        } else {
-            TERMINOS = [
-                { id: 1, asuntoId: '1698270123456', fechaIngreso: '2025-10-30', fechaVencimiento: '2025-11-21', expediente: '2375/2025', actor: 'Ortega Ibarra Juan Carlos', asunto: 'Despido injustificado', actuacion: 'Despido injustificado', prestacion: 'Reinstalación', tribunal: 'Primer Tribunal Colegiado en Materia Laboral', abogado: 'Lic. Martínez', estado: 'Ciudad de México', prioridad: 'Alta', estatus: 'Proyectista', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 2, asuntoId: '1698270234567', fechaIngreso: '2025-10-30', fechaVencimiento: '2025-11-26', expediente: '2012/2025', actor: 'Valdez Sánchez María Elena', asunto: 'Amparo indirecto', actuacion: 'Amparo indirecto', prestacion: 'Suspensión definitiva', tribunal: 'Tercer Tribunal de Enjuiciamiento', abogado: 'Lic. González', estado: 'Jalisco', prioridad: 'Media', estatus: 'En Revision', materia: 'Amparo', acuseDocumento: '', historialAcuses: [] },
-                { id: 3, asuntoId: '1698270345678', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-30', expediente: '2413/2025', actor: 'García López Ana María', asunto: 'Rescisión laboral', actuacion: 'Rescisión laboral', prestacion: 'Indemnización', tribunal: 'Segundo Tribunal Laboral', abogado: 'Lic. Rodríguez', estado: 'Nuevo León', prioridad: 'Alta', estatus: 'Aprobado', materia: 'Laboral', acuseDocumento: '', historialAcuses: [] },
-                { id: 4, asuntoId: '1698270456789', fechaIngreso: '2025-10-03', fechaVencimiento: '2025-12-15', expediente: '1987/2025', actor: 'Martínez Pérez Carlos', asunto: 'Amparo laboral', actuacion: 'Amparo laboral', prestacion: 'Reinstalación', tribunal: 'Cuarto Tribunal Colegiado', abogado: 'Lic. Hernández', estado: 'Jalisco', prioridad: 'Baja', estatus: 'Presentado', materia: 'Amparo', acuseDocumento: 'Acuse_1987-2025.pdf', historialAcuses: ['Acuse_viejo_1987.pdf'] },
-                { id: 5, asuntoId: '1698270567890', fechaIngreso: '2025-10-01', fechaVencimiento: '2025-11-01', expediente: '1010/2025', actor: 'Soto Reyna Luisa', asunto: 'Cierre de caso', actuacion: 'Cierre de caso', prestacion: 'Finiquito', tribunal: 'Quinto Tribunal Civil', abogado: 'Lic. Sánchez', estado: 'Puebla', prioridad: 'Media', estatus: 'Liberado', materia: 'Civil', acuseDocumento: 'Acuse_FIN_1010.pdf', historialAcuses: [] }
-            ];
-            localStorage.setItem('terminos', JSON.stringify(TERMINOS));
+        TERMINOS = [
+        {
+            id: 1,
+            fechaIngreso: '2025-10-25',
+            fechaVencimiento: '2025-11-02', // Mañana - ROJO
+            expediente: '2375/2025',
+            actor: 'Ortega Ibarra Juan Carlos',
+            asunto: 'Despido injustificado',
+            prestacion: 'Reinstalación',
+            tribunal: 'Primer Tribunal Colegiado en Materia Laboral',
+            abogado: 'Lic. Martínez',
+            estado: 'Ciudad de México',
+            prioridad: 'Alta',
+            estatus: 'Proyectista',
+            materia: 'Laboral'
+        },
+        {
+            id: 2,
+            fechaIngreso: '2025-10-28',
+            fechaVencimiento: '2025-11-04', // En 3 días - AMARILLO
+            expediente: '2012/2025',
+            actor: 'Valdez Sánchez María Elena',
+            asunto: 'Amparo indirecto',
+            prestacion: 'Suspensión definitiva',
+            tribunal: 'Tercer Tribunal de Enjuiciamiento',
+            abogado: 'Lic. González',
+            estado: 'Jalisco',
+            prioridad: 'Media',
+            estatus: 'Liberado',
+            materia: 'Amparo'
+        },
+        {
+            id: 3,
+            fechaIngreso: '2025-11-01',
+            fechaVencimiento: '2025-11-01', // HOY - ROJO
+            expediente: '2413/2025',
+            actor: 'García López Ana María',
+            asunto: 'Rescisión laboral',
+            prestacion: 'Indemnización',
+            tribunal: 'Segundo Tribunal Laboral',
+            abogado: 'Lic. Rodríguez',
+            estado: 'Nuevo León',
+            prioridad: 'Alta',
+            estatus: 'Proyectista',
+            materia: 'Laboral'
+        },
+        {
+            id: 4,
+            fechaIngreso: '2025-10-20',
+            fechaVencimiento: '2025-11-15', // En 14 días - VERDE
+            expediente: '1987/2025',
+            actor: 'Martínez Pérez Carlos',
+            asunto: 'Amparo laboral',
+            prestacion: 'Reinstalación',
+            tribunal: 'Cuarto Tribunal Colegiado',
+            abogado: 'Lic. Hernández',
+            estado: 'Jalisco',
+            prioridad: 'Baja',
+            estatus: 'Liberado',
+            materia: 'Amparo'
         }
+    ];
     }
     
     let html = '';

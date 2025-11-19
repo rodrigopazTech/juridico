@@ -91,7 +91,7 @@
                                     <th>Tipo</th>
                                     <th>Partes</th>
                                     <th>Abogado</th>
-                                </tr>
+                                    <th class="text-center">Acciones</th> </tr>
                             </thead>
                             <tbody id="audiencias-desahogadas-body">
                                 <!-- Los datos se cargarán dinámicamente -->
@@ -120,8 +120,7 @@
                                     <th>Expediente</th>
                                     <th>Actuación</th>
                                     <th>Partes</th>
-                                    <th>Abogado</th>
-                                </tr>
+                                    <th class="text-center">Acciones</th> </tr>
                             </thead>
                             <tbody id="terminos-presentados-body">
                                 <!-- Los datos se cargarán dinámicamente -->
@@ -180,5 +179,21 @@
             }
         });
     </script>
+    <div class="modal" id="modal-observaciones" style="display: none; background-color: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000;">
+        <div class="modal-content" style="background-color: #fff; margin: 15% auto; padding: 0; border: 1px solid #888; width: 40%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; border-radius: 8px 8px 0 0;">
+                <h3 id="obs-modal-title" style="margin: 0; font-size: 1.1rem; color: #333;">Observaciones</h3>
+                <button class="close-modal-obs" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div id="obs-modal-expediente" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ddd;"></div>
+                <div id="obs-modal-content" style="background: #fdfdfe; padding: 15px; border-left: 4px solid #007bff; border-radius: 4px;">
+                    </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+                <button class="btn btn-secondary" id="btn-cerrar-obs">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

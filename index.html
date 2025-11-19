@@ -8,12 +8,41 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
+
+    <style>
+        /* Estilo del mensaje de bienvenida */
+        .welcome-box {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            margin-top: 40px;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
+        .welcome-box h2 {
+            font-size: 2rem;
+            color: #2c5aa0;
+            margin-bottom: 10px;
+        }
+
+        .welcome-box p {
+            font-size: 1.1rem;
+            color: #444;
+            margin-top: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar de navegación -->
+    <!-- Sidebar -->
     <div id="sidebar-container"></div>
-        
-        
+
     <!-- Contenido principal -->
     <div class="main-content">
         <div class="container">
@@ -26,9 +55,15 @@
                 </div>
             </header>
             
-            <!-- Contenido específico de cada página se cargará aquí -->
+            <!-- Contenido dinámico -->
             <div id="page-content">
-                <!-- Esta área se actualizará con el contenido de cada página -->
+                
+                <!-- 📌 MENSAJE DE BIENVENIDA -->
+                <div class="welcome-box">
+                    <h2>Bienvenido al Sistema Jurídico</h2>
+                    <p>Gestiona tus asuntos, audiencias, términos y actividades legales desde un solo lugar.</p>
+                </div>
+
             </div>
         </div>
     </div>
@@ -37,17 +72,16 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
     <script src="js/main.js"></script>
-    
+
     <!-- Cargar componentes -->
     <script src="js/components.js"></script>
     <script>
-        // Configurar página actual para el sidebar
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
             if (typeof loadSidebar === 'function') {
                 loadSidebar('index.html');
             }
         });
     </script>
+
 </body>
 </html>

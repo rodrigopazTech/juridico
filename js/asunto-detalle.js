@@ -124,7 +124,7 @@ class AsuntoDetalleManager {
                         <p><strong>Abogado Responsable:</strong> ${abogado}</p>
                         <p><strong>Partes Procesales:</strong> ${this.asunto.partesProcesales || `${this.partes.actor} vs. ${this.partes.demandado}`}</p>
                         <p><strong>Fecha creación:</strong> ${this.formatDate(this.asunto.fechaCreacion)}</p>
-                        <p><strong>Tipo de asunto:</strong> ${this.capitalize(materia)}</p>
+                        <p><strong>Tipo de Expediente:</strong> ${this.capitalize(materia)}</p>
                         <p><strong>Órgano Jurisdiccional:</strong> ${this.capitalize(organo)}</p>
 
 
@@ -152,7 +152,7 @@ class AsuntoDetalleManager {
 
                 <div class="documentos-section">
                     <div class="documentos-header">
-                        <h3>Documentos del asunto</h3>
+                        <h3>Documentos del Expediente</h3>
                         <button class="btn btn-sm btn-primary" id="btn-subir-documento">
                             <i class="fas fa-upload"></i> Subir Documento
                         </button>
@@ -261,7 +261,7 @@ class AsuntoDetalleManager {
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2><i class="fas fa-edit"></i> Editar Asunto</h2>
+                    <h2><i class="fas fa-edit"></i> Editar Expediente</h2>
                     <button class="btn btn-danger" id="close-modal-editar"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="modal-body">
@@ -354,7 +354,7 @@ class AsuntoDetalleManager {
     
                         <!-- Tipo de Asunto -->
                         <div class="form-group">
-                            <label for="edit-tipo-asunto">Tipo de Asunto *</label>
+                            <label for="edit-tipo-asunto">Tipo de Expediente*</label>
                             <select id="edit-tipo-asunto" required>
                                 <option value="">Seleccione...</option>
                                 <option value="Prestación">Prestación</option>
@@ -374,7 +374,7 @@ class AsuntoDetalleManager {
     
                         <!-- Prioridad -->
                         <div class="form-group">
-                            <label for="edit-prioridad">Prioridad del Asunto *</label>
+                            <label for="edit-prioridad">Prioridad del Expediente*</label>
                             <select id="edit-prioridad" required>
                                 <option>Alta</option>
                                 <option selected>Media</option>
@@ -560,7 +560,7 @@ class AsuntoDetalleManager {
         if (!this.asunto) return;
         const actor = this.partes?.actor || 'N/D';
         document.getElementById('titulo-asunto').textContent =
-            `Detalles de asunto - ${this.asunto.expediente} - ${actor}`;
+            `Detalles de Expediente - ${this.asunto.expediente} - ${actor}`;
         document.title = `Detalles - ${this.asunto.expediente} (${actor}) - Agenda Legal`;
     }
 

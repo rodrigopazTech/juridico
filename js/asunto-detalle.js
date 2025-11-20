@@ -629,7 +629,7 @@ class AsuntoDetalleManager {
         document.getElementById('estado-actual').textContent = this.capitalize(this.asunto.estado || 'activo');
 
         const selectNuevoEstado = document.getElementById('nuevo-estado');
-        const estadosDisponibles = ['activo', 'en revision', 'pausado', 'completado', 'cerrado'];
+        const estadosDisponibles = ['Tramite', 'Laudo', 'Firmes'];
 
         selectNuevoEstado.innerHTML = '<option value="">Seleccione nuevo estado...</option>';
         estadosDisponibles.forEach(estado => {

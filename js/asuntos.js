@@ -46,7 +46,7 @@
     const asunto = {
       id: asuntoRaw.id,
       expediente: asuntoRaw.expediente || '',
-      estado: asuntoRaw.estado || 'Activo',
+      estado: asuntoRaw.estado || 'Tramite',
       prioridad: asuntoRaw.prioridadAsunto || asuntoRaw.prioridad || 'Media',
       materia: asuntoRaw.materia || '',
 
@@ -189,7 +189,7 @@
       descripcion: descripcion || '',
       solicitud: materia === 'Transparencia' ? solicitud : '',
       solicitante: materia === 'Transparencia' ? solicitante : '',
-      estado: 'Activo',
+      estado: 'Tramite',
       fechaCreacion: hoyISO,
       stats: { documentos: 0, audiencias: 0, terminos: 0, dias: 0 },
       ultimaActividad: hoyISO
@@ -278,7 +278,7 @@ function registrarClickNuevoAsunto() {
           organoJurisdiccional: 'Junta Local de Conciliación y Arbitraje',
           prioridadAsunto: 'Alta',
           descripcion: 'Demanda laboral por despido injustificado y prestaciones',
-          estado: 'Activo',
+          estado: 'Laudo',
           fechaCreacion: '2025-10-15',
           stats: { documentos: 3, audiencias: 2, terminos: 1, dias: 17 },
           ultimaActividad: '2025-11-01'
@@ -295,7 +295,7 @@ function registrarClickNuevoAsunto() {
           organoJurisdiccional: 'Juzgado Segundo Penal',
           prioridadAsunto: 'Media',
           descripcion: 'Proceso penal por fraude comercial',
-          estado: 'Activo',
+          estado: 'Firme',
           fechaCreacion: '2025-10-20',
           stats: { documentos: 5, audiencias: 1, terminos: 2, dias: 12 },
           ultimaActividad: '2025-10-30'
@@ -312,7 +312,7 @@ function registrarClickNuevoAsunto() {
           organoJurisdiccional: 'Juzgado Primero Civil',
           prioridadAsunto: 'Alta',
           descripcion: 'Demanda civil por incumplimiento de contrato de compraventa',
-          estado: 'Activo',
+          estado: 'Laudo',
           fechaCreacion: '2025-10-25',
           stats: { documentos: 4, audiencias: 1, terminos: 0, dias: 7 },
           ultimaActividad: '2025-10-28'
@@ -329,7 +329,7 @@ function registrarClickNuevoAsunto() {
           organoJurisdiccional: 'Tribunal Superior de Justicia',
           prioridadAsunto: 'Baja',
           descripcion: 'Conflicto mercantil por breach de contrato de distribución',
-          estado: 'Activo',
+          estado: 'Laudo',
           fechaCreacion: '2025-10-10',
           stats: { documentos: 2, audiencias: 1, terminos: 1, dias: 22 },
           ultimaActividad: '2025-10-25'

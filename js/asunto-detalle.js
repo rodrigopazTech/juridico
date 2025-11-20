@@ -1,11 +1,11 @@
 // js/asunto-detalle.js
-// Lógica para la página de detalle del asunto - Versión Optimizada (Edición con campos requeridos exactos)
+// Lógica V3 para detalle del asunto - Estilo Gobierno y Tailwind
 
 class AsuntoDetalleManager {
     constructor() {
         this.asunto = null;
         this.asuntoId = null;
-        this.partes = null; // { actor: '...', demandado: '...' }
+        this.partes = null; 
         this.init();
     }
 
@@ -32,12 +32,10 @@ class AsuntoDetalleManager {
             return;
         }
 
-        // Parseo centralizado de partes procesales
         this.partes = this.parsePartes(this.asunto.partesProcesales);
-
         this.mostrarVista360();
         this.actualizarTitulo();
-        this.cargarDatosAdicionales();
+        this.cargarActividadReciente();
     }
 
     /* === Utilidades === */
@@ -54,24 +52,22 @@ class AsuntoDetalleManager {
         if (!dateString) return 'N/A';
         const date = new Date(dateString.length > 10 ? dateString : dateString + 'T00:00:00');
         if (isNaN(date)) return 'N/A';
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        return date.toLocaleDateString('es-ES', options);
+        return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
     capitalize(str) {
         if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
     guardarAsunto() {
         const asuntos = JSON.parse(localStorage.getItem('asuntos') || '[]');
         const index = asuntos.findIndex(a => a.id === this.asunto.id);
         if (index !== -1) asuntos[index] = this.asunto;
-        else asuntos.push(this.asunto);
         localStorage.setItem('asuntos', JSON.stringify(asuntos));
     }
 
-    /* === Render principal === */
+    /* === Render principal (VISTA 360 GOBIERNO V3) === */
     mostrarVista360() {
         const container = document.getElementById('vista-360-container');
         if (!this.asunto) {
@@ -79,575 +75,222 @@ class AsuntoDetalleManager {
             return;
         }
         container.innerHTML = this.generarVista360HTML();
-        this.configurarEventosVista360();
+        // Re-init listeners internos de la vista generada
     }
 
     generarVista360HTML() {
         const prioridad = this.asunto.prioridadAsunto || 'Media';
         const abogado = this.asunto.abogadoResponsable || 'Sin asignar';
-        const materia = this.asunto.tipoAsunto || '—'; // Prestación / Procedimiento
+        const materia = this.asunto.materia || '—';
         const organo = this.asunto.organoJurisdiccional || '—';
         const gerencia = this.asunto.gerencia || '—';
         const sede = this.asunto.sedeEstado || '—';
+        const estado = this.asunto.estado || 'Tramite';
+
+        // Colores dinámicos para badges
+        const badgeColor = estado.toLowerCase().includes('tramite') 
+            ? 'bg-green-100 text-green-800 border-green-200' 
+            : 'bg-yellow-100 text-yellow-800 border-yellow-200';
 
         return `
-            <div class="vista-360">
-
-                <div class="caso-stats">
-                    <div class="stat-card">
-                        <i class="fas fa-clock"></i>
-                        <div class="stat-number">${(this.asunto.stats && this.asunto.stats.terminos) ?? 0}</div>
-                        <div class="stat-label">Términos Pendientes</div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-gavel"></i>
-                        <div class="stat-number">${(this.asunto.stats && this.asunto.stats.audiencias) ?? 0}</div>
-                        <div class="stat-label">Audiencias Programadas</div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-file"></i>
-                        <div class="stat-number">${(this.asunto.stats && this.asunto.stats.documentos) ?? 0}</div>
-                        <div class="stat-label">Documentos</div>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-calendar"></i>
-                        <div class="stat-number">${(this.asunto.stats && this.asunto.stats.dias) ?? 0}</div>
-                        <div class="stat-label">Días Transcurridos</div>
-                    </div>
-                </div>
-
-
-                <div class="caso-header">
-                    <div class="caso-meta">
-                        <p><strong>Gerencia:</strong> ${gerencia}</p>
-                        <p><strong>Sede (Estado):</strong> ${sede}</p>
-                        <p><strong>Abogado Responsable:</strong> ${abogado}</p>
-                        <p><strong>Partes Procesales:</strong> ${this.asunto.partesProcesales || `${this.partes.actor} vs. ${this.partes.demandado}`}</p>
-                        <p><strong>Fecha creación:</strong> ${this.formatDate(this.asunto.fechaCreacion)}</p>
-                        <p><strong>Tipo de Expediente:</strong> ${this.capitalize(materia)}</p>
-                        <p><strong>Órgano Jurisdiccional:</strong> ${this.capitalize(organo)}</p>
-
-
-                    </div>
-                    <div class="caso-info">
-                        <h2>Expediente: ${this.asunto.expediente}</h2>
-                        <div class="caso-estado">
-                            <span class="badge badge-${prioridad.toLowerCase()}">${prioridad} Prioridad</span>
-                        </div>
-                    </div>
-
-                </div>
+            <div class="flex flex-col gap-6">
                 
-                <div class="timeline-caso">
-                    <div class="timeline-header">
-                        <h3>Línea de Tiempo del Caso</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-clock text-gob-guinda text-2xl mb-2"></i>
+                        <span class="text-2xl font-bold text-gob-gris font-headings">${(this.asunto.stats?.terminos) ?? 0}</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Términos</span>
                     </div>
-                    <div class="timeline">
+                    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-gavel text-gob-oro text-2xl mb-2"></i>
+                        <span class="text-2xl font-bold text-gob-gris font-headings">${(this.asunto.stats?.audiencias) ?? 0}</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Audiencias</span>
+                    </div>
+                    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-file-alt text-gob-plata text-2xl mb-2"></i>
+                        <span class="text-2xl font-bold text-gob-gris font-headings">${(this.asunto.stats?.documentos) ?? 0}</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Documentos</span>
+                    </div>
+                    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                        <i class="fas fa-calendar-day text-gray-400 text-2xl mb-2"></i>
+                        <span class="text-2xl font-bold text-gob-gris font-headings">${(this.asunto.stats?.dias) ?? 0}</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Días Activo</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-xs font-bold text-gob-oro uppercase tracking-wider block mb-1">No. Expediente</span>
+                            <h2 class="text-2xl font-bold text-gob-guinda font-headings">${this.asunto.expediente}</h2>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-bold border ${badgeColor} uppercase tracking-wide font-headings">
+                            ${estado}
+                        </span>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8">
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Materia</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${materia}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Gerencia</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${gerencia}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Sede / Estado</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${sede}</p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Partes Procesales</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${this.asunto.partesProcesales || `${this.partes.actor} vs ${this.partes.demandado}`}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Abogado Resp.</label>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user-tie text-gob-oro"></i>
+                                    <p class="text-sm font-semibold text-gob-gris font-sans">${abogado}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Órgano Jurisdiccional</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${organo}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fecha Creación</label>
+                                <p class="text-sm font-semibold text-gob-gris font-sans">${this.formatDate(this.asunto.fechaCreacion)}</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prioridad</label>
+                                <p class="text-sm font-bold ${prioridad === 'Alta' ? 'text-gob-guinda' : 'text-gray-600'}">${prioridad}</p>
+                            </div>
+                        </div>
+
+                        ${this.asunto.descripcion ? `
+                        <div class="mt-6 pt-6 border-t border-gray-100">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Descripción del Asunto</label>
+                            <p class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded border border-gray-100">
+                                ${this.asunto.descripcion}
+                            </p>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border border-gray-200 shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gob-gris font-headings border-b border-gob-oro pb-2 mb-4">
+                        Línea de Tiempo
+                    </h3>
+                    <div class="relative border-l-2 border-gray-200 ml-3 space-y-6 pl-6 py-2">
                         ${this.asunto.timeline && this.asunto.timeline.length > 0
                             ? this.asunto.timeline.map(item => this.generarTimelineItem(item)).join('')
-                            : '<div class="timeline-empty">No hay eventos registrados</div>'
+                            : '<div class="text-gray-400 text-sm italic">No hay eventos registrados en la línea de tiempo.</div>'
                         }
                     </div>
                 </div>
 
-                <div class="documentos-section">
-                    <div class="documentos-header">
-                        <h3>Documentos del Expediente</h3>
-                        <button class="btn btn-sm btn-primary" id="btn-subir-documento">
-                            <i class="fas fa-upload"></i> Subir Documento
-                        </button>
-                    </div>
-                    <div class="documentos-fases">
-                        ${this.generarDocumentosFases()}
-                    </div>
-                </div>
-
-                ${this.asunto.descripcion ? `
-                <div class="descripcion-section">
-                    <h3><i class="fas fa-align-left"></i> Descripción</h3>
-                    <p>${this.asunto.descripcion}</p>
-                </div>` : '' }
             </div>
         `;
     }
 
     generarTimelineItem(item) {
         return `
-            <div class="timeline-item ${item.estado || ''}">
-                <div class="timeline-marker"></div>
-                <div class="timeline-content">
-                    <div class="timeline-date">${this.formatDate(item.fecha)}</div>
-                    <div class="timeline-title">${item.titulo || ''}</div>
-                    <div class="timeline-desc">${item.descripcion || ''}</div>
-                    ${item.documentos && item.documentos.length > 0 ? `
-                        <div class="timeline-docs">
-                            ${item.documentos.map(doc => `<span class="doc-badge"><i class="fas fa-file-pdf"></i> ${doc}</span>`).join('')}
-                        </div>` : ''
-                    }
-                    ${item.alerta ? `<div class="timeline-alerta">⚠️ ${item.alerta}</div>` : ''}
-                    <div class="timeline-actions">
-                        <button class="btn btn-sm btn-warning editar-evento" data-id="${item.id}"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm btn-danger eliminar-evento" data-id="${item.id}"><i class="fas fa-trash"></i></button>
-                    </div>
+            <div class="relative">
+                <div class="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-white border-2 border-gob-guinda"></div>
+                
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                    <span class="text-xs font-bold text-gob-guinda font-headings">${this.formatDate(item.fecha)}</span>
+                    <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">${item.tipo || 'Evento'}</span>
                 </div>
-            </div>
-        `;
-    }
-
-    generarDocumentosFases() {
-        if (!this.asunto.documentos) {
-            return '<div class="fase-empty">No hay documentos registrados</div>';
-        }
-        return Object.entries(this.asunto.documentos).map(([fase, documentos]) => `
-            <div class="fase">
-                <h4>${this.capitalize(fase)}</h4>
-                <div class="documentos-list">
-                    ${documentos.length > 0
-                        ? documentos.map(doc => this.generarDocumentoItem(doc)).join('')
-                        : '<div class="documento-empty">No hay documentos</div>'
-                    }
-                </div>
-            </div>
-        `).join('');
-    }
-
-    generarDocumentoItem(doc) {
-        return `
-            <div class="documento-item">
-                <i class="fas fa-file-${doc.tipo || 'pdf'}"></i>
-                <span class="documento-nombre">${doc.nombre}</span>
-                <div class="documento-actions">
-                    <button class="btn btn-sm btn-primary"><i class="fas fa-download"></i></button>
-                    <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `;
-    }
-
-    configurarEventosVista360() {
-        document.getElementById('btn-editar-asunto')?.addEventListener('click', () => this.editarAsunto());
-        document.getElementById('btn-agregar-evento')?.addEventListener('click', () => this.agregarEvento());
-        document.getElementById('btn-subir-documento')?.addEventListener('click', () => this.subirDocumento());
-    }
-
-    /* === Edición: SOLO los campos solicitados === */
-    editarAsunto() {
-        if (!this.asunto) return;
-
-        if (!document.getElementById('modal-editar-asunto')) {
-            this.crearModalEditarAsunto();
-        }
-
-        // Prefill de campos
-        document.getElementById('edit-expediente').value = this.asunto.expediente || '';
-        document.getElementById('edit-gerencia').value = this.asunto.gerencia || '';
-        document.getElementById('edit-sede').value = this.asunto.sedeEstado || '';
-        document.getElementById('edit-abogado').value = this.asunto.abogadoResponsable || '';
-        document.getElementById('edit-partes').value = this.asunto.partesProcesales || `${this.partes.actor} vs. ${this.partes.demandado}`;
-        document.getElementById('edit-tipo-asunto').value = this.asunto.tipoAsunto || '';
-        document.getElementById('edit-organo').value = this.asunto.organoJurisdiccional || '';
-        document.getElementById('edit-prioridad').value = this.asunto.prioridadAsunto || 'Media';
-        document.getElementById('edit-descripcion').value = this.asunto.descripcion || '';
-
-        // Mostrar modal
-        document.getElementById('modal-editar-asunto').style.display = 'flex';
-    }
-
-    crearModalEditarAsunto() {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.id = 'modal-editar-asunto';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-edit"></i> Editar Expediente</h2>
-                    <button class="btn btn-danger" id="close-modal-editar"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-grid">
-                        
-                        <!-- Expediente -->
-                        <div class="form-group">
-                            <label for="edit-expediente">Expediente *</label>
-                            <input id="edit-expediente" type="text" required placeholder="2375/2025">
-                        </div>
-    
-                        <!-- Gerencia (corporativa) -->
-                        <div class="form-group">
-                            <label for="edit-gerencia">Gerencia *</label>
-                            <select id="edit-gerencia" required>
-                                <option value="">Selecciona...</option>
-                                <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">
-                                    Gerencia de Civil Mercantil, Fiscal y Administrativo
-                                </option>
-                                <option value="Gerencia Jurídica y Financiera">Gerencia Jurídica y Financiera</option>
-                                <option value="Gerencia Laboral y Penal">Gerencia Laboral y Penal</option>
-                            </select>
-                        </div>
-    
-                        <!-- Sede (Estado) -->
-                        <div class="form-group">
-                            <label for="edit-sede">Sede (Estado) *</label>
-                            <select id="edit-sede" required>
-                                <option value="">Seleccione un estado</option>
-                                <option>Aguascalientes</option>
-                                <option>Baja California</option>
-                                <option>Baja California Sur</option>
-                                <option>Campeche</option>
-                                <option>Chiapas</option>
-                                <option>Chihuahua</option>
-                                <option>Ciudad de México</option>
-                                <option>Coahuila</option>
-                                <option>Colima</option>
-                                <option>Durango</option>
-                                <option>Estado de México</option>
-                                <option>Guanajuato</option>
-                                <option>Guerrero</option>
-                                <option>Hidalgo</option>
-                                <option>Jalisco</option>
-                                <option>Michoacán</option>
-                                <option>Morelos</option>
-                                <option>Nayarit</option>
-                                <option>Nuevo León</option>
-                                <option>Oaxaca</option>
-                                <option>Puebla</option>
-                                <option>Querétaro</option>
-                                <option>Quintana Roo</option>
-                                <option>San Luis Potosí</option>
-                                <option>Sinaloa</option>
-                                <option>Sonora</option>
-                                <option>Tabasco</option>
-                                <option>Tamaulipas</option>
-                                <option>Tlaxcala</option>
-                                <option>Veracruz</option>
-                                <option>Yucatán</option>
-                                <option>Zacatecas</option>
-                            </select>
-                        </div>
-    
-                        <!-- Materia -->
-                        <div class="form-group">
-                            <label for="edit-materia">Materia *</label>
-                            <select id="edit-materia" required>
-                                <option value="">Seleccione...</option>
-                                <option>Laboral</option>
-                                <option>Civil</option>
-                                <option>Mercantil</option>
-                                <option>Fiscal</option>
-                                <option>Administrativo</option>
-                                <option>Penal</option>
-                            </select>
-                        </div>
-    
-                        <!-- Abogado Responsable -->
-                        <div class="form-group">
-                            <label for="edit-abogado">Abogado Responsable *</label>
-                            <input id="edit-abogado" type="text" required placeholder="Lic. Martínez">
-                        </div>
-    
-                        <!-- Partes Procesales -->
-                        <div class="form-group two-col">
-                            <label for="edit-partes">Partes Procesales (Actor/Quejoso/Partes) *</label>
-                            <input id="edit-partes" type="text" required placeholder="Juan Pérez vs. Empresa S.A. de C.V.">
-                        </div>
-    
-                        <!-- Tipo de Asunto -->
-                        <div class="form-group">
-                            <label for="edit-tipo-asunto">Tipo de Expediente*</label>
-                            <select id="edit-tipo-asunto" required>
-                                <option value="">Seleccione...</option>
-                                <option value="Prestación">Prestación</option>
-                                <option value="Procedimiento">Procedimiento</option>
-                            </select>
-                        </div>
-    
-                        <!-- Órgano Jurisdiccional -->
-                        <div class="form-group">
-                            <label for="edit-organo">Órgano Jurisdiccional *</label>
-                            <select id="edit-organo" required>
-                                <option value="">Seleccione...</option>
-                                <option value="Tribunal">Tribunal</option>
-                                <option value="Autoridad">Autoridad</option>
-                            </select>
-                        </div>
-    
-                        <!-- Prioridad -->
-                        <div class="form-group">
-                            <label for="edit-prioridad">Prioridad del Expediente*</label>
-                            <select id="edit-prioridad" required>
-                                <option>Alta</option>
-                                <option selected>Media</option>
-                                <option>Baja</option>
-                            </select>
-                        </div>
-    
-                        <!-- Descripción -->
-                        <div class="form-group two-col">
-                            <label for="edit-descripcion">Descripción</label>
-                            <textarea id="edit-descripcion" placeholder="Descripción general del asunto..."></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" id="btn-cancelar-edicion">Cancelar</button>
-                    <button class="btn btn-primary" id="btn-guardar-edicion">
-                        <i class="fas fa-check"></i> Guardar cambios
-                    </button>
-                </div>
-            </div>
-        `;
-    
-        document.body.appendChild(modal);
-    
-        // Cerrar modal
-        document.getElementById('close-modal-editar').addEventListener('click', () => this.cerrarModalEditarAsunto());
-        document.getElementById('btn-cancelar-edicion').addEventListener('click', () => this.cerrarModalEditarAsunto());
-        modal.addEventListener('click', (e) => { if (e.target === modal) this.cerrarModalEditarAsunto(); });
-    
-        // Guardar
-        document.getElementById('btn-guardar-edicion').addEventListener('click', () => this.confirmarEdicionAsunto());
-    
-        // Estilos
-        if (!document.getElementById('edit-modal-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'edit-modal-styles';
-            styles.textContent = `
-                .form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
-                .form-group label { display:block; font-weight:600; margin-bottom:6px; }
-                .form-group input, .form-group select, .form-group textarea {
-                    width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;
+                
+                <h4 class="text-sm font-bold text-gob-gris mt-1">${item.titulo || 'Evento sin título'}</h4>
+                <p class="text-xs text-gray-600 mt-1 mb-2">${item.descripcion || ''}</p>
+                
+                ${item.documentos && item.documentos.length > 0 ? `
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        ${item.documentos.map(doc => `
+                            <span class="inline-flex items-center px-2 py-1 rounded text-[10px] bg-gray-50 border border-gray-200 text-gray-600 hover:text-gob-guinda cursor-pointer">
+                                <i class="fas fa-file-pdf mr-1 text-red-500"></i> ${doc}
+                            </span>
+                        `).join('')}
+                    </div>` : ''
                 }
-                .form-group textarea { min-height: 90px; resize: vertical; }
-                .two-col { grid-column: span 2; }
-                @media (max-width: 640px) { .two-col { grid-column: span 1; } }
-            `;
-            document.head.appendChild(styles);
-        }
-    }
-    
-    cerrarModalEditarAsunto() {
-        const modal = document.getElementById('modal-editar-asunto');
-        if (modal) modal.style.display = 'none';
-    }
-
-    confirmarEdicionAsunto() {
-        // Validaciones mínimas
-        const reqIds = [
-            'edit-expediente','edit-gerencia','edit-sede','edit-abogado',
-            'edit-partes','edit-tipo-asunto','edit-organo','edit-prioridad'
-        ];
-        for (const id of reqIds) {
-            const el = document.getElementById(id);
-            if (!el || !String(el.value || '').trim()) {
-                el?.focus();
-                return alert('Por favor completa los campos obligatorios (*)');
-            }
-        }
-
-        const expediente = document.getElementById('edit-expediente').value.trim();
-        const gerencia = document.getElementById('edit-gerencia').value.trim();
-        const sedeEstado = document.getElementById('edit-sede').value.trim();
-        const abogadoResponsable = document.getElementById('edit-abogado').value.trim();
-        const partesProcesales = document.getElementById('edit-partes').value.trim();
-        const tipoAsunto = document.getElementById('edit-tipo-asunto').value.trim(); // Prestación/Procedimiento
-        const organoJurisdiccional = document.getElementById('edit-organo').value.trim(); // Tribunal/Autoridad
-        const prioridadAsunto = document.getElementById('edit-prioridad').value.trim();
-        const descripcion = document.getElementById('edit-descripcion').value.trim();
-
-        // Valida formato de partes (si aplica a tu operación)
-        if (!/.*\s+vs\.?\s+.*/i.test(partesProcesales)) {
-            return alert('Usa el formato "Actor vs. Parte" en Partes Procesales');
-        }
-
-        // Snapshot para auditoría
-        const snapshot = {
-            expediente: this.asunto.expediente,
-            gerencia: this.asunto.gerencia,
-            sedeEstado: this.asunto.sedeEstado,
-            abogadoResponsable: this.asunto.abogadoResponsable,
-            partesProcesales: this.asunto.partesProcesales,
-            tipoAsunto: this.asunto.tipoAsunto,
-            organoJurisdiccional: this.asunto.organoJurisdiccional,
-            prioridadAsunto: this.asunto.prioridadAsunto,
-            descripcion: this.asunto.descripcion
-        };
-
-        // Asignar cambios al modelo
-        this.asunto.expediente = expediente;
-        this.asunto.gerencia = gerencia;
-        this.asunto.sedeEstado = sedeEstado;
-        this.asunto.abogadoResponsable = abogadoResponsable;
-        this.asunto.partesProcesales = partesProcesales;
-        this.asunto.tipoAsunto = tipoAsunto;
-        this.asunto.organoJurisdiccional = organoJurisdiccional;
-        this.asunto.prioridadAsunto = prioridadAsunto;
-        this.asunto.descripcion = descripcion;
-
-        // Reparsear partes para título
-        this.partes = this.parsePartes(this.asunto.partesProcesales);
-
-        // Historial de cambios
-        if (!this.asunto.historialActividad) this.asunto.historialActividad = [];
-        const etiquetas = {
-            expediente: 'Expediente',
-            gerencia: 'Gerencia',
-            sedeEstado: 'Sede (Estado)',
-            abogadoResponsable: 'Abogado Responsable',
-            partesProcesales: 'Partes Procesales',
-            tipoAsunto: 'Tipo de Asunto',
-            organoJurisdiccional: 'Órgano Jurisdiccional',
-            prioridadAsunto: 'Prioridad del Asunto',
-            descripcion: 'Descripción'
-        };
-        const cambios = [];
-        Object.keys(snapshot).forEach(k => {
-            const antes = snapshot[k] ?? '—';
-            const ahora = this.asunto[k] ?? '—';
-            if ((antes || '') !== (ahora || '')) {
-                cambios.push(`${etiquetas[k]}: "${antes}" → "${ahora}"`);
-            }
-        });
-        if (cambios.length) {
-            this.asunto.historialActividad.unshift({
-                fecha: new Date().toISOString(),
-                tipo: 'edicion_asunto',
-                descripcion: 'Edición de datos del asunto',
-                detalles: cambios.join('; '),
-                usuario: 'Usuario Actual'
-            });
-        }
-
-        // Persistir y refrescar
-        this.guardarAsunto();
-        this.actualizarTitulo();
-        this.actualizarVistaDetalle();
-        this.cargarActividadReciente();
-
-        // Cerrar + Toast
-        this.cerrarModalEditarAsunto();
-        this.mostrarMensajeExito('Asunto actualizado correctamente');
-    }
-
-    /* === Placeholders === */
-    agregarEvento() { alert('Funcionalidad de agregar evento - Por implementar'); }
-    subirDocumento() { alert('Funcionalidad de subir documento - Por implementar'); }
-
-    /* === Eventos globales (modal cambio de estado) === */
-    inicializarEventos() {
-        const closePanel = document.getElementById('close-panel-recordatorios');
-        if (closePanel) closePanel.addEventListener('click', () => {
-            document.getElementById('panel-recordatorios').classList.remove('mostrar');
-        });
-
-        const btnCambiarEstado = document.getElementById('btn-cambiar-estado');
-        if (btnCambiarEstado) btnCambiarEstado.addEventListener('click', () => this.abrirModalCambioEstado());
-
-        const btnCerrarModal = document.querySelector('#modal-cambio-estado .btn-secondary');
-        if (btnCerrarModal) btnCerrarModal.addEventListener('click', () => this.cerrarModalCambioEstado());
-
-        const btnCerrarModalIcono = document.getElementById('close-modal-estado');
-        if (btnCerrarModalIcono) btnCerrarModalIcono.addEventListener('click', () => this.cerrarModalCambioEstado());
-
-        const btnConfirmar = document.querySelector('#modal-cambio-estado .btn-primary');
-        if (btnConfirmar) btnConfirmar.addEventListener('click', () => this.confirmarCambioEstado());
-
-        const modal = document.getElementById('modal-cambio-estado');
-        if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) this.cerrarModalCambioEstado(); });
-    }
-
-    actualizarTitulo() {
-        if (!this.asunto) return;
-        const actor = this.partes?.actor || 'N/D';
-        document.getElementById('titulo-asunto').textContent =
-            `Detalles de Expediente - ${this.asunto.expediente} - ${actor}`;
-        document.title = `Detalles - ${this.asunto.expediente} (${actor}) - Agenda Legal`;
-    }
-
-    cargarDatosAdicionales() {
-        this.cargarDocumentosRelacionados();
-        this.cargarActividadReciente();
-    }
-
-    cargarDocumentosRelacionados() {
-        const container = document.getElementById('documentos-relacionados');
-        if (!container) return;
-
-        const documentos = [
-            { nombre: 'Contrato principal.pdf', tipo: 'pdf', fecha: '2025-01-10' },
-            { nombre: 'Anexo técnico.docx', tipo: 'word', fecha: '2025-01-12' },
-            { nombre: 'Evidencia fotográfica.zip', tipo: 'archive', fecha: '2025-01-15' }
-        ];
-
-        container.innerHTML = documentos.map(doc => `
-            <div class="documento-relacionado">
-                <i class="fas fa-file-${doc.tipo}"></i>
-                <div class="documento-info">
-                    <div class="documento-nombre">${doc.nombre}</div>
-                    <div class="documento-fecha">${this.formatDate(doc.fecha)}</div>
-                </div>
-                <button class="btn btn-sm btn-primary"><i class="fas fa-download"></i></button>
             </div>
-        `).join('');
+        `;
     }
 
+    /* === Actividad Reciente (Sidebar derecho) === */
     cargarActividadReciente() {
         const container = document.getElementById('actividad-reciente-list');
         if (!container) return;
 
         const historial = this.asunto.historialActividad || [];
-        const actividadBase = [
-            { accion: 'Documento agregado', usuario: 'Lic. Martínez', fecha: '2025-01-20 14:30' },
-            { accion: 'Evento programado', usuario: 'Sistema', fecha: '2025-01-18 16:45' }
-        ];
+        if (historial.length === 0) {
+            container.innerHTML = '<div class="p-4 text-sm text-gray-400 text-center">Sin actividad reciente.</div>';
+            return;
+        }
 
-        const actividadCompleta = historial.map(item => ({
-            accion: item.descripcion,
-            usuario: item.usuario,
-            fecha: item.fecha
-        })).concat(actividadBase);
-
-        container.innerHTML = actividadCompleta.map(item => `
-            <div class="actividad-item">
-                <div class="actividad-icon"><i class="fas fa-circle"></i></div>
-                <div class="actividad-content">
-                    <div class="actividad-text">${item.accion}</div>
-                    <div class="actividad-meta">
-                        <span>por ${item.usuario}</span>
-                        <span>•</span>
-                        <span>${this.formatDate(item.fecha)}</span>
-                    </div>
-                </div>
+        container.innerHTML = historial.map(item => `
+            <div class="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors relative pl-6">
+                <div class="absolute left-2 top-5 w-1.5 h-1.5 rounded-full bg-gob-oro"></div>
+                <p class="text-sm font-bold text-gray-800">${item.descripcion || 'Actualización'}</p>
+                <p class="text-xs text-gray-500 mb-1">${this.formatDate(item.fecha)}</p>
+                <p class="text-xs text-gray-400">por ${item.usuario || 'Sistema'}</p>
             </div>
         `).join('');
     }
 
-    /* === Modal de cambio de estado existente === */
-    abrirModalCambioEstado() {
-        if (!this.asunto) return;
-
-        document.getElementById('estado-actual').textContent = this.capitalize(this.asunto.estado || 'activo');
-
-        const selectNuevoEstado = document.getElementById('nuevo-estado');
-        const estadosDisponibles = ['Tramite', 'Laudo', 'Firmes'];
-
-        selectNuevoEstado.innerHTML = '<option value="">Seleccione nuevo estado...</option>';
-        estadosDisponibles.forEach(estado => {
-            if (estado !== (this.asunto.estado || 'activo')) {
-                const option = document.createElement('option');
-                option.value = estado;
-                option.textContent = this.capitalize(estado);
-                selectNuevoEstado.appendChild(option);
-            }
-        });
-
-        document.getElementById('razon-cambio').value = '';
-        document.getElementById('modal-cambio-estado').style.display = 'flex';
+    /* === UI feedback === */
+    mostrarError(mensaje) {
+        const container = document.getElementById('vista-360-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-12 bg-gray-50 rounded border border-gray-200 text-center">
+                    <i class="fas fa-exclamation-circle text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-bold text-gob-gris font-headings">${mensaje}</h3>
+                    <a href="asuntos.html" class="mt-4 text-gob-guinda font-bold hover:underline text-sm">Volver al listado</a>
+                </div>
+            `;
+        }
     }
 
-    cerrarModalCambioEstado() {
+    /* === Eventos globales === */
+    inicializarEventos() {
+        const btnCambiarEstado = document.getElementById('btn-cambiar-estado');
+        if (btnCambiarEstado) btnCambiarEstado.addEventListener('click', () => this.abrirModalCambioEstado());
+
+        // Listeners para cerrar modales (los mismos que tenías, usando flowbite attributes funciona, pero aseguramos JS)
+        const modals = document.querySelectorAll('[data-modal-hide]');
+        modals.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetId = btn.getAttribute('data-modal-hide');
+                const modal = document.getElementById(targetId);
+                if(modal) {
+                     modal.classList.add('hidden');
+                     modal.style.display = 'none';
+                }
+            });
+        });
+
+        const btnConfirmar = document.querySelector('#modal-cambio-estado button.bg-gob-guinda');
+        if (btnConfirmar) btnConfirmar.addEventListener('click', () => this.confirmarCambioEstado());
+    }
+
+    /* === Lógica Modal Cambio Estado === */
+    abrirModalCambioEstado() {
+        if (!this.asunto) return;
         const modal = document.getElementById('modal-cambio-estado');
-        if (modal) modal.style.display = 'none';
+        const estadoActualEl = document.getElementById('estado-actual');
+        
+        if(estadoActualEl) estadoActualEl.textContent = this.asunto.estado || 'Activo';
+        if(modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
     }
 
     confirmarCambioEstado() {
@@ -655,85 +298,40 @@ class AsuntoDetalleManager {
         const razon = document.getElementById('razon-cambio').value.trim();
 
         if (!nuevoEstado) return alert('Por favor selecciona un nuevo estado');
-        if (!razon) return alert('Por favor proporciona una razón para el cambio');
 
-        const estadoAnterior = this.asunto.estado || 'activo';
+        // Actualizar datos
         this.asunto.estado = nuevoEstado;
-        this.asunto.fechaActualizacion = new Date().toISOString();
-
+        
+        // Log en historial
         if (!this.asunto.historialActividad) this.asunto.historialActividad = [];
         this.asunto.historialActividad.unshift({
             fecha: new Date().toISOString(),
-            tipo: 'cambio_estado',
-            descripcion: `Estado cambiado de "${this.capitalize(estadoAnterior)}" a "${this.capitalize(nuevoEstado)}"`,
+            descripcion: `Cambio de estado a ${nuevoEstado}`,
             detalles: razon,
-            usuario: 'Usuario Actual'
+            usuario: 'Usuario Abogado'
         });
 
         this.guardarAsunto();
-        this.actualizarVistaDetalle();
-        this.cargarActividadReciente();
-        this.cerrarModalCambioEstado();
-        this.mostrarMensajeExito(`Estado actualizado a "${this.capitalize(nuevoEstado)}" exitosamente`);
+        this.mostrarVista360(); // Re-renderizar para ver cambios
+        
+        // Cerrar modal
+        const modal = document.getElementById('modal-cambio-estado');
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
     }
 
-    actualizarVistaDetalle() {
+    actualizarTitulo() {
         if (!this.asunto) return;
-        const container = document.getElementById('vista-360-container');
-        if (container) {
-            container.innerHTML = this.generarVista360HTML();
-            this.configurarEventosVista360();
-        }
-    }
-
-    /* === UI feedback === */
-    mostrarError(mensaje) {
-        const container = document.getElementById('vista-360-container');
-        if (container) container.innerHTML = this.generarHTMLerror(mensaje);
-    }
-
-    generarHTMLerror(mensaje = 'Error al cargar el asunto') {
-        return `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle fa-3x"></i>
-                <h3>${mensaje}</h3>
-                <p>No se pudo cargar la información del asunto solicitado.</p>
-                <a href="asuntos.html" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Volver a Asuntos</a>
-            </div>
-        `;
-    }
-
-    mostrarMensajeExito(mensaje) {
-        const notification = document.createElement('div');
-        notification.className = 'notification success';
-        notification.innerHTML = `<i class="fas fa-check-circle"></i><span>${mensaje}</span>`;
-
-        if (!document.getElementById('notification-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'notification-styles';
-            styles.textContent = `
-                .notification {
-                    position: fixed; top: 20px; right: 20px; padding: 15px 20px;
-                    background: #4CAF50; color: white; border-radius: 5px;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10000;
-                    display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease;
-                }
-                .notification.success { background: #4CAF50; }
-                @keyframes slideIn { from { transform: translateX(100%); opacity:0 } to { transform: translateX(0); opacity:1 } }
-                @keyframes slideOut { from { transform: translateX(0); opacity:1 } to { transform: translateX(100%); opacity:0 } }
-            `;
-            document.head.appendChild(styles);
-        }
-
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.parentNode && notification.parentNode.removeChild(notification), 300);
-        }, 3000);
+        const el = document.getElementById('titulo-asunto');
+        const bread = document.getElementById('titulo-breadcrumb');
+        if(el) el.innerHTML = `<i class="fas fa-folder-open text-gob-guinda mr-2"></i> Expediente ${this.asunto.expediente}`;
+        if(bread) bread.textContent = this.asunto.expediente;
     }
 }
 
-// Inicializar la aplicación
+// Inicializar
 let asuntoDetalle;
 function initAsuntoDetalle() {
     asuntoDetalle = new AsuntoDetalleManager();

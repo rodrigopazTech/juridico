@@ -4,176 +4,917 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Notificaciones - Agenda Legal</title>
+    
+    <!-- Fuentes oficiales GOB.MX -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Iconos de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Tailwind CSS y Flowbite -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Tipografía oficial
+                        sans: ['"Noto Sans"', 'sans-serif'],
+                        headings: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        // PALETA OFICIAL GOB.MX V3
+                        gob: {
+                            guinda: '#9D2449',      // Color Primario (Acciones)
+                            guindaDark: '#611232',  // Hover Primario
+                            oro: '#B38E5D',         // Acentos / Secundario
+                            oroLight: '#DDC9A3',    // Fondos suaves
+                            gris: '#545454',        // Texto principal
+                            plata: '#98989A',       // Texto secundario
+                            verde: '#13322B',       // Fondo Institucional (Sidebar)
+                            verdeDark: '#0C231E',   // Hover Sidebar
+                            fondo: '#F5F5F5'        // Fondo general pagina
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap; /* Para responsiveness */
+        /* Clase para títulos Montserrat */
+        .font-heading {
+            font-family: 'Montserrat', sans-serif;
         }
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px; /* Espacio si se envuelve */
+        
+        /* Estilos mejorados según Guía Gráfica V3 */
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
-        .btn-filter {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 14px;
+        
+        .notification-card {
+            border-left: 4px solid transparent;
             transition: all 0.2s ease;
         }
-        .btn-filter:hover {
-            background-color: #e0e0e0;
+        
+        .notification-card:hover {
+            background-color: #f9fafb;
+            transform: translateY(-1px);
         }
-        .btn-filter.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
+        
+        .notification-card.audiencia {
+            border-left-color: #9D2449;
         }
-
-        /* Estilos mejorados para la lista de notificaciones */
-        .notification-item {
-            display: flex;
-            align-items: flex-start; /* Alinear al inicio */
-            gap: 15px;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+        
+        .notification-card.termino {
+            border-left-color: #B38E5D;
         }
-        .notification-item:last-child {
-            border-bottom: none;
+        
+        .notification-card.asunto {
+            border-left-color: #13322B;
         }
-        .notification-icon {
-            font-size: 20px;
-            color: #007bff;
-            padding-top: 5px; /* Alinear con el texto */
+        
+        .notification-card.recordatorio {
+            border-left-color: #545454;
         }
-        /* Colores por tipo */
-        .notification-item.event-audiencia .notification-icon { color: #28a745; }
-        .notification-item.event-termino .notification-icon { color: #dc3545; }
-        .notification-item.event-asunto .notification-icon { color: #ffc107; }
-        .notification-item.event-recordatorio .notification-icon { color: #17a2b8; }
-
-        .notification-main {
-            flex: 1;
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
         }
-        .notification-meta {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 4px;
+        
+        .badge-audiencia {
+            background-color: rgba(157, 36, 73, 0.1);
+            color: #9D2449;
+            border: 1px solid rgba(157, 36, 73, 0.2);
         }
-        .notification-meta strong {
-            color: #333;
+        
+        .badge-termino {
+            background-color: rgba(179, 142, 93, 0.1);
+            color: #B38E5D;
+            border: 1px solid rgba(179, 142, 93, 0.2);
         }
-        .notification-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: #222;
-            margin-bottom: 5px;
+        
+        .badge-asunto {
+            background-color: rgba(19, 50, 43, 0.1);
+            color: #13322B;
+            border: 1px solid rgba(19, 50, 43, 0.2);
         }
-        .notification-when {
-            font-size: 13px;
-            color: #888;
+        
+        .badge-recordatorio {
+            background-color: rgba(84, 84, 84, 0.1);
+            color: #545454;
+            border: 1px solid rgba(84, 84, 84, 0.2);
         }
+        
+        .section-header {
+            background: linear-gradient(to right, #f8f9fa, #f1f3f4);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
         .empty-state {
-            padding: 20px;
-            text-align: center;
-            color: #999;
+            background-color: #f9fafb;
+            border: 1px dashed #d1d5db;
         }
-
-        /* --- ESTILOS AÑADIDOS --- */
-        .notification-details {
-            font-size: 14px;
-            color: #555;
-            margin: 4px 0 8px 0;
-            padding-left: 10px;
-            border-left: 3px solid #eee;
+        
+        .hidden-section {
+            display: none;
         }
-        .notification-when {
-            font-size: 13px;
-            color: #007bff; /* Hacer el tiempo relativo más visible */
-            font-weight: 500;
+        
+        .notification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .notification-item {
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+        
+        .notification-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .notification-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .notification-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
-        .notification-when .when-full {
-            color: #888;
-            font-weight: 400;
+        
+        .notification-icon.audiencia {
+            background-color: rgba(157, 36, 73, 0.1);
+            color: #9D2449;
         }
-        .notification-actions .btn-danger {
-            padding: 5px 10px; /* Botón de eliminar más pequeño */
-            font-size: 12px;
+        
+        .notification-icon.termino {
+            background-color: rgba(179, 142, 93, 0.1);
+            color: #B38E5D;
         }
-        /* --- FIN ESTILOS AÑADIDOS --- */
+        
+        .notification-icon.asunto {
+            background-color: rgba(19, 50, 43, 0.1);
+            color: #13322B;
+        }
+        
+        .notification-icon.recordatorio {
+            background-color: rgba(84, 84, 84, 0.1);
+            color: #545454;
+        }
+        
+        .notification-time {
+            display: flex;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .notification-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .notification-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .notification-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .detail-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-size: 0.875rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .horizontal-notification {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .horizontal-notification:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .horizontal-notification.audiencia {
+            border-left: 4px solid #9D2449;
+        }
+        
+        .horizontal-notification.termino {
+            border-left: 4px solid #B38E5D;
+        }
+        
+        .horizontal-notification.recordatorio {
+            border-left: 4px solid #545454;
+        }
+        
+        .horizontal-icon {
+            flex-shrink: 0;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .horizontal-icon.audiencia {
+            background-color: rgba(157, 36, 73, 0.1);
+            color: #9D2449;
+        }
+        
+        .horizontal-icon.termino {
+            background-color: rgba(179, 142, 93, 0.1);
+            color: #B38E5D;
+        }
+        
+        .horizontal-icon.recordatorio {
+            background-color: rgba(84, 84, 84, 0.1);
+            color: #545454;
+        }
+        
+        .horizontal-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .horizontal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .horizontal-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .horizontal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.4;
+        }
+        
+        .horizontal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .horizontal-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .horizontal-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        
+        .horizontal-value {
+            font-size: 0.875rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .horizontal-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+            margin-top: auto;
+        }
+        
+        .time-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #9D2449;
+        }
+        
+        .time-date {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            color: #98989A;
+            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+        }
+        
+        .delete-btn:hover {
+            color: #dc2626;
+            background-color: #fef2f2;
+        }
     </style>
-    </head>
-<body>
-    <div id="sidebar-container"></div>
-    </div>
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
 
-    <div class="main-content">
-        <div class="container">
-            <header>
-                <div class="header-content">
-                    <h1><i class="fas fa-bell"></i> Panel de Notificaciones</h1>
-                    <div class="user-info"><i class="fas fa-user-circle"></i> Usuario Abogado</div>
-                </div>
-            </header>
-
-            <div class="toolbar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-notifications" placeholder="Buscar notificaciones...">
-                </div>
-                <div class="filter-buttons">
-                    <button class="btn-filter active" data-filter="all">Todas</button>
-                    <button class="btn-filter" data-filter="audiencia">Audiencias</button>
-                    <button class="btn-filter" data-filter="termino">Términos</button>
-                    <button class="btn-filter" data-filter="asunto">Asuntos</button>
-                    <button class="btn-filter" data-filter="recordatorio">Recordatorios</button>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-gob-verde border-r border-gob-verdeDark shadow-xl" aria-label="Sidebar">
+            
+            <div class="h-16 flex items-center px-6 border-b border-gob-verdeDark/50 bg-gob-verdeDark/30">
+                <div class="text-white p-1.5 mr-3">
+                   <img src="https://framework-gb.cdn.gob.mx/landing/img/logoheader.svg" alt="Gobierno de México" class="h-8 w-auto filter brightness-0 invert">
                 </div>
             </div>
 
-            <div class="dashboard-card">
-                <h3><i class="fas fa-clock"></i> Próximas notificaciones</h3>
-                <div id="upcoming-list">
+            <div class="h-full px-3 py-6 overflow-y-auto">
+                
+                <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Principal</div>
+                <ul class="space-y-1 font-medium mb-6">
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                            <span class="ms-3">Inicio</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            <span class="ms-3">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Gestión</div>
+                <ul class="space-y-1 font-medium">
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
+                            <span class="ms-3">Usuarios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                            <span class="ms-3">Expedientes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-white bg-white/10 border-l-4 border-gob-oro rounded-r-lg shadow-sm group">
+                            <i class="fas fa-bell text-gob-oro w-5 h-5"></i>
+                            <span class="ms-3 font-bold">Notificaciones</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="absolute bottom-0 left-0 w-full p-4 border-t border-gob-verdeDark bg-gob-verdeDark">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full border-2 border-gob-oro flex items-center justify-center bg-white text-gob-guinda font-bold text-xs">
+                            SD
+                        </div>
+                        <div class="font-medium text-white text-sm">
+                            <div class="font-heading">Subdirector</div>
+                            <div class="text-xs text-gob-plata">Agenda Legal</div>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <div class="p-4 sm:ml-64 w-full">
+            
+            <!-- Header -->
+            <nav class="w-full bg-white border-b border-gray-200 sticky top-0 z-30 mb-8 rounded-b-lg shadow-sm">
+                <div class="px-4 py-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center text-sm text-gob-gris">
+                            <span class="hover:text-gob-guinda cursor-pointer font-medium">Inicio</span>
+                            <svg class="w-3 h-3 mx-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <span class="font-bold text-gob-guinda font-heading">Notificaciones</span>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <button class="p-2 text-gob-gris hover:text-gob-guinda transition-colors">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gob-gris rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Título y descripción -->
+            <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gob-gris font-heading tracking-tight">Panel de Notificaciones</h1>
+                    <p class="text-gray-500 text-sm mt-1 border-l-4 border-gob-oro pl-2">Gestión y seguimiento de alertas y recordatorios del sistema.</p>
+                </div>
+                <button type="button" class="hidden md:flex items-center justify-center text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-guinda/30 font-bold rounded text-sm px-5 py-2.5 shadow-sm transition-all">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nueva Notificación
+                </button>
             </div>
 
-            <div class="dashboard-card">
-                <h3><i class="fas fa-sun"></i> Notificaciones de hoy</h3>
-                <div id="today-list">
+            <!-- Barra de herramientas -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-6 card-shadow">
+                <div class="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <!-- Búsqueda -->
+                    <div class="relative w-full md:w-96">
+                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar notificaciones...">
                     </div>
+
+                    <!-- Filtros -->
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="btn-filter active px-4 py-2 text-sm font-medium rounded-full bg-gob-guinda text-white border border-gob-guinda" data-filter="all">
+                                Todas
+                            </button>
+                            <button class="btn-filter px-4 py-2 text-sm font-medium rounded-full bg-white text-gob-gris border border-gray-300 hover:bg-gray-50" data-filter="audiencia">
+                                Audiencias
+                            </button>
+                            <button class="btn-filter px-4 py-2 text-sm font-medium rounded-full bg-white text-gob-gris border border-gray-300 hover:bg-gray-50" data-filter="termino">
+                                Términos
+                            </button>
+                            <button class="btn-filter px-4 py-2 text-sm font-medium rounded-full bg-white text-gob-gris border border-gray-300 hover:bg-gray-50" data-filter="recordatorio">
+                                Recordatorios
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="dashboard-card">
-                <h3><i class="fas fa-history"></i> Historial</h3>
-                <div id="sent-list">
+            <!-- Tarjetas de Notificaciones - Vista Todas -->
+            <div id="all-view" class="notification-section">
+                <div class="space-y-6">
+                    <!-- Próximas notificaciones -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                        <div class="section-header p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                                <i class="fas fa-clock text-gob-oro"></i>
+                                Próximas notificaciones
+                            </h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- Notificación 1 - Horizontal -->
+                            <div class="horizontal-notification audiencia">
+                                <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div class="horizontal-icon audiencia">
+                                    <i class="fas fa-gavel"></i>
+                                </div>
+                                <div class="horizontal-content">
+                                    <div class="horizontal-header">
+                                        <div class="horizontal-meta">
+                                            <span class="badge badge-audiencia">Audiencia</span>
+                                            <span class="text-sm text-gob-plata">Exp. 2024-00123</span>
+                                        </div>
+                                    </div>
+                                    <h4 class="horizontal-title">Audiencia inicial - Juicio ordinario civil</h4>
+                                    <div class="horizontal-details">
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Juzgado</span>
+                                            <span class="horizontal-value">Segundo Civil, Sala 4</span>
+                                        </div>
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Representante</span>
+                                            <span class="horizontal-value">Lic. María González</span>
+                                        </div>
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Tipo de Juicio</span>
+                                            <span class="horizontal-value">Ordinario Civil</span>
+                                        </div>
+                                    </div>
+                                    <div class="horizontal-time">
+                                        <i class="fas fa-clock text-gob-guinda"></i>
+                                        <span class="time-text">En 2 días •</span>
+                                        <span class="time-date">15 Mar 2024, 10:30 AM</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Notificación 2 - Horizontal -->
+                            <div class="horizontal-notification termino">
+                                <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div class="horizontal-icon termino">
+                                    <i class="fas fa-hourglass-end"></i>
+                                </div>
+                                <div class="horizontal-content">
+                                    <div class="horizontal-header">
+                                        <div class="horizontal-meta">
+                                            <span class="badge badge-termino">Término</span>
+                                            <span class="text-sm text-gob-plata">Exp. 2024-00087</span>
+                                        </div>
+                                    </div>
+                                    <h4 class="horizontal-title">Vencimiento de plazo para contestar demanda</h4>
+                                    <div class="horizontal-details">
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Partes procesales</span>
+                                            <span class="horizontal-value">Ortega Ibarra Juan Carlos</span>
+                                        </div>
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Actuación</span>
+                                            <span class="horizontal-value">Despido injustificado</span>
+                                        </div>
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">Estado</span>
+                                            <span class="horizontal-value">Pendiente</span>
+                                        </div>
+                                    </div>
+                                    <div class="horizontal-time">
+                                        <i class="fas fa-clock text-gob-guinda"></i>
+                                        <span class="time-text">En 5 días •</span>
+                                        <span class="time-date">18 Mar 2024, 11:59 PM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Notificaciones de hoy -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                        <div class="section-header p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                                <i class="fas fa-sun text-gob-oro"></i>
+                                Notificaciones de hoy
+                            </h3>
+                        </div>
+                        <div class="p-6">
+                            <!-- Notificación 1 - Horizontal -->
+                            <div class="horizontal-notification recordatorio">
+                                <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <div class="horizontal-icon recordatorio">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="horizontal-content">
+                                    <div class="horizontal-header">
+                                        <div class="horizontal-meta">
+                                            <span class="badge badge-recordatorio">Recordatorio</span>
+                                            <span class="text-sm text-gob-plata">Reunión interna</span>
+                                        </div>
+                                    </div>
+                                    <h4 class="horizontal-title">Junta de seguimiento de casos</h4>
+                                    <div class="horizontal-details">
+                                        <div class="horizontal-detail">
+                                            <span class="horizontal-label">descripcion</span>
+                                            <span class="horizontal-value">Sala de juntas, piso 3</span>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="horizontal-time">
+                                        <i class="fas fa-clock text-gob-guinda"></i>
+                                        <span class="time-text">En 2 horas •</span>
+                                        <span class="time-date">13 Mar 2024, 11:00 AM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historial -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                        <div class="section-header p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                                <i class="fas fa-history text-gob-oro"></i>
+                                Historial
+                            </h3>
+                        </div>
+                        <div id="sent-list" class="p-8 text-center empty-state rounded-b-lg">
+                            <div class="text-gob-plata">
+                                <i class="fas fa-inbox text-5xl mb-4 opacity-50"></i>
+                                <p class="text-lg">No hay notificaciones en el historial</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Filtrada - Audiencias -->
+            <div id="audiencia-view" class="notification-section hidden-section">
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                    <div class="section-header p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                            <i class="fas fa-gavel text-gob-oro"></i>
+                            Notificaciones de Audiencias
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        <!-- Notificación 1 - Horizontal -->
+                        <div class="horizontal-notification audiencia">
+                            <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <div class="horizontal-icon audiencia">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <div class="horizontal-content">
+                                <div class="horizontal-header">
+                                    <div class="horizontal-meta">
+                                        <span class="badge badge-audiencia">Audiencia</span>
+                                        <span class="text-sm text-gob-plata">Exp. 2024-00123</span>
+                                    </div>
+                                </div>
+                                <h4 class="horizontal-title">Audiencia inicial - Juicio ordinario civil</h4>
+                                <div class="horizontal-details">
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Juzgado</span>
+                                        <span class="horizontal-value">Segundo Civil, Sala 4</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Representante</span>
+                                        <span class="horizontal-value">Lic. María González</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Tipo de Juicio</span>
+                                        <span class="horizontal-value">Ordinario Civil</span>
+                                    </div>
+                                </div>
+                                <div class="horizontal-time">
+                                    <i class="fas fa-clock text-gob-guinda"></i>
+                                    <span class="time-text">En 2 días •</span>
+                                    <span class="time-date">15 Mar 2024, 10:30 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notificación 2 - Horizontal -->
+                        <div class="horizontal-notification audiencia">
+                            <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <div class="horizontal-icon audiencia">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <div class="horizontal-content">
+                                <div class="horizontal-header">
+                                    <div class="horizontal-meta">
+                                        <span class="badge badge-audiencia">Audiencia</span>
+                                        <span class="text-sm text-gob-plata">Exp. 2024-00156</span>
+                                    </div>
+                                </div>
+                                <h4 class="horizontal-title">Audiencia de pruebas - Juicio mercantil</h4>
+                                <div class="horizontal-details">
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Juzgado</span>
+                                        <span class="horizontal-value">Primero Mercantil, Sala 2</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Representante</span>
+                                        <span class="horizontal-value">Lic. Carlos Hernández</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Tipo de Juicio</span>
+                                        <span class="horizontal-value">Mercantil</span>
+                                    </div>
+                                </div>
+                                <div class="horizontal-time">
+                                    <i class="fas fa-clock text-gob-guinda"></i>
+                                    <span class="time-text">En 7 días •</span>
+                                    <span class="time-date">20 Mar 2024, 09:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Filtrada - Términos -->
+            <div id="termino-view" class="notification-section hidden-section">
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                    <div class="section-header p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                            <i class="fas fa-hourglass-end text-gob-oro"></i>
+                            Notificaciones de Términos
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        <!-- Notificación 1 - Horizontal -->
+                        <div class="horizontal-notification termino">
+                            <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <div class="horizontal-icon termino">
+                                <i class="fas fa-hourglass-end"></i>
+                            </div>
+                            <div class="horizontal-content">
+                                <div class="horizontal-header">
+                                    <div class="horizontal-meta">
+                                        <span class="badge badge-termino">Término</span>
+                                        <span class="text-sm text-gob-plata">Exp. 2024-00087</span>
+                                    </div>
+                                </div>
+                                <h4 class="horizontal-title">Vencimiento de plazo para contestar demanda</h4>
+                                <div class="horizontal-details">
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Partes procesales</span>
+                                        <span class="horizontal-value">Ortega Ibarra Juan Carlos</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Actuación</span>
+                                        <span class="horizontal-value">Despido injustificado</span>
+                                    </div>
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">Estado</span>
+                                        <span class="horizontal-value">Pendiente</span>
+                                    </div>
+                                </div>
+                                <div class="horizontal-time">
+                                    <i class="fas fa-clock text-gob-guinda"></i>
+                                    <span class="time-text">En 5 días •</span>
+                                    <span class="time-date">18 Mar 2024, 11:59 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Filtrada - Recordatorios -->
+            <div id="recordatorio-view" class="notification-section hidden-section">
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                    <div class="section-header p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gob-gris font-heading flex items-center gap-2">
+                            <i class="fas fa-bell text-gob-oro"></i>
+                            Notificaciones de Recordatorios
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        <!-- Notificación 1 - Horizontal -->
+                        <div class="horizontal-notification recordatorio">
+                            <button class="delete-btn" onclick="deleteNotification(this)" title="Eliminar notificación">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <div class="horizontal-icon recordatorio">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="horizontal-content">
+                                <div class="horizontal-header">
+                                    <div class="horizontal-meta">
+                                        <span class="badge badge-recordatorio">Recordatorio</span>
+                                        <span class="text-sm text-gob-plata">Reunión interna</span>
+                                    </div>
+                                </div>
+                                <h4 class="horizontal-title">Junta de seguimiento de casos</h4>
+                                <div class="horizontal-details">
+                                    <div class="horizontal-detail">
+                                        <span class="horizontal-label">descripcion</span>
+                                        <span class="horizontal-value">Sala de juntas, piso 3</span>
+                                    </div>
+                                   
+                                </div>
+                                <div class="horizontal-time">
+                                    <i class="fas fa-clock text-gob-guinda"></i>
+                                    <span class="time-text">En 2 horas •</span>
+                                    <span class="time-date">13 Mar 2024, 11:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/notificaciones.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
     
-    <script src="js/components.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('notificaciones.html');
-            }
+            // Funcionalidad de filtros
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            const notificationSections = document.querySelectorAll('.notification-section');
             
-            // Inicializar notificaciones ya no es necesario aquí,
-            // el script notificaciones.js se auto-inicia
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover clase active de todos los botones
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-gob-guinda', 'text-white', 'border-gob-guinda');
+                        btn.classList.add('bg-white', 'text-gob-gris', 'border-gray-300');
+                    });
+                    
+                    // Agregar clase active al botón clickeado
+                    this.classList.remove('bg-white', 'text-gob-gris', 'border-gray-300');
+                    this.classList.add('active', 'bg-gob-guinda', 'text-white', 'border-gob-guinda');
+                    
+                    // Ocultar todas las secciones
+                    notificationSections.forEach(section => {
+                        section.classList.add('hidden-section');
+                    });
+                    
+                    // Mostrar la sección correspondiente al filtro
+                    const filter = this.getAttribute('data-filter');
+                    const targetSection = document.getElementById(`${filter}-view`);
+                    if (targetSection) {
+                        targetSection.classList.remove('hidden-section');
+                    }
+                });
+            });
         });
+
+        // Función para eliminar notificaciones
+        function deleteNotification(button) {
+            const notificationCard = button.closest('.horizontal-notification');
+            if (notificationCard) {
+                // Animación de desvanecimiento
+                notificationCard.style.opacity = '0';
+                notificationCard.style.transform = 'translateX(100%)';
+                
+                // Eliminar después de la animación
+                setTimeout(() => {
+                    notificationCard.remove();
+                    
+                    // Verificar si no hay más notificaciones
+                    const section = notificationCard.closest('.notification-section');
+                    const remainingNotifications = section.querySelectorAll('.horizontal-notification');
+                    
+                    if (remainingNotifications.length === 0) {
+                        const emptyState = document.createElement('div');
+                        emptyState.className = 'p-8 text-center empty-state rounded-b-lg';
+                        emptyState.innerHTML = `
+                            <div class="text-gob-plata">
+                                <i class="fas fa-inbox text-5xl mb-4 opacity-50"></i>
+                                <p class="text-lg">No hay notificaciones</p>
+                            </div>
+                        `;
+                        section.querySelector('.p-6').appendChild(emptyState);
+                    }
+                }, 300);
+            }
+        }
     </script>
 </body>
 </html>

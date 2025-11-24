@@ -651,3 +651,39 @@
 .agenda-list::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-icon {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #555;
+}
+
+.btn-icon:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+.btn-download:hover {
+    color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-view-obs:hover {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.obs-box {
+    font-size: 0.95rem;
+    color: #444;
+    line-height: 1.5;
+}

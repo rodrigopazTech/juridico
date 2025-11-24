@@ -119,10 +119,11 @@
                             <select id="filter-estatus-termino">
                                 <option value="">Todos los estatus</option>
                                 <option value="Proyectista">Proyectista</option>
-                                <option value="En Revision">En Revisión</option>
-                                <option value="Aprobado">Aprobado</option>
-                                <option value="Presentado">Presentado</option>
+                                <option value="Revisión">En Revisión</option>
+                                <option value="Gerencia">Gerencia</option>
+                                <option value="Dirección">Dirección</option>
                                 <option value="Liberado">Liberado</option>
+                                <option value="Presentado">Presentado</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -165,7 +166,7 @@
                                 <th>Asunto</th>
                                 <th>Prestación</th>
                                 <th>Abogado</th>
-                                <th>Estado Actual</th>
+                                <th>Estado</th> 
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -268,40 +269,6 @@
                             <textarea id="actuacion" rows="2" required placeholder="Descripción de la etapa procesal o movimiento procesal específico"></textarea>
                         </div>
                         
-                        <div class="form-row" style="display: none;">
-                            <div class="form-group">
-                                <label for="etapa-revision">Etapa de Revisión*</label>
-                                <select id="etapa-revision" required>
-                                    <option value="">Seleccione etapa</option>
-                                    <option value="Proyectista">Proyectista</option>
-                                    <option value="Liberado">Liberado</option>
-                                    <option value="Revisión">Revisión</option>
-                                    <option value="Presentado">Presentado</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="atendido">¿Atendido?</label>
-                                <select id="atendido">
-                                    <option value="false">No</option>
-                                    <option value="true">Sí</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" style="display: none;">
-                            <label for="acuse-documento">Acuse (Subir Documento)</label>
-                            <div class="file-upload-container">
-                                <input type="file" id="acuse-documento" accept=".pdf,.doc,.docx" class="file-input">
-                                <label for="acuse-documento" class="file-upload-btn">
-                                    <i class="fas fa-file-upload"></i>
-                                    Subir Acuse del Término
-                                </label>
-                                <span class="file-name" id="acuse-filename">Ningún archivo seleccionado</span>
-                            </div>
-                        </div>
-                        <div class="form-group" style="display: none;">
-                            <label for="observaciones">Observaciones</label>
-                            <textarea id="observaciones" rows="3" placeholder="Observaciones adicionales del término"></textarea>
-                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="recordatorio-dias">Recordatorio Días Antes</label>
@@ -314,6 +281,25 @@
                                 <small>Por defecto: 2 horas antes</small>
                             </div>
                         </div>
+
+                        <div class="form-group" style="display:none">
+                             <label for="etapa-revision">Etapa</label>
+                             <input type="text" id="etapa-revision">
+                        </div>
+                        <div class="form-group" style="display:none">
+                             <label for="atendido">Atendido</label>
+                             <input type="text" id="atendido">
+                        </div>
+                        <div class="form-group" style="display:none">
+                             <label for="observaciones">Observaciones</label>
+                             <input type="text" id="observaciones">
+                        </div>
+                        <div class="form-group" style="display:none">
+                             <label for="acuse-documento">Acuse</label>
+                             <input type="file" id="acuse-documento">
+                             <span id="acuse-filename"></span>
+                        </div>
+
                     </fieldset>
                 </form>
             </div>
@@ -324,7 +310,87 @@
         </div>
     </div>
 
-    <div class="modal" id="modal-presentar-termino">
+    <div class="modal" id="modal-aprobacion">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="modal-aprobacion-title">Acción de Flujo</h2>
+                <button class="btn btn-danger" id="close-modal-aprobacion">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="aprobacion-termino-id">
+                <input type="hidden" id="aprobacion-accion">
+                
+                <div class="alert-info" style="background: #e3f2fd; border: 1px solid #bbdefb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 id="aprobacion-mensaje" style="margin: 0 0 10px 0; color: #0c5460;">Confirmación</h3>
+                    <p id="aprobacion-descripcion" style="margin: 0; color: #0c5460;">Descripción de la acción.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="observaciones-aprobacion">Observaciones / Motivo</label>
+                    <textarea id="observaciones-aprobacion" rows="4" placeholder="Escriba sus observaciones..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-aprobacion">Cancelar</button>
+                <button class="btn btn-success" id="confirmar-aprobacion">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-historial">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Historial del Término</h2>
+                <button class="btn btn-danger" id="close-modal-historial">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="historial-contenido" style="max-height: 400px; overflow-y: auto;">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-historial">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-reasignar">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Reasignar Término</h2>
+                <button class="btn btn-danger" id="close-modal-reasignar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reasignar">
+                    <input type="hidden" id="reasignar-termino-id">
+                    <div class="form-group">
+                        <label>Actuación:</label>
+                        <input type="text" id="reasignar-actuacion" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Abogado Actual:</label>
+                        <input type="text" id="reasignar-abogado-actual" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="select-nuevo-abogado">Nuevo Abogado:*</label>
+                        <select id="select-nuevo-abogado" required>
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
+                <button class="btn btn-success" id="save-reasignar">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="modal-presentar-termino" style="display: none;">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2>Presentar Término</h2>
@@ -334,98 +400,33 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="presentar-termino-id">
-                <div class="alert-warning" style="background: #d1ecf1; border: 1px solid #b8daff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <h3 style="margin: 0 0 10px 0; color: #0c5460;">¿Confirma que desea presentar este término?</h3>
-                    <p style="margin: 0; color: #0c5460;">El término cambiará su estatus a "Presentado" y se mostrará en la Agenda General</p>
+                
+                <div class="alert-warning" style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 5px; margin-bottom: 20px; color: #856404;">
+                    <h3 style="margin-top: 0;">Confirmación</h3>
+                    <p>¿Estás seguro de realizar esta acción?</p>
                 </div>
+                
                 <div class="form-group">
-                    <label for="observaciones-presentacion">Observaciones de Presentación</label>
-                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escriba las observaciones sobre la presentación del término..." required></textarea>
-                    <small>Las observaciones son obligatorias para presentar el término</small>
+                    <label for="observaciones-presentacion">Observaciones / Comentarios:</label>
+                    <textarea id="observaciones-presentacion" rows="4" placeholder="Escribe aquí..." required style="width: 100%;"></textarea>
+                    <small>Este campo es obligatorio para continuar.</small>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-danger" id="cancel-presentar">Cancelar</button>
-                <button class="btn btn-success" id="confirmar-presentar">Presentar Término</button>
+                <button class="btn btn-success" id="confirmar-presentar">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="modal-reasignar">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2 id="modal-reasignar-title">Reasignar Término</h2>
-                <button class="btn btn-danger" id="close-modal-reasignar">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="form-reasignar">
-                    <input type="hidden" id="reasignar-termino-id">
-                    
-                    <div class="form-group">
-                        <label>Término (Actuación):</label>
-                        <input type="text" id="reasignar-actuacion" readonly class="readonly-field">
-                    </div>
-                    <div class="form-group">
-                        <label>Abogado Actual:</label>
-                        <input type="text" id="reasignar-abogado-actual" readonly class="readonly-field">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="select-nuevo-abogado">Asignar a (Nuevo Abogado):*</label>
-                        <select id="select-nuevo-abogado" required>
-                            <option value="">Seleccione un abogado...</option>
-                            </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="cancel-reasignar">Cancelar</button>
-                <button class="btn btn-success" id="save-reasignar">Confirmar Reasignación</button>
-            </div>
-        </div>
-    </div>
     <script src="js/excel-export.js"></script>
     <script src="js/notificaciones.js"></script>
     <script src="js/components.js"></script>
-    
-    <script src="js/terminos.js"></script>
-
-    <script>
+    <script src="js/terminos.js"></script> <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('terminos.html');
-            }
-            
-            // Inicializar la página de términos (esto llama a todo desde terminos.js)
-            if (typeof initTerminos === 'function') {
-                initTerminos();
-            }
-
-            // Inicializar la exportación (esta función SÍ puede vivir aquí)
-            initExportacionTerminos();
+            if (typeof loadSidebar === 'function') loadSidebar('terminos.html');
+            if (typeof initTerminos === 'function') initTerminos();
         });
-
-        function initExportacionTerminos() {
-            // Configurar botón de exportar a Excel
-            const btnExportTerminos = document.getElementById('export-terminos');
-            if (btnExportTerminos) {
-                btnExportTerminos.addEventListener('click', function() {
-                    console.log('Iniciando exportación de términos...');
-                    // Esta función 'exportarTerminosAExcel' debe existir en tu 'excel-export.js'
-                    if (typeof exportarTerminosAExcel === 'function') {
-                        exportarTerminosAExcel();
-                    } else {
-                        alert('Error: La función de exportación no está disponible.');
-                        console.error('Función exportarTerminosAExcel no encontrada');
-                    }
-                });
-            } else {
-                console.warn('Botón export-terminos no encontrado');
-            }
-        }
     </script>
 </body>
 </html>

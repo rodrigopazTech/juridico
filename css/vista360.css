@@ -56,7 +56,7 @@
 }
 
 .caso-meta {
-    text-align: right;
+    text-align: left;
     min-width: 250px;
 }
 
@@ -760,7 +760,7 @@
     }
     
     .caso-meta {
-        text-align: center;
+        text-align:left;
         min-width: auto;
     }
     

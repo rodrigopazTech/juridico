@@ -3,307 +3,374 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Asuntos - Agenda Legal</title>
+  <title>Expedientes - Agenda Legal</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <link rel="stylesheet" href="css/styles.css"/>
-  <link rel="stylesheet" href="css/vista360.css"/>
-  <link rel="stylesheet" href="css/asuntos.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans"', 'sans-serif'],
+            headings: ['"Montserrat"', 'sans-serif'],
+          },
+          colors: {
+            gob: {
+              guinda: '#9D2449',
+              guindaDark: '#611232',
+              oro: '#B38E5D',
+              oroLight: '#DDC9A3',
+              gris: '#545454',
+              plata: '#98989A',
+              verde: '#13322B',
+              verdeDark: '#0C231E',
+              fondo: '#F5F5F5'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
   <style>
-    /* Opcional: para la badge de Gerencia */
-    .badge-gerencia {
-      background: #eef6ff;
-      color: #0b5ed7;
-      border: 1px solid #cfe2ff;
+    /* Estilo de Tarjeta */
+    .card-asunto {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        border-top: 4px solid #9D2449;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .card-asunto:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        border-color: #B38E5D;
     }
   </style>
 </head>
-<body>
-  <!-- Sidebar de navegación -->
-  <div id="sidebar-container"></div>
+<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
 
-  <!-- Contenido principal -->
-  <div class="main-content">
-    <div class="container">
-      <header>
-        <div class="header-content">
-          <h1><i class="fas fa-folder-open"></i> Gestión de Asuntos</h1>
-          <div class="user-info"><i class="fas fa-user-circle"></i> Usuario Abogado</div>
+  <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-gob-verde border-r border-gob-verdeDark shadow-xl flex flex-col" aria-label="Sidebar">
+    
+    <div class="h-16 flex-none flex items-center px-6 border-b border-gob-verdeDark/50 bg-gob-verdeDark/30">
+        <div class="text-white font-headings font-bold tracking-wider flex items-center gap-3">
+            <i class="fas fa-gavel text-gob-oro text-xl"></i>
+            <span>AGENDA LEGAL</span>
         </div>
-      </header>
+    </div>
 
-      <!-- Barra de herramientas -->
-      <div class="toolbar">
-        <div class="search-global">
-          <i class="fas fa-search"></i>
-          <input type="text" id="buscador-global" placeholder="Buscar en todos los expedientes..."/>
+    <div class="flex-1 px-3 py-6 overflow-y-auto">
+        
+        <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Principal</div>
+        <ul class="space-y-1 font-medium mb-6">
+            <li>
+                <a href="index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="index">
+                    <i class="fas fa-home w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Inicio</span>
+                </a>
+            </li>
+            <li>
+                <a href="dashboard.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="dashboard">
+                    <i class="fas fa-chart-bar w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Dashboard</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Gestión Jurídica</div>
+        <ul class="space-y-1 font-medium mb-6">
+            <li>
+                <a href="asuntos.html" class="nav-item flex items-center p-2 text-white bg-white/10 border-l-4 border-gob-oro rounded-r-lg shadow-sm group transition-all duration-200" data-page="asuntos">
+                    <i class="fas fa-folder-open w-5 h-5 text-center text-gob-oro"></i>
+                    <span class="ms-3 font-bold">Expedientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="audiencias.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="audiencias">
+                    <i class="fas fa-gavel w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Audiencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="terminos.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="terminos">
+                    <i class="fas fa-clock w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Términos</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Organización</div>
+        <ul class="space-y-1 font-medium mb-6">
+            <li>
+                <a href="agenda-general.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="agenda-general">
+                    <i class="fas fa-calendar-alt w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Agenda General</span>
+                </a>
+            </li>
+            <li>
+                <a href="recordatorios-panel.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="panel-recordatorios">
+                    <i class="fas fa-calendar-check w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Recordatorios</span>
+                </a>
+            </li>
+            <li>
+                <a href="notificaciones.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="notificaciones">
+                    <i class="fas fa-bell w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Notificaciones</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Admin</div>
+        <ul class="space-y-1 font-medium">
+            <li>
+                <a href="usuarios.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="usuarios">
+                    <i class="fas fa-users w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Usuarios</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="flex-none p-4 border-t border-gob-verdeDark bg-gob-verdeDark">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full border-2 border-gob-oro flex items-center justify-center bg-white text-gob-guinda font-bold text-xs">
+                UA
+            </div>
+            <div class="font-medium text-white text-sm">
+                <div class="font-headings">Usuario Abogado</div>
+                <div class="text-xs text-gob-plata">Sesión Activa</div>
+            </div>
         </div>
-        <button class="btn btn-primary" id="nuevo-asunto">
-          <i class="fas fa-plus"></i> Nuevo Asunto
+    </div>
+  </aside>
+
+  <div class="p-4 sm:ml-64">
+    
+    <nav class="w-full bg-white border-b border-gray-200 sticky top-0 z-30 mb-8 rounded-b-lg shadow-sm p-4">
+        <div class="flex items-center justify-between">
+            <span class="font-headings font-bold text-gob-guinda text-lg">Gestión de Expedientes</span>
+            <div class="user-info flex items-center gap-2 text-sm text-gob-gris">
+                <i class="fas fa-user-circle text-xl"></i> <span class="font-medium">Usuario Abogado</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
+        <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
+    </div>
+
+    <div class="toolbar bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="search-global relative w-full md:w-96">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" id="buscador-global" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar en todos los expedientes..."/>
+        </div>
+        <button id="nuevo-asunto" data-modal-target="modal-nuevo-asunto" data-modal-toggle="modal-nuevo-asunto" class="w-full md:w-auto text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-guinda/30 font-bold rounded-lg text-sm px-5 py-2.5 text-center flex items-center justify-center gap-2 shadow-md">
+            <i class="fas fa-plus"></i> Nuevo Expediente
         </button>
-      </div>
+    </div>
 
-      <!-- Filtros -->
-      <div class="filters">
-        <div class="filters-title">
-          <i class="fas fa-filter"></i> Filtros de Asuntos
+    <div class="filters bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="filters-title text-xs font-bold text-gob-oro uppercase tracking-wider font-headings mb-3 border-b border-gray-100 pb-2">
+          <i class="fas fa-filter mr-1"></i> Filtros de Expedientes
         </div>
-        <div class="filter-row">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div class="filter-group">
-            <label for="filter-gerencia-asunto">Gerencia</label>
-            <select id="filter-gerencia-asunto">
-              <option value="">Todas las gerencias</option>
-              <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">Gerencia de Civil Mercantil, Fiscal y Administrativo</option>
-              <option value="Gerencia Jurídica y Financiera">Gerencia Jurídica y Financiera</option>
-              <option value="Gerencia Laboral y Penal">Gerencia Laboral y Penal</option>
+            <label for="filter-gerencia-asunto" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Gerencia</label>
+            <select id="filter-gerencia-asunto" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+              <option value="">Todas</option>
+              <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">Civil Mercantil...</option>
+              <option value="Gerencia Jurídica y Financiera">Jurídica y Fin.</option>
+              <option value="Gerencia Laboral y Penal">Laboral y Penal</option>
             </select>
           </div>
-
           <div class="filter-group">
-            <label for="filter-materia-asunto">Materia</label>
-            <select id="filter-materia-asunto">
-              <option value="">Todas las materias</option>
+            <label for="filter-materia-asunto" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Materia</label>
+            <select id="filter-materia-asunto" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+              <option value="">Todas</option>
               <option value="Administrativo">Administrativo</option>
-              <option value="Agrario">Agrario</option>
-              <option value="Ambiental">Ambiental</option>
-              <option value="Amparo">Amparo</option>
-              <option value="Bancario">Bancario y Bursátil</option>
               <option value="Civil">Civil</option>
-              <option value="Constitucional">Constitucional</option>
-              <option value="Electoral">Electoral</option>
-              <option value="Familiar">Familiar</option>
-              <option value="Fiscal">Fiscal</option>
               <option value="Laboral">Laboral</option>
-              <option value="Mercantil">Mercantil</option>
-              <option value="Migratorio">Migratorio</option>
               <option value="Penal">Penal</option>
-              <option value="Transparencia">Unidad de Transparencia</option>
             </select>
           </div>
-
           <div class="filter-group">
-            <label for="filter-estado-asunto">Estado</label>
-            <select id="filter-estado-asunto">
-              <option value="">Todos los estados</option>
+            <label for="filter-estado-asunto" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Estado</label>
+            <select id="filter-estado-asunto" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+              <option value="">Todos</option>
               <option value="Activo">Activo</option>
               <option value="Archivado">Archivado</option>
               <option value="En espera">En espera</option>
               <option value="Finalizado">Finalizado</option>
             </select>
           </div>
-
           <div class="filter-group">
-            <label for="filter-prioridad-asunto">Prioridad</label>
-            <select id="filter-prioridad-asunto">
-              <option value="">Todas las prioridades</option>
+            <label for="filter-prioridad-asunto" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Prioridad</label>
+            <select id="filter-prioridad-asunto" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+              <option value="">Todas</option>
               <option value="Alta">Alta</option>
               <option value="Media">Media</option>
               <option value="Baja">Baja</option>
             </select>
           </div>
-
           <div class="filter-group">
-            <label for="filter-abogado-asunto">Abogado</label>
-            <select id="filter-abogado-asunto">
-              <option value="">Todos los abogados</option>
+            <label for="filter-abogado-asunto" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Abogado</label>
+            <select id="filter-abogado-asunto" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+              <option value="">Todos</option>
               <option value="Lic. Martínez">Lic. Martínez</option>
               <option value="Lic. González">Lic. González</option>
-              <option value="Lic. Rodríguez">Lic. Rodríguez</option>
             </select>
           </div>
         </div>
-      </div>
+    </div>
 
-      <!-- Lista de asuntos -->
-      <div class="asuntos-grid" id="asuntos-grid">
-        <!-- Las tarjetas se generan dinámicamente -->
-      </div>
-
-      <!-- Mensaje cuando no hay resultados -->
-      <div class="no-resultados" id="no-resultados" style="display:none;">
-        <div class="empty-state">
-          <i class="fas fa-folder-open fa-3x"></i>
-          <h3>No se encontraron asuntos</h3>
-          <p>Intenta ajustar los filtros o crear un nuevo asunto</p>
-          <button class="btn btn-primary" id="btn-crear-primer-asunto">
-            <i class="fas fa-plus"></i> Crear Primer Asunto
-          </button>
+    <div class="asuntos-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="asuntos-grid">
+        
+        <div class="card-asunto group cursor-pointer">
+            <div class="mb-3 flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gob-guinda font-headings">EXP-2025/001</h3>
+                    <p class="text-xs text-gray-500 font-medium uppercase">Administrativo</p>
+                </div>
+                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">Activo</span>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 line-clamp-2">Demanda de nulidad contra resolución administrativa...</p>
+                <div class="mt-2 flex items-center text-xs text-gray-500">
+                    <i class="fas fa-user mr-1"></i> Lic. Martínez
+                </div>
+            </div>
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+                <span class="text-xs text-gob-oro font-bold"><i class="fas fa-calendar mr-1"></i> 20 Nov 2025</span>
+                <button class="text-gob-gris hover:text-gob-guinda text-sm"><i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Panel de recordatorios flotante -->
-  <div class="panel-recordatorios" id="panel-recordatorios">
-    <div class="panel-header">
-      <h4>📅 Recordatorios</h4>
-      <span class="badge" id="contador-recordatorios">0</span>
-      <button class="btn-close-panel" id="close-panel-recordatorios">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <div class="panel-content" id="lista-recordatorios"></div>
-  </div>
+        <div class="card-asunto group cursor-pointer">
+            <div class="mb-3 flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gob-guinda font-headings">EXP-2025/045</h3>
+                    <p class="text-xs text-gray-500 font-medium uppercase">Civil</p>
+                </div>
+                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded border border-yellow-400">En Revisión</span>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 line-clamp-2">Juicio ordinario civil sobre cumplimiento de contrato.</p>
+                <div class="mt-2 flex items-center text-xs text-gray-500">
+                    <i class="fas fa-user mr-1"></i> Lic. González
+                </div>
+            </div>
+            <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+                <span class="text-xs text-gob-oro font-bold"><i class="fas fa-calendar mr-1"></i> 18 Nov 2025</span>
+                <button class="text-gob-gris hover:text-gob-guinda text-sm"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
 
-  <!-- Modal: Nuevo Asunto -->
-  <div class="modal" id="modal-nuevo-asunto">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-plus"></i> Nuevo Asunto</h3>
-        <button class="btn btn-danger" id="cerrar-modal-nuevo-asunto">
-          <i class="fas fa-times"></i> Cerrar
+    </div>
+
+    <div class="no-resultados hidden" id="no-resultados">
+      <div class="empty-state flex flex-col items-center justify-center p-12 bg-white border border-dashed border-gray-300 rounded-lg">
+        <i class="fas fa-folder-open fa-3x text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-bold text-gob-gris font-headings">No se encontraron asuntos</h3>
+        <p class="text-gray-500 mb-4">Intenta ajustar los filtros o crear un nuevo Expediente</p>
+        <button class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5" id="btn-crear-primer-asunto">
+          <i class="fas fa-plus"></i> Crear Primer Asunto
         </button>
       </div>
+    </div>
 
-      <div class="modal-body">
-        <form id="form-nuevo-asunto">
-          <!-- Expediente -->
-          <div class="form-group">
-            <label>Expediente*</label>
-            <input type="text" id="na-expediente" required placeholder="0000/2025"/>
-          </div>
+  </div>
 
-          <!-- Gerencia (corporativa) -->
-          <div class="form-group">
-            <label>Gerencia*</label>
-            <select id="na-gerencia-corporativa" required>
-              <option value="">Selecciona...</option>
-              <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">Gerencia de Civil Mercantil, Fiscal y Administrativo</option>
-              <option value="Gerencia Jurídica y Financiera">Gerencia Jurídica y Financiera</option>
-              <option value="Gerencia Laboral y Penal">Gerencia Laboral y Penal</option>
-            </select>
-          </div>
+  <div id="panel-recordatorios" class="hidden fixed bottom-4 right-4 w-80 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 flex flex-col max-h-[80vh]">
+    <div class="panel-header bg-gob-verde text-white p-3 rounded-t-lg flex justify-between items-center">
+      <h4 class="font-bold text-sm"><i class="fas fa-calendar-alt mr-2"></i> Recordatorios</h4>
+      <span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" id="contador-recordatorios">0</span>
+      <button id="close-panel-recordatorios" class="text-white hover:text-gob-oro"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-content p-3 overflow-y-auto" id="lista-recordatorios"></div>
+  </div>
 
-          <!-- Materia -->
-          <div class="form-group">
-            <label>Materia*</label>
-            <select id="na-materia" required>
-              <option value="">Selecciona...</option>
-              <option value="Administrativo">Administrativo</option>
-              <option value="Agrario">Agrario</option>
-              <option value="Ambiental">Ambiental</option>
-              <option value="Amparo">Amparo</option>
-              <option value="Bancario">Bancario y Bursátil</option>
-              <option value="Civil">Civil</option>
-              <option value="Constitucional">Constitucional</option>
-              <option value="Electoral">Electoral</option>
-              <option value="Familiar">Familiar</option>
-              <option value="Fiscal">Fiscal</option>
-              <option value="Laboral">Laboral</option>
-              <option value="Mercantil">Mercantil</option>
-              <option value="Migratorio">Migratorio</option>
-              <option value="Penal">Penal</option>
-              <option value="Transparencia">Unidad de Transparencia</option>
-            </select>
-          </div>
+  <div id="modal-nuevo-asunto" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900/50 backdrop-blur-sm">
+    <div class="relative w-full max-w-2xl max-h-full">
+      <div class="relative bg-white rounded-lg shadow border-t-4 border-gob-oro">
+        
+        <div class="flex items-start justify-between p-4 border-b rounded-t bg-gray-50">
+          <h3 class="text-xl font-bold text-gob-guinda font-headings"><i class="fas fa-plus mr-2"></i> Nuevo Expediente</h3>
+          <button type="button" id="cerrar-modal-nuevo-asunto" class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center" data-modal-hide="modal-nuevo-asunto">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
 
-          <!-- Sede (Estado) -->
-          <div class="form-group">
-            <label>Sede (Estado)*</label>
-            <select id="na-gerencia" required>
-              <option value="">Seleccione un estado</option>
-              <option value="Aguascalientes">Aguascalientes</option>
-              <option value="Baja California">Baja California</option>
-              <option value="Baja California Sur">Baja California Sur</option>
-              <option value="Campeche">Campeche</option>
-              <option value="Chiapas">Chiapas</option>
-              <option value="Chihuahua">Chihuahua</option>
-              <option value="Ciudad de México">Ciudad de México</option>
-              <option value="Coahuila">Coahuila</option>
-              <option value="Colima">Colima</option>
-              <option value="Durango">Durango</option>
-              <option value="Estado de México">Estado de México</option>
-              <option value="Guanajuato">Guanajuato</option>
-              <option value="Guerrero">Guerrero</option>
-              <option value="Hidalgo">Hidalgo</option>
-              <option value="Jalisco">Jalisco</option>
-              <option value="Michoacán">Michoacán</option>
-              <option value="Morelos">Morelos</option>
-              <option value="Nayarit">Nayarit</option>
-              <option value="Nuevo León">Nuevo León</option>
-              <option value="Oaxaca">Oaxaca</option>
-              <option value="Puebla">Puebla</option>
-              <option value="Querétaro">Querétaro</option>
-              <option value="Quintana Roo">Quintana Roo</option>
-              <option value="San Luis Potosí">San Luis Potosí</option>
-              <option value="Sinaloa">Sinaloa</option>
-              <option value="Sonora">Sonora</option>
-              <option value="Tabasco">Tabasco</option>
-              <option value="Tamaulipas">Tamaulipas</option>
-              <option value="Tlaxcala">Tlaxcala</option>
-              <option value="Veracruz">Veracruz</option>
-              <option value="Yucatán">Yucatán</option>
-              <option value="Zacatecas">Zacatecas</option>
-            </select>
-          </div>
-
-          <!-- Abogado Responsable -->
-          <div class="form-group">
-            <label>Abogado Responsable*</label>
-            <input type="text" id="na-abogado" required placeholder="Lic. Apellido Nombre"/>
-          </div>
-
-          <!-- Partes Procesales -->
-          <div class="form-group">
-            <label>Partes Procesales (Actor/Quejoso/Partes)*</label>
-            <input type="text" id="na-partes" required placeholder="Actor vs. Demandado o partes involucradas"/>
-          </div>
-
-          <!-- Tipo de Asunto -->
-          <div class="form-group">
-            <label>Tipo de Asunto (Prestación/Procedimiento)*</label>
-            <input type="text" id="na-tipo-asunto" required placeholder="Prestación solicitada o procedimiento aplicable"/>
-          </div>
-
-          <!-- Órgano Jurisdiccional -->
-          <div class="form-group">
-            <label>Órgano Jurisdiccional (Tribunal/Autoridad)*</label>
-            <input type="text" id="na-organo-jurisdiccional" required placeholder="Tribunal o autoridad competente"/>
-          </div>
-
-          <!-- Prioridad del Asunto -->
-          <div class="form-group">
-            <label>Prioridad del Asunto*</label>
-            <select id="na-prioridad" required>
-              <option value="">Selecciona...</option>
-              <option value="Alta">Alta</option>
-              <option value="Media" selected>Media</option>
-              <option value="Baja">Baja</option>
-            </select>
-          </div>
-
-          <!-- Descripción -->
-          <div class="form-group">
-            <label>Descripción</label>
-            <textarea id="na-descripcion" rows="3" placeholder="Breve descripción del asunto"></textarea>
-          </div>
-
-          <!-- Campos específicos por materia -->
-          <div class="materia-specific-fields-asunto">
-            <div class="form-group field-transparencia-asunto" style="display:none;">
-              <label>Solicitud (Unidad de Transparencia)*</label>
-              <input type="text" id="na-solicitud" placeholder="Solicitud de transparencia"/>
+        <div class="modal-body p-6 overflow-y-auto max-h-[70vh]">
+          <form id="form-nuevo-asunto" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div class="form-group">
+              <label class="block mb-2 text-sm font-bold text-gob-gris">Expediente*</label>
+              <input type="text" id="na-expediente" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-guinda focus:border-gob-guinda block w-full p-2.5" placeholder="0000/2025"/>
             </div>
-            <div class="form-group field-transparencia-asunto" style="display:none;">
-              <label>Solicitante (Unidad de Transparencia)*</label>
-              <input type="text" id="na-solicitante" placeholder="Nombre del solicitante"/>
-            </div>
-          </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn" id="cancelar-nuevo-asunto">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="guardar-nuevo-asunto">
-              <i class="fas fa-save"></i> Guardar
-            </button>
-          </div>
-        </form>
+            <div class="form-group">
+              <label class="block mb-2 text-sm font-bold text-gob-gris">Gerencia*</label>
+              <select id="na-gerencia-corporativa" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-guinda focus:border-gob-guinda block w-full p-2.5">
+                <option value="">Selecciona...</option>
+                <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">Gerencia de Civil Mercantil...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+              <label class="block mb-2 text-sm font-bold text-gob-gris">Materia*</label>
+              <select id="na-materia" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-guinda focus:border-gob-guinda block w-full p-2.5">
+                <option value="">Selecciona...</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Civil">Civil</option>
+                <option value="Transparencia">Unidad de Transparencia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+              <label class="block mb-2 text-sm font-bold text-gob-gris">Gerencia Estatal*</label>
+              <select id="na-gerencia" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-guinda focus:border-gob-guinda block w-full p-2.5">
+                <option value="">Seleccione...</option>
+                <option value="Ciudad de México">Ciudad de México</option>
+                </select>
+            </div>
+
+            <div class="form-group md:col-span-2">
+              <label class="block mb-2 text-sm font-bold text-gob-gris">Abogado Responsable*</label>
+              <input type="text" id="na-abogado" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-guinda focus:border-gob-guinda block w-full p-2.5"/>
+            </div>
+
+            <div class="modal-footer md:col-span-2 flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+              <button type="button" class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5" id="cancelar-nuevo-asunto" data-modal-hide="modal-nuevo-asunto">Cancelar</button>
+              <button type="submit" class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md" id="guardar-nuevo-asunto">
+                <i class="fas fa-save"></i> Guardar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
   <script src="js/asuntos.js"></script>
   <script src="js/recordatorios.js"></script>
-
+  <script src="js/components.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof initAsuntos === 'function') initAsuntos();
@@ -312,29 +379,16 @@
 
     function setupMateriaFieldsAsunto() {
       const materiaSelect = document.getElementById('na-materia');
-      const fields = document.querySelectorAll('.field-transparencia-asunto');
-
+      const fields = document.querySelectorAll('.field-transparencia-asunto'); 
       if (!materiaSelect) return;
       materiaSelect.addEventListener('change', function () {
         const isTransp = this.value === 'Transparencia';
-        fields.forEach(f => f.style.display = isTransp ? 'block' : 'none');
-
-        const s = document.getElementById('na-solicitud');
-        const n = document.getElementById('na-solicitante');
-        if (s && n) {
-          s.required = isTransp; n.required = isTransp;
-          if (!isTransp) { s.value = ''; n.value = ''; }
-        }
+        fields.forEach(f => {
+             if(isTransp) f.classList.remove('hidden');
+             else f.classList.add('hidden');
+        });
       });
     }
-  </script>
-
-  <!-- Cargar componentes -->
-  <script src="js/components.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      if (typeof loadSidebar === 'function') loadSidebar('asuntos.html');
-    });
   </script>
 </body>
 </html>

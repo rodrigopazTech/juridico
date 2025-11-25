@@ -4,62 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Recordatorios - Agenda Legal</title>
+    
+    <!-- Fuentes oficiales GOB.MX -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Tipografía oficial
+                        sans: ['"Noto Sans"', 'sans-serif'],
+                        headings: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        // PALETA OFICIAL GOB.MX V3
+                        gob: {
+                            guinda: '#9D2449',      // Color Primario (Acciones)
+                            guindaDark: '#611232',  // Hover Primario
+                            oro: '#B38E5D',         // Acentos / Secundario
+                            oroLight: '#DDC9A3',    // Fondos suaves
+                            gris: '#545454',        // Texto principal
+                            plata: '#98989A',       // Texto secundario
+                            verde: '#13322B',       // Fondo Institucional (Sidebar)
+                            verdeDark: '#0C231E',   // Hover Sidebar
+                            fondo: '#F5F5F5'        // Fondo general pagina
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     
     <style>
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        body {
+            background-color: #F5F5F5; /* Fondo gris muy claro oficial */
         }
-        .btn {
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            border: none;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.2s ease;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
+        /* Clase para títulos Montserrat */
+        .font-heading {
+            font-family: 'Montserrat', sans-serif;
         }
         
-        /* --- Estilos del Grid y Gráficas --- */
-        .panel-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        /* Estilos para el panel de recordatorios */
+        .dashboard-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
         }
+        
         .dashboard-card h3 {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        .list-container {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .list-item {
-            padding: 10px 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #545454;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
             border-bottom: 1px solid #f0f0f0;
         }
-        .list-item:last-child { border-bottom: none; }
-        .list-item .title { font-weight: 500; }
-        .list-item .date { font-size: 0.9em; color: #555; }
-
-        /* --- Estilos del Modal --- */
+        
+        /* Estilos para etiquetas horizontales de recordatorios */
+        .horizontal-reminder {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+        
+        .horizontal-reminder:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .horizontal-reminder.urgent {
+            border-left: 4px solid #9D2449;
+        }
+        
+        .horizontal-reminder.normal {
+            border-left: 4px solid #B38E5D;
+        }
+        
+        .horizontal-reminder.completed {
+            border-left: 4px solid #13322B;
+            opacity: 0.8;
+        }
+        
+        .reminder-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .reminder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .reminder-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .reminder-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.3;
+        }
+        
+        .reminder-details {
+            font-size: 0.8rem;
+            color: #6B7280;
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+        
+        .reminder-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #f3f4f6;
+            margin-top: auto;
+        }
+        
+        .time-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #9D2449;
+        }
+        
+        .time-date {
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.4rem;
+            color: #98989A;
+            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+        }
+        
+        .delete-btn:hover {
+            color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .reminder-actions {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .btn-complete {
+            background-color: #13322B;
+            color: white;
+        }
+        
+        .btn-complete:hover {
+            background-color: #0C231E;
+        }
+        
+        .btn-edit {
+            background-color: #B38E5D;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background-color: #9D7A4D;
+        }
+        
+        /* Estilos del Modal */
         .modal {
             display: none; /* Oculto por defecto */
             position: fixed;
@@ -71,123 +217,458 @@
             overflow: auto;
             background-color: rgba(0,0,0,0.4); /* Fondo oscuro semitransparente */
         }
+        
         .modal-content {
             background-color: #fefefe;
             margin: 10% auto; /* 10% desde arriba y centrado */
-            padding: 20px 30px;
-            border: 1px solid #888;
+            padding: 0;
             border-radius: 8px;
             width: 80%;
             max-width: 600px;
             position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
         }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.25rem 1.5rem;
+            background-color: #f9fafb;
+            border-radius: 8px 8px 0 0;
         }
+        
         .modal-header h2 {
             margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #545454;
         }
+        
         .modal-close {
-            color: #aaa;
-            font-size: 28px;
+            color: #6b7280;
+            font-size: 1.5rem;
             font-weight: bold;
             cursor: pointer;
+            line-height: 1;
         }
+        
         .modal-close:hover,
         .modal-close:focus {
-            color: #000;
+            color: #374151;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #9D2449;
+            box-shadow: 0 0 0 3px rgba(157, 36, 73, 0.1);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #9D2449;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #611232;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
         }
     </style>
 </head>
-<body>
-    <div id="sidebar-container"></div>
+<body class="font-sans text-gob-gris antialiased">
 
-    <div class="main-content">
-        <div class="container">
-            <header>
-                <div class="header-content">
-                    <h1><i class="fas fa-sticky-note"></i> Panel de Recordatorios</h1>
-                    <div class="user-info"><i class="fas fa-user-circle"></i> Usuario Abogado</div>
-                </div>
-            </header>
-
-            <div class="toolbar">
-                <h2>Vista General</h2>
-                <button id="btn-abrir-modal" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i> Crear Recordatorio
-                </button>
+    <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-gob-verde border-r border-gob-verdeDark shadow-xl" aria-label="Sidebar">
+        
+        <div class="h-16 flex items-center px-6 border-b border-gob-verdeDark/50 bg-gob-verdeDark/30">
+            <div class="text-white p-1.5 mr-3">
+               <img src="https://framework-gb.cdn.gob.mx/landing/img/logoheader.svg" alt="Gobierno de México" class="h-8 w-auto filter brightness-0 invert">
             </div>
+        </div>
 
-            <div class="panel-grid">
-                <div class="dashboard-card">
-                    <h3>Recordatorios (Pendientes vs Completados)</h3>
-                    <div class="chart-container">
-                        <canvas id="recordatorios-chart"></canvas>
+        <div class="h-full px-3 py-6 overflow-y-auto">
+            
+            <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Principal</div>
+            <ul class="space-y-1 font-medium mb-6">
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                        <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <span class="ms-3">Inicio</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                        <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span class="ms-3">Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Gestión</div>
+            <ul class="space-y-1 font-medium">
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                        <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path></svg>
+                        <span class="ms-3">Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                        <svg class="w-5 h-5 transition duration-75 group-hover:text-gob-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        <span class="ms-3">Expedientes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="recordatorios-panel.html" class="flex items-center p-2 text-white bg-white/10 border-l-4 border-gob-oro rounded-r-lg shadow-sm group">
+                        <i class="fas fa-sticky-note w-5 h-5 text-gob-oro"></i>
+                        <span class="ms-3 font-bold">Recordatorios</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="absolute bottom-0 left-0 w-full p-4 border-t border-gob-verdeDark bg-gob-verdeDark">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full border-2 border-gob-oro flex items-center justify-center bg-white text-gob-guinda font-bold text-xs">
+                        SD
+                    </div>
+                    <div class="font-medium text-white text-sm">
+                        <div class="font-heading">Subdirector</div>
+                        <div class="text-xs text-gob-plata">Agenda Legal</div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </aside>
 
-                <div class="dashboard-card">
-                    <h3><i class="fas fa-clock"></i> Próximos Recordatorios</h3>
-                    <div id="proximos-recordatorios-lista" class="list-container">
-                        </div>
+    <div class="p-4 sm:ml-64">
+        
+        <nav class="w-full bg-white border-b border-gray-200 sticky top-0 z-30 mb-8 rounded-b-lg shadow-sm">
+            <div class="px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center text-sm text-gob-gris">
+                        <span class="hover:text-gob-guinda cursor-pointer font-medium">Inicio</span>
+                        <svg class="w-3 h-3 mx-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="font-bold text-gob-guinda font-heading">Recordatorios</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button class="p-2 text-gob-gris hover:text-gob-guinda transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        </button>
+                        <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gob-gris rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
+        </nav>
 
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gob-gris font-heading tracking-tight">
+                    <i class="fas "></i> Panel de Recordatorios
+                </h1>
+                <p class="text-gray-500 text-sm mt-1 border-l-4 border-gob-oro pl-2">Gestión y seguimiento de recordatorios del sistema.</p>
+            </div>
+            <button id="btn-abrir-modal" type="button" class="flex items-center justify-center text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-guinda/30 font-bold rounded text-sm px-5 py-2.5 shadow-sm transition-all">
+                <i class="fas fa-plus-circle mr-2"></i> Crear Recordatorio
+            </button>
         </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="dashboard-card">
+                <h3><i class="fas fa-clock text-gob-oro mr-2"></i> Próximos Recordatorios</h3>
+                
+                <!-- Recordatorio 1 - Urgente -->
+                <div class="horizontal-reminder urgent">
+                    <button class="delete-btn" onclick="deleteReminder(this)" title="Eliminar recordatorio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <div class="reminder-meta">
+                                <!-- Sin estatus -->
+                            </div>
+                        </div>
+                        <h4 class="reminder-title">Reunión de equipo semanal</h4>
+                        <div class="reminder-details">
+                            Revisión de casos activos y asignación de tareas para la semana en la sala de juntas del piso 3.
+                        </div>
+                        <div class="reminder-time">
+                            <i class="fas fa-clock text-gob-guinda"></i>
+                            <span class="time-text">Hoy •</span>
+                            <span class="time-date">10:00 AM</span>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn-small btn-complete">
+                                <i class="fas fa-check"></i> Completar
+                            </button>
+                            <button class="btn-small btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recordatorio 2 - Normal -->
+                <div class="horizontal-reminder normal">
+                    <button class="delete-btn" onclick="deleteReminder(this)" title="Eliminar recordatorio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <div class="reminder-meta">
+                                <!-- Sin estatus -->
+                            </div>
+                        </div>
+                        <h4 class="reminder-title">Audiencia con cliente</h4>
+                        <div class="reminder-details">
+                            Presentación de avances en caso de propiedad intelectual en el Juzgado Segundo Civil con el cliente Ortega Ibarra Juan.
+                        </div>
+                        <div class="reminder-time">
+                            <i class="fas fa-clock text-gob-guinda"></i>
+                            <span class="time-text">Mañana •</span>
+                            <span class="time-date">2:30 PM</span>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn-small btn-complete">
+                                <i class="fas fa-check"></i> Completar
+                            </button>
+                            <button class="btn-small btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recordatorio 3 - Urgente -->
+                <div class="horizontal-reminder urgent">
+                    <button class="delete-btn" onclick="deleteReminder(this)" title="Eliminar recordatorio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <div class="reminder-meta">
+                                <!-- Sin estatus -->
+                            </div>
+                        </div>
+                        <h4 class="reminder-title">Vencimiento de plazo legal</h4>
+                        <div class="reminder-details">
+                            Presentación de recurso de apelación en caso civil. Plazo crítico que no admite prórroga según artículo 145 del Código Procesal.
+                        </div>
+                        <div class="reminder-time">
+                            <i class="fas fa-clock text-gob-guinda"></i>
+                            <span class="time-text">15 Nov •</span>
+                            <span class="time-date">9:00 AM</span>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn-small btn-complete">
+                                <i class="fas fa-check"></i> Completar
+                            </button>
+                            <button class="btn-small btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recordatorio 4 - Normal -->
+                <div class="horizontal-reminder normal">
+                    <button class="delete-btn" onclick="deleteReminder(this)" title="Eliminar recordatorio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <div class="reminder-meta">
+                                <!-- Sin estatus -->
+                            </div>
+                        </div>
+                        <h4 class="reminder-title">Junta con departamento jurídico</h4>
+                        <div class="reminder-details">
+                            Análisis de reformas legislativas recientes y su impacto en los casos activos. Coordinación de estrategias para el próximo trimestre.
+                        </div>
+                        <div class="reminder-time">
+                            <i class="fas fa-clock text-gob-guinda"></i>
+                            <span class="time-text">18 Nov •</span>
+                            <span class="time-date">11:00 AM</span>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn-small btn-complete">
+                                <i class="fas fa-check"></i> Completar
+                            </button>
+                            <button class="btn-small btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recordatorio 5 - Completado -->
+                <div class="horizontal-reminder completed">
+                    <button class="delete-btn" onclick="deleteReminder(this)" title="Eliminar recordatorio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <div class="reminder-meta">
+                                <!-- Sin estatus -->
+                            </div>
+                        </div>
+                        <h4 class="reminder-title">Revisión de contratos</h4>
+                        <div class="reminder-details">
+                            Revisión de cláusulas en contratos con proveedores, verificación de términos de confidencialidad y condiciones de pago.
+                        </div>
+                        <div class="reminder-time">
+                            <i class="fas fa-clock text-gob-guinda"></i>
+                            <span class="time-text">Completado •</span>
+                            <span class="time-date">10 Nov, 3:00 PM</span>
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn-small btn-edit">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <!-- Modal para crear recordatorio -->
     <div id="modal-crear-recordatorio" class="modal">
         <div class="modal-content">
-            
             <div class="modal-header">
                 <h2>Crear Nuevo Recordatorio</h2>
                 <span id="modal-close-btn" class="modal-close">&times;</span>
             </div>
-
-            <form id="form-crear-recordatorio" style="margin-top: 20px;">
-                <div class="form-group">
-                    <label for="recordatorio-titulo">Título del recordatorio</label>
-                    <input type="text" id="recordatorio-titulo" class="form-control" placeholder="Ej: Junta de equipo" required>
-                </div>
-                <div class="form-group">
-                    <label for="recordatorio-fecha">Fecha y Hora de Notificación</label>
-                    <input type="datetime-local" id="recordatorio-fecha" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="recordatorio-detalles">Detalles (Opcional)</label>
-                    <textarea id="recordatorio-detalles" class="form-control" placeholder="Ej: Revisión semanal de casos"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Guardar Recordatorio
-                </button>
-            </form>
-            
+            <div class="modal-body">
+                <form id="form-crear-recordatorio">
+                    <div class="form-group">
+                        <label for="recordatorio-titulo">Título del recordatorio</label>
+                        <input type="text" id="recordatorio-titulo" class="form-control" placeholder="Ej: Junta de equipo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordatorio-fecha">Fecha y Hora de Notificación</label>
+                        <input type="datetime-local" id="recordatorio-fecha" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="recordatorio-detalles">Detalles</label>
+                        <textarea id="recordatorio-detalles" class="form-control" placeholder="Ej: Revisión semanal de casos" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Recordatorio
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-    <script src="js/notificaciones.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    
-    <script src="js/recordatorios-panel.js"></script>
-    
-    <script src="js/components.js"></script>
     <script>
+        // Funcionalidad del modal
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('recordatorios-panel.html'); // Marcar este como activo
+            const modal = document.getElementById('modal-crear-recordatorio');
+            const btnAbrirModal = document.getElementById('btn-abrir-modal');
+            const btnCerrarModal = document.getElementById('modal-close-btn');
+            
+            btnAbrirModal.onclick = function() {
+                modal.style.display = 'block';
             }
             
-            // --- CÓDIGO CORREGIDO ---
-            // Verifica si el objeto PanelRecordatorios existe y tiene el método .init
-            if (window.PanelRecordatorios && typeof window.PanelRecordatorios.init === 'function') {
-                PanelRecordatorios.init();
+            btnCerrarModal.onclick = function() {
+                modal.style.display = 'none';
             }
+            
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+            
+            // Manejo del formulario
+            document.getElementById('form-crear-recordatorio').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Aquí iría la lógica para guardar el recordatorio
+                alert('Recordatorio creado exitosamente');
+                modal.style.display = 'none';
+                
+                // Limpiar formulario
+                this.reset();
+            });
+            
+            // Funcionalidad para botones de completar
+            document.querySelectorAll('.btn-complete').forEach(button => {
+                button.addEventListener('click', function() {
+                    const reminder = this.closest('.horizontal-reminder');
+                    reminder.classList.remove('urgent', 'normal');
+                    reminder.classList.add('completed');
+                    
+                    // Ocultar botón de completar
+                    this.style.display = 'none';
+                    
+                    alert('Recordatorio marcado como completado');
+                });
+            });
         });
+
+        // Función para eliminar recordatorios
+        function deleteReminder(button) {
+            const reminder = button.closest('.horizontal-reminder');
+            if (reminder && confirm('¿Está seguro de que desea eliminar este recordatorio?')) {
+                // Animación de desvanecimiento
+                reminder.style.opacity = '0';
+                reminder.style.transform = 'translateX(100%)';
+                
+                // Eliminar después de la animación
+                setTimeout(() => {
+                    reminder.remove();
+                }, 300);
+            }
+        }
     </script>
 </body>
 </html>

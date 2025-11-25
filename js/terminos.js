@@ -19,7 +19,7 @@ const PERMISOS_ETAPAS = {
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion'],
     'Gerencia':    ['Gerente', 'Direccion'],
     'Dirección':   ['Direccion', 'Subdireccion'],
-    'Liberado':    ['Abogado', 'JefeDepto', 'Gerente'],
+    'Liberado':    ['Abogado', 'JefeDepto', 'Gerente','Direccion'],
     'Presentado':  ['Direccion'],
     'Concluido':   []
 };
@@ -67,8 +67,15 @@ function cargarDatosIniciales() {
         TERMINOS = localData;
     } else {
         TERMINOS = [
-            { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-11-20', acuseDocumento: '' },
-            { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-15', fechaVencimiento: '2025-11-22', acuseDocumento: '' }
+            { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-02', acuseDocumento: '' },
+            { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-08', acuseDocumento: '' },
+            { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-11-11', fechaVencimiento: '2025-12-25', acuseDocumento: '' },
+            { id: 4, expediente: '1000/2024', actor: 'Alam Ramses', asunto: 'Deespido', prestacion: 'Reinstalación', abogado: 'Lic. González', estatus: 'Dirección', fechaIngreso: '2025-10-30', fechaVencimiento: '2025-11-18', acuseDocumento: '' },
+            { id: 5, expediente: '2274/2025', actor: 'Ricardo Dominguez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Liberado', fechaIngreso: '2025-11-20', fechaVencimiento: '2025-11-12', acuseDocumento: '' },
+            { id: 6, expediente: '1200/2024', actor: 'Aurora', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-09-15', fechaVencimiento: '2025-10-22', acuseDocumento: '' },
+            { id: 7, expediente: '1201/2024', actor: 'Ricardo Villalobos', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Proyectista', fechaIngreso: '2025-11-25', fechaVencimiento: '2025-12-22', acuseDocumento: '' },
+            {id: 8, expediente: '1200/2024', actor: 'Aurora', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-09-15', fechaVencimiento: '2025-10-22', acuseDocumento: '' },
+            { id: 9, expediente: '1201/2024', actor: 'Ricardo Villalobos', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Proyectista', fechaIngreso: '2025-10-25', fechaVencimiento: '2025-11-25', acuseDocumento: '' }
         ];
         localStorage.setItem('terminos', JSON.stringify(TERMINOS));
     }
@@ -102,8 +109,15 @@ function loadTerminos() {
     let html = '';
     listaFiltrada.forEach(t => {
         // Clases Tailwind dinámicas
-        const semaforoColor = getSemaforoColor(t.fechaVencimiento); // Retorna clase de color tailwind
-        const badgeClass = getBadgeClass(t.estatus); // Retorna clases de badge tailwind
+        const semaforoColor = getSemaforoColor(t.fechaVencimiento); 
+        const badgeClass = getBadgeClass(t.estatus);
+        
+        // CALCULO DE TEXTO PARA EL TOOLTIP (Nuevo)
+        const diasRestantes = calcularDiasRestantes(t.fechaVencimiento);
+        let tooltipTexto = "";
+        if (diasRestantes < 0) tooltipTexto = `Vencido hace ${Math.abs(diasRestantes)} días`;
+        else if (diasRestantes === 0) tooltipTexto = "Vence HOY";
+        else tooltipTexto = `Faltan ${diasRestantes} días`;
         
         html += `
         <tr class="bg-white hover:bg-gray-50 transition-colors group" data-id="${t.id}">
@@ -193,7 +207,7 @@ function generarAccionesRapidas(termino, rol) {
 
     if (rol === 'Gerente' || rol === 'Direccion') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends"></i> Reasignar</button>`;
+        //html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends"></i> Reasignar</button>`;
         if (rol === 'Direccion') {
             html += `<button class="${itemClass} action-delete text-red-600 font-bold"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
         }
@@ -220,11 +234,52 @@ function setupActionMenuListener() {
         if (target.classList.contains('action-menu-toggle')) {
             e.preventDefault();
             e.stopPropagation();
-            // Cerrar otros
+
+            const menu = target.nextElementSibling; 
+            
+            // Si ya está abierto, cerrar
+            if (!menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                menu.style.cssText = ''; // Limpiar estilos inline
+                return;
+            }
+
+            // 1. Cerrar otros menús
             document.querySelectorAll('.action-menu').forEach(m => {
-                if(m !== target.nextElementSibling) m.classList.add('hidden');
+                m.classList.add('hidden');
+                m.style.cssText = '';
             });
-            target.nextElementSibling.classList.toggle('hidden');
+
+            // 2. Mostrar para poder medir su altura
+            menu.classList.remove('hidden');
+
+            // 3. CÁLCULOS DE POSICIÓN
+            const rect = target.getBoundingClientRect(); // Posición del botón
+            const menuHeight = menu.offsetHeight || 220; // Altura del menú (o estimado)
+            const viewportHeight = window.innerHeight; // Altura de la pantalla
+            const spaceBelow = viewportHeight - rect.bottom; // Espacio disponible abajo
+
+            // 4. APLICAR ESTILOS
+            menu.style.position = 'fixed';
+            menu.style.left = (rect.left - 140) + 'px'; // Alineación horizontal
+            menu.style.zIndex = '99999';
+            menu.style.width = '12rem';
+
+            // 5. DECISIÓN: ¿ARRIBA O ABAJO?
+            if (spaceBelow < menuHeight) {
+                // NO CABE ABAJO -> ABRIR HACIA ARRIBA
+                menu.style.top = 'auto'; 
+                // Calculamos la distancia desde el fondo de la pantalla hasta el tope del botón
+                menu.style.bottom = (viewportHeight - rect.top + 5) + 'px';
+                // Opcional: Agregar clase para estilizar la puntita del menú si tuviera
+                menu.classList.add('open-upwards'); 
+            } else {
+                // SÍ CABE ABAJO -> ABRIR HACIA ABAJO (Normal)
+                menu.style.bottom = 'auto';
+                menu.style.top = (rect.bottom + 5) + 'px';
+                menu.classList.remove('open-upwards');
+            }
+            
             return;
         }
 
@@ -234,7 +289,7 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
-        else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
+        //else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
         else if (target.classList.contains('action-delete')) {
             if(confirm('¿Eliminar término permanentemente?')) {
                 TERMINOS = TERMINOS.filter(t => t.id != id);
@@ -242,17 +297,23 @@ function setupActionMenuListener() {
             }
         }
         
-        // Cerrar menú tras click
-        const menu = row.querySelector('.action-menu');
-        if(menu) menu.classList.add('hidden');
+      document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
     });
     
-    // Cerrar click fuera
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('.action-menu-container')) {
-            document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+        if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
+            document.querySelectorAll('.action-menu').forEach(m => {
+                m.classList.add('hidden');
+                m.style.position = ''; // Limpiar estilos al cerrar
+            });
         }
     });
+    window.addEventListener('scroll', function() {
+            document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => {
+                m.classList.add('hidden');
+            });
+        }, true);
+
 }
 
 // ===============================================
@@ -442,9 +503,35 @@ function setupFileUploads() {
     }
 }
 
+function calcularDiasRestantes(fechaVencimiento) {
+    if (!fechaVencimiento) return null;
+
+    // Crear fechas asegurando que sean a las 00:00 horas para comparar solo días
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // Parsear la fecha string (YYYY-MM-DD) para evitar problemas de zona horaria
+    const [year, month, day] = fechaVencimiento.split('-').map(Number);
+    const vencimiento = new Date(year, month - 1, day); // Mes es base 0 en JS
+
+    // Diferencia en milisegundos
+    const diferenciaMs = vencimiento - hoy;
+    
+    // Convertir a días (redondeando hacia arriba)
+    return Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+}
+
 function getSemaforoColor(fecha) {
-    // Aquí puedes poner lógica de fechas reales. Por ahora demo.
-    return 'bg-green-500'; // bg-red-500, bg-yellow-500
+  const dias = calcularDiasRestantes(fecha);
+    
+    if (dias === null) return 'bg-gray-300'; // Sin fecha
+
+    if (dias < 0) return 'bg-red-700';      // Vencido (Rojo oscuro)
+    if (dias === 0) return 'bg-red-500 animate-pulse'; // Vence HOY (Rojo parpadeante)
+    if (dias <= 3) return 'bg-orange-500';  // Urgente (1-3 días) (Naranja)
+    if (dias <= 7) return 'bg-yellow-400';  // Advertencia (4-7 días) (Amarillo)
+    
+    return 'bg-green-500';
 }
 
 function getBadgeClass(estatus) {

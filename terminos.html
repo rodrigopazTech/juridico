@@ -396,13 +396,13 @@
 
     <div
       id="modal-termino"
-      class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4 overflow-y-auto"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4"
     >
       <div
-        class="relative w-full max-w-4xl bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro my-8"
+        class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro"
       >
         <div
-          class="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t"
+          class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t"
         >
           <h2
             class="text-xl font-bold text-gob-guinda font-headings"
@@ -417,7 +417,8 @@
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <div class="p-6">
+
+        <div class="flex-1 overflow-y-auto p-6">
           <form id="form-termino">
             <input type="hidden" id="termino-id" />
             <input type="hidden" id="termino-asunto-id" />
@@ -559,7 +560,7 @@
                 >
                 <textarea
                   id="actuacion"
-                  rows="2"
+                  rows="3"
                   required
                   class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5 focus:ring-gob-guinda focus:border-gob-guinda"
                   placeholder="Descripción..."
@@ -587,6 +588,7 @@
                   class="bg-gray-50 border border-gray-300 text-sm rounded w-full p-2"
                 />
               </div>
+
               <div style="display: none">
                 <input id="etapa-revision" /><input id="atendido" /><input
                   id="observaciones"
@@ -597,8 +599,9 @@
             </div>
           </form>
         </div>
+
         <div
-          class="flex items-center justify-end p-4 border-t bg-gray-50 rounded-b gap-3"
+          class="flex-none flex items-center justify-end p-4 border-t bg-gray-50 rounded-b gap-3"
         >
           <button
             id="cancel-termino"

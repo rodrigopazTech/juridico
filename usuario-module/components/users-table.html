@@ -1,0 +1,62 @@
+<!-- Users Table Component -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  <!-- Toolbar -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div class="relative w-full sm:w-96">
+      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <i class="fas fa-search text-gray-400"></i>
+      </div>
+      <input type="text" id="search-usuarios" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full pl-10 p-2.5" placeholder="Buscar usuarios...">
+    </div>
+    <button id="add-usuario" class="text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-oro font-bold rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+      <i class="fas fa-plus mr-2"></i> Nuevo Usuario
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+    <div class="flex items-center mb-3">
+      <i class="fas fa-filter text-gob-oro mr-2"></i>
+      <h3 class="text-sm font-bold text-gob-gris font-headings">Filtros de Usuarios</h3>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="filter-rol" class="block mb-2 text-sm font-bold text-gob-gris">Rol</label>
+        <select id="filter-rol" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+          <option value="">Todos los roles</option>
+          <option value="SUBDIRECTOR">Subdirector</option>
+          <option value="GERENTE">Gerente</option>
+          <option value="ABOGADO">Abogado</option>
+        </select>
+      </div>
+      <div>
+        <label for="filter-activo" class="block mb-2 text-sm font-bold text-gob-gris">Estado</label>
+        <select id="filter-activo" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+          <option value="">Todos los estados</option>
+          <option value="true">Activo</option>
+          <option value="false">Inactivo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="relative overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th scope="col" class="px-6 py-3 font-bold">Nombre</th>
+          <th scope="col" class="px-6 py-3 font-bold">Correo</th>
+          <th scope="col" class="px-6 py-3 font-bold">Rol</th>
+          <th scope="col" class="px-6 py-3 font-bold">Gerencia</th>
+          <th scope="col" class="px-6 py-3 font-bold">Estado</th>
+          <th scope="col" class="px-6 py-3 font-bold">Fecha de Registro</th>
+          <th scope="col" class="px-6 py-3 font-bold text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="usuarios-body" class="divide-y divide-gray-200">
+        <!-- Populated by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>

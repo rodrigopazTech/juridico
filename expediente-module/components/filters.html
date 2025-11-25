@@ -1,0 +1,55 @@
+<!-- Filtros Expedientes -->
+<div class="filters bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+  <div class="filters-title text-xs font-bold text-gob-oro uppercase tracking-wider font-headings mb-3 border-b border-gray-100 pb-2">
+    <i class="fas fa-filter mr-1"></i> Filtros de Expedientes
+  </div>
+  
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+    <div class="filter-group">
+      <label for="filter-gerencia" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Gerencia</label>
+      <select id="filter-gerencia" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+        <option value="">Todas</option>
+        <option value="Gerencia de Civil Mercantil, Fiscal y Administrativo">Civil Mercantil...</option>
+        <option value="Gerencia Jurídica y Financiera">Jurídica y Fin.</option>
+        <option value="Gerencia Laboral y Penal">Laboral y Penal</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-materia" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Materia</label>
+      <select id="filter-materia" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+        <option value="">Todas</option>
+        <option value="Administrativo">Administrativo</option>
+        <option value="Civil">Civil</option>
+        <option value="Laboral">Laboral</option>
+        <option value="Penal">Penal</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-estado" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Estado</label>
+      <select id="filter-estado" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+        <option value="">Todos</option>
+        <option value="Activo">Activo</option>
+        <option value="Archivado">Archivado</option>
+        <option value="En espera">En espera</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-prioridad" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Prioridad</label>
+      <select id="filter-prioridad" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+        <option value="">Todas</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-abogado" class="block mb-1 text-xs font-bold text-gob-gris uppercase">Abogado</label>
+      <select id="filter-abogado" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2">
+        <option value="">Todos</option>
+        <option value="Lic. Martínez">Lic. Martínez</option>
+        <option value="Lic. González">Lic. González</option>
+      </select>
+    </div>
+  </div>
+</div>

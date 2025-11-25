@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expedientes | Módulo</title>
+  <!-- Tailwind / Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans"', 'sans-serif'],
+            headings: ['"Montserrat"', 'sans-serif'],
+          },
+          colors: {
+            gob: {
+              guinda: '#9D2449',
+              guindaDark: '#611232',
+              oro: '#B38E5D',
+              oroLight: '#DDC9A3',
+              gris: '#545454',
+              plata: '#98989A',
+              verde: '#13322B',
+              verdeDark: '#0C231E',
+              fondo: '#F5F5F5'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Noto Sans', sans-serif; }
+    .font-headings { font-family: 'Montserrat', sans-serif; }
+    /* Estilo de Tarjeta */
+    .card-asunto {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        border-top: 4px solid #9D2449;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .card-asunto:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        border-color: #B38E5D;
+    }
+  </style>
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
+
+  <!-- Sidebar -->
+  <div data-include="./components/sidebar.html"></div>
+
+  <div class="p-4 sm:ml-64">
+    
+    <!-- Navbar -->
+    <div data-include="./components/navbar.html"></div>
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
+        <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
+    </div>
+
+    <!-- Toolbar -->
+    <div data-include="./components/toolbar.html"></div>
+    <!-- Filtros -->
+    <div data-include="./components/filters.html"></div>
+
+    <!-- Área de tarjetas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="expedientes-list"></div>
+
+    <!-- Empty State -->
+    <div data-include="./components/empty-state.html"></div>
+
+    <!-- Template Card -->
+    <div data-include="./components/expediente-card.html"></div>
+
+    <!-- Modal Create -->
+    <div data-include="./components/modal-create.html"></div>
+  </div>
+
+  <script type="module">
+    import { loadIncludes } from './js/loader.js';
+    import { ExpedientesModule } from './js/expedientes.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadIncludes();
+      const module = new ExpedientesModule();
+      module.init();
+    });
+  </script>
+</body>
+</html>

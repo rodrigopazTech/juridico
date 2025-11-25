@@ -1,0 +1,84 @@
+<!-- Modal Create/Edit User -->
+<div id="modal-usuario" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900/50 backdrop-blur-sm">
+  <div class="relative p-4 w-full max-w-2xl max-h-full">
+    <div class="relative bg-white rounded-lg shadow border-t-4 border-gob-oro">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 id="modal-usuario-title" class="text-xl font-bold text-gob-guinda font-headings">
+          <i class="fas fa-user-plus"></i> Nuevo Usuario
+        </h3>
+        <button type="button" id="close-modal-usuario" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+          </svg>
+          <span class="sr-only">Cerrar modal</span>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="p-4 md:p-5">
+        <form id="form-usuario" class="space-y-4">
+          <input type="hidden" id="usuario-id">
+          
+          <div>
+            <label for="usuario-nombre" class="block mb-2 text-sm font-bold text-gob-gris">Nombre Completo *</label>
+            <input type="text" id="usuario-nombre" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="Ej. Lic. María González Ruiz" required>
+          </div>
+          
+          <div>
+            <label for="usuario-correo" class="block mb-2 text-sm font-bold text-gob-gris">Correo Electrónico *</label>
+            <input type="email" id="usuario-correo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="usuario@empresa.com" required>
+          </div>
+          
+          <div>
+            <label for="usuario-contraseña" class="block mb-2 text-sm font-bold text-gob-gris">Contraseña *</label>
+            <input type="password" id="usuario-contraseña" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="Mínimo 8 caracteres" required>
+            <small class="text-gray-500 text-xs">La contraseña debe tener al menos 8 caracteres</small>
+          </div>
+          
+          <div>
+            <label for="usuario-rol" class="block mb-2 text-sm font-bold text-gob-gris">Rol *</label>
+            <select id="usuario-rol" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" required>
+              <option value="">Seleccione un rol</option>
+              <option value="SUBDIRECTOR">Subdirector</option>
+              <option value="GERENTE">Gerente</option>
+              <option value="ABOGADO">Abogado</option>
+            </select>
+          </div>
+          
+          <div>
+            <label for="usuario-gerencia" class="block mb-2 text-sm font-bold text-gob-gris">Gerencia *</label>
+            <select id="usuario-gerencia" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" required>
+              <option value="">Seleccione una gerencia</option>
+            </select>
+          </div>
+          
+          <div id="usuario-materias-group" style="display: none;">
+            <label class="block mb-2 text-sm font-bold text-gob-gris">Materias Asignadas *</label>
+            <div id="usuario-materias-checkbox-container" class="checkbox-container">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+          
+          <div>
+            <label for="usuario-activo" class="block mb-2 text-sm font-bold text-gob-gris">Estado</label>
+            <select id="usuario-activo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-3 p-4 md:p-5 border-t border-gray-200">
+        <button type="button" id="cancel-usuario" class="text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 font-bold rounded-lg text-sm px-5 py-2.5 text-center border border-gray-300">
+          Cancelar
+        </button>
+        <button type="button" id="save-usuario" class="text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:outline-none focus:ring-gob-oro font-bold rounded-lg text-sm px-5 py-2.5 text-center">
+          Guardar Usuario
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -24,7 +24,7 @@ const PERMISOS_ETAPAS = {
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion'],
     'Gerencia':    ['Gerente', 'Direccion'],
     'Dirección':   ['Direccion', 'Subdireccion'],
-    'Liberado':    ['Abogado', 'JefeDepto', 'Gerente'],
+    'Liberado':    ['Abogado', 'JefeDepto', 'Gerente','Direccion'],
     'Presentado':  ['Direccion'],
     'Concluido':   []
 };

@@ -1,0 +1,44 @@
+<!-- Month View Container -->
+<div id="calendarMonthView" class="calendar-view">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    
+    <!-- Month Header -->
+    <div class="bg-gradient-to-r from-gob-verde to-gob-verdeDark text-white p-4">
+      <h3 id="monthViewName" class="text-xl font-bold font-headings">Noviembre 2025</h3>
+      <p id="monthViewCount" class="text-sm text-white/80 mt-1">32 eventos este mes</p>
+    </div>
+
+    <!-- Days of Week Header -->
+    <div class="grid grid-cols-7 border-b border-gray-300">
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">DOM</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">LUN</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">MAR</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">MIÉ</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">JUE</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">VIE</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50">SÁB</div>
+    </div>
+
+    <!-- Month Grid -->
+    <div id="monthViewGrid" class="grid grid-cols-7">
+      <!-- Day cells will be generated dynamically -->
+      <!-- Example structure:
+      <div class="min-h-[120px] border-r border-b border-gray-200 p-2 bg-white hover:bg-gray-50 transition-colors cursor-pointer">
+        <div class="flex justify-between items-start mb-1">
+          <span class="text-sm font-semibold text-gray-700">25</span>
+          <span class="text-xs text-gray-500">3</span>
+        </div>
+        <div class="space-y-1">
+          <div class="event-dot bg-blue-500 text-white text-xs px-2 py-0.5 rounded truncate">
+            Audiencia
+          </div>
+          <div class="event-dot bg-green-500 text-white text-xs px-2 py-0.5 rounded truncate">
+            Término
+          </div>
+        </div>
+      </div>
+      -->
+    </div>
+
+  </div>
+</div>

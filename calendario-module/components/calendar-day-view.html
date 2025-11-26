@@ -1,0 +1,56 @@
+<!-- Day View Container -->
+<div id="calendarDayView" class="calendar-view hidden">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    
+    <!-- Day Header -->
+    <div class="bg-gradient-to-r from-gob-guinda to-gob-guindaDark text-white p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 id="dayViewDate" class="text-2xl font-bold font-headings">Lunes, 25 de Noviembre 2025</h3>
+          <p id="dayViewCount" class="text-sm text-white/80 mt-1">5 eventos programados</p>
+        </div>
+        <div class="text-right">
+          <div class="text-3xl font-bold">25</div>
+          <div class="text-sm">NOV</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="p-4">
+      <div id="dayViewTimeline" class="space-y-1">
+        <!-- Time slots will be generated dynamically -->
+        <!-- Example structure:
+        <div class="flex items-start border-b border-gray-100 py-3">
+          <div class="w-20 text-sm text-gray-500 font-medium">09:00</div>
+          <div class="flex-1">
+            <div class="event-card bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="font-semibold text-gray-900">Audiencia Inicial</div>
+                  <div class="text-sm text-gray-600 mt-1">EXP-001 - Civil</div>
+                  <div class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-user mr-1"></i>Lic. González
+                  </div>
+                </div>
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Pendiente</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        -->
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="dayViewEmpty" class="hidden p-12 text-center">
+      <i class="fas fa-calendar-check text-6xl text-gray-300 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay eventos programados</h3>
+      <p class="text-gray-500 mb-4">Este día no tiene audiencias, términos ni recordatorios</p>
+      <button class="btnCreateEventDay px-6 py-3 bg-gob-guinda hover:bg-gob-guindaDark text-white rounded-lg font-medium transition-colors">
+        <i class="fas fa-plus mr-2"></i>Crear Evento
+      </button>
+    </div>
+
+  </div>
+</div>

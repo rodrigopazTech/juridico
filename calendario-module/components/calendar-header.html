@@ -1,0 +1,94 @@
+<!-- Calendar Header: Navigation and Filters -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+  
+  <!-- Top Row: Navigation and View Selector -->
+  <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+    
+    <!-- Navigation Controls -->
+    <div class="flex items-center gap-3">
+      <button id="btnPrevious" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <h2 id="currentPeriod" class="text-xl font-bold text-gob-guinda font-headings min-w-[200px] text-center">
+        Noviembre 2025
+      </h2>
+      
+      <button id="btnNext" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- View Selector -->
+    <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+      <button data-view="day" class="view-btn px-4 py-2 text-sm font-medium text-gray-600 hover:bg-white rounded-md transition-colors">
+        <i class="fas fa-calendar-day mr-2"></i>Día
+      </button>
+      <button data-view="week" class="view-btn px-4 py-2 text-sm font-medium text-gray-600 hover:bg-white rounded-md transition-colors">
+        <i class="fas fa-calendar-week mr-2"></i>Semana
+      </button>
+      <button data-view="month" class="view-btn px-4 py-2 text-sm font-medium bg-white text-gob-guinda rounded-md shadow-sm">
+        <i class="fas fa-calendar-alt mr-2"></i>Mes
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Bottom Row: Filters -->
+  <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+    
+    <!-- Event Type Filter -->
+    <div class="flex items-center gap-2 flex-1">
+      <i class="fas fa-filter text-gob-guinda"></i>
+      <span class="text-sm font-semibold text-gob-gris">Tipo:</span>
+      <select id="filterTipo" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+        <option value="">Todos los eventos</option>
+        <option value="audiencia">🎯 Audiencias</option>
+        <option value="termino">⏰ Términos</option>
+        <option value="recordatorio">📝 Recordatorios</option>
+      </select>
+    </div>
+
+    <!-- Gerencia Filter -->
+    <div class="flex items-center gap-2 flex-1">
+      <span class="text-sm font-semibold text-gob-gris">Gerencia:</span>
+      <select id="filterGerencia" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+        <option value="">Todas las gerencias</option>
+      </select>
+    </div>
+
+    <!-- User Filter -->
+    <div class="flex items-center gap-2 flex-1">
+      <span class="text-sm font-semibold text-gob-gris">Usuario:</span>
+      <select id="filterUsuario" class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+        <option value="">Todos los usuarios</option>
+      </select>
+    </div>
+
+    <!-- Create Event Button -->
+    <button id="btnCreateEvent" class="px-4 py-2 bg-gob-guinda hover:bg-gob-guindaDark text-white rounded-lg font-medium transition-colors whitespace-nowrap">
+      <i class="fas fa-plus mr-2"></i>Nuevo Evento
+    </button>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-200">
+    <span class="text-xs font-semibold text-gray-600">Leyenda:</span>
+    <div class="flex flex-wrap items-center gap-4 text-xs">
+      <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+        <span class="text-gray-600">Audiencias</span>
+      </span>
+      <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+        <span class="text-gray-600">Términos</span>
+      </span>
+      <span class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-yellow-600"></span>
+        <span class="text-gray-600">Recordatorios</span>
+      </span>
+    </div>
+  </div>
+
+</div>

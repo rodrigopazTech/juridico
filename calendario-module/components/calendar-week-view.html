@@ -1,0 +1,41 @@
+<!-- Week View Container -->
+<div id="calendarWeekView" class="calendar-view hidden">
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    
+    <!-- Week Header -->
+    <div class="bg-gradient-to-r from-gob-oro to-yellow-700 text-white p-4">
+      <h3 id="weekViewRange" class="text-xl font-bold font-headings">23 - 29 Noviembre 2025</h3>
+      <p id="weekViewCount" class="text-sm text-white/80 mt-1">15 eventos esta semana</p>
+    </div>
+
+    <!-- Days Grid -->
+    <div class="grid grid-cols-7 border-b border-gray-300">
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">DOM</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">LUN</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">MAR</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">MIÉ</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">JUE</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50 border-r border-gray-200">VIE</div>
+      <div class="p-3 text-center font-semibold text-sm text-gray-700 bg-gray-50">SÁB</div>
+    </div>
+
+    <!-- Week Grid -->
+    <div id="weekViewGrid" class="grid grid-cols-7 min-h-[500px]">
+      <!-- Day columns will be generated dynamically -->
+      <!-- Example structure:
+      <div class="border-r border-gray-200 p-2 bg-gray-50/30">
+        <div class="text-center mb-2">
+          <div class="text-2xl font-bold text-gray-800">25</div>
+        </div>
+        <div class="space-y-1">
+          <div class="event-item bg-blue-100 border-l-2 border-blue-500 p-1.5 rounded-r text-xs cursor-pointer hover:bg-blue-200">
+            <div class="font-semibold truncate">Audiencia</div>
+            <div class="text-gray-600 truncate">09:00 - EXP-001</div>
+          </div>
+        </div>
+      </div>
+      -->
+    </div>
+
+  </div>
+</div>

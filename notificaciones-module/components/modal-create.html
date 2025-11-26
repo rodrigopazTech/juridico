@@ -1,0 +1,118 @@
+<!-- Modal para crear/editar notificación -->
+<div id="modal-notificacion" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900 bg-opacity-50">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-lg">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b border-gray-200 rounded-t bg-gob-guinda">
+                <h3 class="text-xl font-bold text-white font-headings">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    <span id="modal-title">Nueva Notificación</span>
+                </h3>
+                <button type="button" class="text-white hover:bg-gob-guindaDark rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center transition-colors" data-modal-hide="modal-notificacion">
+                    <i class="fas fa-times text-xl"></i>
+                    <span class="sr-only">Cerrar modal</span>
+                </button>
+            </div>
+            
+            <!-- Modal body -->
+            <form id="form-notificacion" class="p-4 md:p-5">
+                <div class="grid gap-4 mb-4">
+                    
+                    <!-- Tipo de Notificación -->
+                    <div>
+                        <label for="notif-tipo" class="block mb-2 text-sm font-bold text-gob-gris">
+                            Tipo de Notificación <span class="text-red-500">*</span>
+                        </label>
+                        <select id="notif-tipo" required class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="audiencia">Audiencia</option>
+                            <option value="termino">Término</option>
+                            <option value="asunto">Asunto</option>
+                            <option value="recordatorio">Recordatorio</option>
+                        </select>
+                    </div>
+
+                    <!-- Título -->
+                    <div>
+                        <label for="notif-titulo" class="block mb-2 text-sm font-bold text-gob-gris">
+                            Título <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="notif-titulo" required class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="Ej: Audiencia Preliminar - Caso 2025-001">
+                    </div>
+
+                    <!-- Detalles -->
+                    <div>
+                        <label for="notif-detalles" class="block mb-2 text-sm font-bold text-gob-gris">
+                            Detalles
+                        </label>
+                        <textarea id="notif-detalles" rows="3" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="Información adicional..."></textarea>
+                    </div>
+
+                    <!-- Expediente -->
+                    <div>
+                        <label for="notif-expediente" class="block mb-2 text-sm font-bold text-gob-gris">
+                            Expediente
+                        </label>
+                        <input type="text" id="notif-expediente" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5" placeholder="Ej: 2025-001-CV">
+                    </div>
+
+                    <!-- Fecha y Hora del Evento -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="notif-fecha-evento" class="block mb-2 text-sm font-bold text-gob-gris">
+                                Fecha del Evento <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date" id="notif-fecha-evento" required class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+                        </div>
+                        <div>
+                            <label for="notif-hora-evento" class="block mb-2 text-sm font-bold text-gob-gris">
+                                Hora del Evento
+                            </label>
+                            <input type="time" id="notif-hora-evento" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Notificación -->
+                    <div class="border-t border-gray-200 pt-4">
+                        <h4 class="text-sm font-bold text-gob-gris mb-3">
+                            <i class="fas fa-bell mr-2 text-gob-oro"></i>
+                            ¿Cuándo notificar?
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="notif-tipo-alerta" class="block mb-2 text-sm font-medium text-gob-gris">
+                                    Tipo de Alerta
+                                </label>
+                                <select id="notif-tipo-alerta" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+                                    <option value="datetime">En fecha exacta</option>
+                                    <option value="days">Días antes</option>
+                                    <option value="hours">Horas antes</option>
+                                </select>
+                            </div>
+                            <div id="offset-container">
+                                <label for="notif-offset" class="block mb-2 text-sm font-medium text-gob-gris">
+                                    Anticipación
+                                </label>
+                                <input type="number" id="notif-offset" min="1" value="1" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button type="button" data-modal-hide="modal-notificacion" class="text-gob-gris bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded text-sm font-medium px-5 py-2.5 border border-gray-300 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:outline-none focus:ring-gob-guinda/30 font-bold rounded text-sm px-5 py-2.5 transition-colors">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Notificación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

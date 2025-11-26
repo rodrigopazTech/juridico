@@ -1,0 +1,42 @@
+<!-- 
+  COMPONENTE: Toolbar de Notificaciones
+  Barra de herramientas con búsqueda y filtros
+-->
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm mb-6 card-shadow">
+    <div class="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Búsqueda -->
+        <div class="relative w-full md:w-96">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" 
+                   id="search-notifications" 
+                   class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" 
+                   placeholder="Buscar notificaciones...">
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex items-center gap-2 w-full md:w-auto">
+            <button class="btn-filter active bg-gob-guinda text-white border-gob-guinda w-full md:w-auto flex items-center justify-center py-2.5 px-4 text-sm font-medium rounded border transition-all" 
+                    data-filter="all">
+                <i class="fas fa-list mr-2"></i>
+                Todas
+            </button>
+            <button class="btn-filter bg-white text-gob-gris border-gray-300 w-full md:w-auto flex items-center justify-center py-2.5 px-4 text-sm font-medium rounded border hover:bg-gray-50 focus:ring-2 focus:ring-gob-oro transition-all" 
+                    data-filter="audiencia">
+                <i class="fas fa-gavel mr-2"></i>
+                Audiencias
+            </button>
+            <button class="btn-filter bg-white text-gob-gris border-gray-300 w-full md:w-auto flex items-center justify-center py-2.5 px-4 text-sm font-medium rounded border hover:bg-gray-50 focus:ring-2 focus:ring-gob-oro transition-all" 
+                    data-filter="termino">
+                <i class="fas fa-calendar-check mr-2"></i>
+                Términos
+            </button>
+            <button class="btn-filter bg-white text-gob-gris border-gray-300 w-full md:w-auto flex items-center justify-center py-2.5 px-4 text-sm font-medium rounded border hover:bg-gray-50 focus:ring-2 focus:ring-gob-oro transition-all" 
+                    data-filter="recordatorio">
+                <i class="fas fa-bell mr-2"></i>
+                Recordatorios
+            </button>
+        </div>
+    </div>
+</div>

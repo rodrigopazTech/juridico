@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones | Sistema Legal</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans"', 'sans-serif'],
+                        headings: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        gob: {
+                            guinda: '#9D2449',
+                            guindaDark: '#611232',
+                            oro: '#B38E5D',
+                            oroLight: '#DDC9A3',
+                            gris: '#545454',
+                            plata: '#98989A',
+                            verde: '#13322B',
+                            verdeDark: '#0C231E',
+                            fondo: '#F5F5F5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Noto Sans', sans-serif; }
+        .font-headings { font-family: 'Montserrat', sans-serif; }
+        .notification-card { transition: all 0.2s ease; }
+        .notification-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Sidebar -->
+    <div data-include="../global/components/sidebar.html"></div>
+
+    <!-- Main Content Wrapper -->
+    <div class="p-4 sm:ml-64">
+        
+        <!-- Navbar -->
+        <div data-include="../global/components/navbar.html"></div>
+
+        <!-- Título y descripción -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gob-gris font-headings tracking-tight">
+                <i class="fas fa-bell text-gob-oro mr-2"></i>Panel de Notificaciones
+            </h1>
+            <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
+        </div>
+
+        <!-- Botón Nueva Notificación y Toolbar -->
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <button type="button" id="btn-nueva-notificacion" class="flex items-center justify-center text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-guinda/30 font-bold rounded text-sm px-5 py-2.5 shadow-sm transition-all">
+                <i class="fas fa-plus mr-2"></i>
+                Nueva Notificación
+            </button>
+        </div>
+
+        <!-- Incluir componente Toolbar -->
+        <div data-include="./components/toolbar.html"></div>
+
+        <!-- Contenedor para las notificaciones -->
+        <div id="notifications-content">
+            <!-- El contenido se cargará dinámicamente -->
+        </div>
+
+    </div>
+
+    <!-- Modal para crear notificación -->
+    <div data-include="./components/modal-create.html"></div>
+
+    <!-- Scripts -->
+    <script src="./js/loader.js"></script>
+    <script type="module" src="./js/notificaciones.js"></script>
+</body>
+</html>

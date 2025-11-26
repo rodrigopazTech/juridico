@@ -14,10 +14,6 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css"
-      rel="stylesheet"
-    />
 
     <script>
       tailwind.config = {
@@ -334,89 +330,265 @@
     </div>
 
     <div
-      class="modal fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900/50 backdrop-blur-sm"
       id="modal-cambio-estado"
-      tabindex="-1"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4"
     >
-      <div class="relative w-full max-w-md max-h-full">
+      <div
+        class="relative w-full max-w-md bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down"
+      >
         <div
-          class="relative bg-white rounded-lg shadow border-t-4 border-gob-oro"
+          class="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t"
         >
-          <div
-            class="modal-header flex items-center justify-between p-4 border-b"
+          <h3 class="text-lg font-bold text-gob-guinda font-headings">
+            <i class="fas fa-exchange-alt mr-2"></i> Cambiar Estado
+          </h3>
+          <button
+            type="button"
+            id="close-modal-estado"
+            class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
           >
-            <h2 class="text-lg font-bold text-gob-guinda font-headings">
-              <i class="fas fa-exchange-alt"></i> Cambiar Estado
-            </h2>
-            <button
-              class="text-gray-400 bg-transparent hover:bg-gray-200 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
-              id="close-modal-estado"
-              data-modal-hide="modal-cambio-estado"
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block mb-1 text-xs font-bold text-gob-gris uppercase"
+              >Estado Actual</label
             >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body p-6 space-y-4">
-            <div class="form-group">
-              <label class="block mb-2 text-sm font-bold text-gob-gris"
-                >Estado Actual:</label
-              >
-              <div class="estado-actual-container">
-                <span
-                  class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-500"
-                  id="estado-actual"
-                  >Cargando...</span
-                >
-              </div>
-            </div>
-            <div class="form-group">
-              <label
-                class="block mb-2 text-sm font-bold text-gob-gris"
-                for="nuevo-estado"
-                >Nuevo Estado:</label
-              >
-              <select
-                id="nuevo-estado"
-                required
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
-              >
-                <option value="">Seleccione nuevo estado...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label
-                class="block mb-2 text-sm font-bold text-gob-gris"
-                for="razon-cambio"
-                >Razón del cambio:</label
-              >
-              <textarea
-                id="razon-cambio"
-                rows="3"
-                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 focus:ring-gob-oro focus:border-gob-oro"
-                required
-              ></textarea>
+            <div
+              id="estado-actual"
+              class="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1 rounded border border-gray-300"
+            >
+              Cargando...
             </div>
           </div>
-          <div class="modal-footer flex justify-end p-4 border-t gap-2">
-            <button
-              class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5"
-              data-modal-hide="modal-cambio-estado"
+          <div>
+            <label
+              for="nuevo-estado"
+              class="block mb-1 text-xs font-bold text-gob-gris uppercase"
+              >Nuevo Estado *</label
             >
-              Cancelar
-            </button>
-            <button
-              class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5"
+            <select
+              id="nuevo-estado"
+              class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
             >
-              <i class="fas fa-check"></i> Confirmar Cambio
-            </button>
+              <option value="">Seleccione...</option>
+              <option value="Tramite">En Trámite</option>
+              <option value="Litigio">En Litigio</option>
+              <option value="Sentencia">En Sentencia</option>
+              <option value="Amparo">En Amparo</option>
+              <option value="Ejecucion">En Ejecución</option>
+              <option value="Concluido">Concluido</option>
+            </select>
           </div>
+          <div>
+            <label
+              for="razon-cambio"
+              class="block mb-1 text-xs font-bold text-gob-gris uppercase"
+              >Justificación *</label
+            >
+            <textarea
+              id="razon-cambio"
+              rows="3"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 focus:ring-gob-oro focus:border-gob-oro"
+              placeholder="Motivo del cambio de etapa..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg"
+        >
+          <button
+            type="button"
+            id="cancelar-cambio-estado"
+            class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            id="confirmar-cambio-estado"
+            class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded hover:bg-gob-guindaDark shadow-md"
+          >
+            Confirmar Cambio
+          </button>
         </div>
       </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
-    <script src="js/asunto-detalle.js"></script>
+    <div
+      id="modal-editar-asunto"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down"
+      >
+        <div
+          class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t"
+        >
+          <h3 class="text-xl font-bold text-gob-guinda font-headings">
+            <i class="fas fa-edit mr-2"></i> Editar Expediente
+          </h3>
+          <button
+            type="button"
+            id="close-modal-editar"
+            class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
 
+        <div class="flex-1 overflow-y-auto p-6">
+          <form
+            id="form-editar-asunto"
+            class="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <div>
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >No. Expediente</label
+              >
+              <input
+                type="text"
+                id="edit-expediente"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Materia</label
+              >
+              <select
+                id="edit-materia"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              >
+                <option value="Administrativo">Administrativo</option>
+                <option value="Civil">Civil</option>
+                <option value="Laboral">Laboral</option>
+                <option value="Penal">Penal</option>
+                <option value="Mercantil">Mercantil</option>
+                <option value="Amparo">Amparo</option>
+                <option value="Transparencia">Transparencia</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Gerencia</label
+              >
+              <select
+                id="edit-gerencia"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              >
+                <option
+                  value="Gerencia de Civil Mercantil, Fiscal y Administrativo"
+                >
+                  Civil, Mercantil...
+                </option>
+                <option value="Gerencia Jurídica y Financiera">
+                  Jurídica y Financiera
+                </option>
+                <option value="Gerencia Laboral y Penal">
+                  Laboral y Penal
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Sede / Estado</label
+              >
+              <input
+                type="text"
+                id="edit-sede"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Abogado Responsable</label
+              >
+              <input
+                type="text"
+                id="edit-abogado"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Partes Procesales</label
+              >
+              <input
+                type="text"
+                id="edit-partes"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Órgano Jurisdiccional</label
+              >
+              <input
+                type="text"
+                id="edit-organo"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              />
+            </div>
+
+            <div>
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Prioridad</label
+              >
+              <select
+                id="edit-prioridad"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              >
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-sm font-bold text-gob-gris"
+                >Descripción</label
+              >
+              <textarea
+                id="edit-descripcion"
+                rows="3"
+                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="flex-none flex items-center justify-end p-4 border-t bg-gray-50 rounded-b-lg gap-3"
+        >
+          <button
+            type="button"
+            id="cancelar-editar"
+            class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            id="guardar-editar"
+            class="px-5 py-2.5 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/asunto-detalle.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         if (typeof initAsuntoDetalle === "function") {

@@ -15,23 +15,15 @@ class AsuntoDetalleManager {
         this.inicializarEventos();
     }
 
-    obtenerIdAsunto() {
+obtenerIdAsunto() {
         const urlParams = new URLSearchParams(window.location.search);
         this.asuntoId = parseInt(urlParams.get('id'));
-        if (!this.asuntoId) {
-            this.mostrarError('No se especificó un ID de asunto válido');
-        }
+        if (!this.asuntoId) this.mostrarError('No se especificó ID');
     }
-
     cargarAsunto() {
         const asuntosGuardados = JSON.parse(localStorage.getItem('asuntos') || '[]');
         this.asunto = asuntosGuardados.find(a => a.id === this.asuntoId);
-
-        if (!this.asunto) {
-            this.mostrarError('No se encontró el asunto solicitado');
-            return;
-        }
-
+        if (!this.asunto) { this.mostrarError('No encontrado'); return; }
         this.partes = this.parsePartes(this.asunto.partesProcesales);
         this.mostrarVista360();
         this.actualizarTitulo();
@@ -257,27 +249,103 @@ class AsuntoDetalleManager {
             `;
         }
     }
-
-    /* === Eventos globales === */
+    
     inicializarEventos() {
+        // 1. Botón CAMBIAR ESTADO
         const btnCambiarEstado = document.getElementById('btn-cambiar-estado');
-        if (btnCambiarEstado) btnCambiarEstado.addEventListener('click', () => this.abrirModalCambioEstado());
+        if (btnCambiarEstado) {
+            btnCambiarEstado.addEventListener('click', (e) => { e.preventDefault(); this.abrirModalCambioEstado(); });
+        }
 
-        // Listeners para cerrar modales (los mismos que tenías, usando flowbite attributes funciona, pero aseguramos JS)
-        const modals = document.querySelectorAll('[data-modal-hide]');
-        modals.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const targetId = btn.getAttribute('data-modal-hide');
-                const modal = document.getElementById(targetId);
-                if(modal) {
-                     modal.classList.add('hidden');
-                     modal.style.display = 'none';
-                }
+        // 2. NUEVO: Botón EDITAR EXPEDIENTE
+        const btnEditar = document.getElementById('btn-editar-asunto');
+        if (btnEditar) {
+            btnEditar.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                this.abrirModalEdicion(); // Llamamos a la nueva función
             });
-        });
+        }
 
-        const btnConfirmar = document.querySelector('#modal-cambio-estado button.bg-gob-guinda');
-        if (btnConfirmar) btnConfirmar.addEventListener('click', () => this.confirmarCambioEstado());
+        // Botones Modales (Cerrar/Guardar)
+        this.setupModalListeners();
+    }
+
+    setupModalListeners() {
+        // Modal Estado
+        document.getElementById('close-modal-estado')?.addEventListener('click', () => this.cerrarModales());
+        document.getElementById('cancelar-cambio-estado')?.addEventListener('click', () => this.cerrarModales());
+        document.getElementById('confirmar-cambio-estado')?.addEventListener('click', () => this.confirmarCambioEstado());
+
+        // Modal Editar (NUEVO)
+        document.getElementById('close-modal-editar')?.addEventListener('click', () => this.cerrarModales());
+        document.getElementById('cancelar-editar')?.addEventListener('click', () => this.cerrarModales());
+        document.getElementById('guardar-editar')?.addEventListener('click', () => this.guardarEdicion());
+
+        // Cerrar al click fuera
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('fixed')) this.cerrarModales();
+        });
+    }
+
+    abrirModalEdicion() {
+        if (!this.asunto) return;
+        
+        // Llenar formulario con datos actuales
+        document.getElementById('edit-expediente').value = this.asunto.expediente || '';
+        document.getElementById('edit-materia').value = this.asunto.materia || 'Civil';
+        document.getElementById('edit-gerencia').value = this.asunto.gerencia || '';
+        document.getElementById('edit-sede').value = this.asunto.sede || this.asunto.sedeEstado || ''; // Ajusta según tu propiedad real
+        document.getElementById('edit-abogado').value = this.asunto.abogadoResponsable || '';
+        document.getElementById('edit-partes').value = this.asunto.partesProcesales || '';
+        document.getElementById('edit-organo').value = this.asunto.organoJurisdiccional || '';
+        document.getElementById('edit-prioridad').value = this.asunto.prioridadAsunto || 'Media';
+        document.getElementById('edit-descripcion').value = this.asunto.descripcion || '';
+
+        // Mostrar Modal
+        const modal = document.getElementById('modal-editar-asunto');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    guardarEdicion() {
+        // Leer datos del formulario
+        this.asunto.expediente = document.getElementById('edit-expediente').value;
+        this.asunto.materia = document.getElementById('edit-materia').value;
+        this.asunto.gerencia = document.getElementById('edit-gerencia').value;
+        this.asunto.sedeEstado = document.getElementById('edit-sede').value; // Asegúrate de usar el mismo nombre de propiedad que usas al renderizar
+        this.asunto.abogadoResponsable = document.getElementById('edit-abogado').value;
+        this.asunto.partesProcesales = document.getElementById('edit-partes').value;
+        this.asunto.organoJurisdiccional = document.getElementById('edit-organo').value;
+        this.asunto.prioridadAsunto = document.getElementById('edit-prioridad').value;
+        this.asunto.descripcion = document.getElementById('edit-descripcion').value;
+
+        // Guardar
+        this.guardarAsunto();
+        
+        // Actualizar Vista
+        this.partes = this.parsePartes(this.asunto.partesProcesales); // Recalcular partes si cambiaron
+        this.mostrarVista360();
+        this.actualizarTitulo();
+        
+        // Cerrar
+        this.cerrarModales();
+        alert('Expediente actualizado correctamente.');
+    }
+
+    cerrarModales() {
+        document.querySelectorAll('.fixed.z-\\[60\\]').forEach(modal => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+    }
+
+    /* === Agrega o actualiza esta función también === */
+    cerrarModalCambioEstado() {
+        const modal = document.getElementById('modal-cambio-estado');
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex'); // Quitamos flex para ocultarlo bien
+        }
     }
 
     /* === Lógica Modal Cambio Estado === */
@@ -285,11 +353,18 @@ class AsuntoDetalleManager {
         if (!this.asunto) return;
         const modal = document.getElementById('modal-cambio-estado');
         const estadoActualEl = document.getElementById('estado-actual');
+        const select = document.getElementById('nuevo-estado');
+        const razon = document.getElementById('razon-cambio');
         
-        if(estadoActualEl) estadoActualEl.textContent = this.asunto.estado || 'Activo';
+        if(estadoActualEl) estadoActualEl.textContent = this.asunto.estado || 'Tramite';
+        
+        // Limpiar campos
+        if(select) select.value = '';
+        if(razon) razon.value = '';
+
         if(modal) {
             modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+            modal.classList.add('flex'); // Importante para centrar con flexbox
         }
     }
 
@@ -298,6 +373,7 @@ class AsuntoDetalleManager {
         const razon = document.getElementById('razon-cambio').value.trim();
 
         if (!nuevoEstado) return alert('Por favor selecciona un nuevo estado');
+        if (!razon) return alert('Por favor escribe una justificación');
 
         // Actualizar datos
         this.asunto.estado = nuevoEstado;
@@ -306,28 +382,32 @@ class AsuntoDetalleManager {
         if (!this.asunto.historialActividad) this.asunto.historialActividad = [];
         this.asunto.historialActividad.unshift({
             fecha: new Date().toISOString(),
-            descripcion: `Cambio de estado a ${nuevoEstado}`,
-            detalles: razon,
-            usuario: 'Usuario Abogado'
+            descripcion: `Cambio de estado a: ${nuevoEstado}`,
+            usuario: 'Usuario Abogado', // Aquí podrías poner el usuario real
+            detalles: razon
         });
 
         this.guardarAsunto();
-        this.mostrarVista360(); // Re-renderizar para ver cambios
-        
-        // Cerrar modal
-        const modal = document.getElementById('modal-cambio-estado');
-        if(modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-        }
+        this.mostrarVista360(); // Re-renderizar ficha
+        this.cargarActividadReciente(); // Re-renderizar historial
+        this.cerrarModalCambioEstado();
     }
-
+    parsePartes(partesStr) {
+        if (!partesStr) return { actor: 'N/D', demandado: 'N/D' };
+        const partes = partesStr.split(/ vs\. /i);
+        return { actor: (partes[0] || 'N/D').trim(), demandado: (partes[1] || 'N/D').trim() };
+    }
+    formatDate(dateString) { /* Tu lógica existente */ 
+        if (!dateString) return 'N/A';
+        return dateString.substring(0,10); // Simplificado
+    }
     actualizarTitulo() {
         if (!this.asunto) return;
-        const el = document.getElementById('titulo-asunto');
-        const bread = document.getElementById('titulo-breadcrumb');
-        if(el) el.innerHTML = `<i class="fas fa-folder-open text-gob-guinda mr-2"></i> Expediente ${this.asunto.expediente}`;
-        if(bread) bread.textContent = this.asunto.expediente;
+        document.getElementById('titulo-asunto').innerHTML = `<i class="fas fa-folder-open text-gob-oro"></i> Expediente ${this.asunto.expediente}`;
+    }
+    cargarActividadReciente() { /* Tu lógica existente */ 
+         const container = document.getElementById('actividad-reciente-list');
+         // ... render loop ...
     }
 }
 

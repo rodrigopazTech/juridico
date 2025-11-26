@@ -82,13 +82,9 @@ function loadAudiencias() {
   // Si no hay datos, cargar DEMO
   if (!ls || ls.length === 0) {
       ls = [
-          { id: '1', expediente: '100/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', observaciones: '', prioridad: 'Alta', materia: 'Penal' },
-          { id: '2', expediente: '102/2025', tipo: 'Intermedia', fecha: '2025-11-20', hora: '12:00', tribunal: 'Juzgado 2', actor: 'Maria Lopez', atendida: true, actaDocumento: 'Acta.pdf', observaciones: 'Todo bien', abogadoComparece: 'Lic. Demo', prioridad: 'Media', materia: 'Civil' },
-          { id: '3', expediente: '110/2025', tipo: 'Inicial', fecha: '2025-12-23', hora: '10:00', tribunal: 'Juzgado 3', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', observaciones: '', prioridad: 'Alta', materia: 'Penal' },
-          { id: '4', expediente: '200/2025', tipo: 'Intermedia', fecha: '2025-11-28', hora: '12:00', tribunal: 'Juzgado 4', actor: 'Maria Lopez', atendida: true, actaDocumento: 'Acta.pdf', observaciones: 'Todo bien', abogadoComparece: 'Lic. Demo', prioridad: 'Media', materia: 'Civil' },
-          { id: '5', expediente: '245/2025', tipo: 'Inicial', fecha: '2025-12-05', hora: '10:00', tribunal: 'Juzgado 5', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', observaciones: '', prioridad: 'Alta', materia: 'Penal' },
-          { id: '6', expediente: '260/2025', tipo: 'Intermedia', fecha: '2025-11-26', hora: '12:00', tribunal: 'Juzgado 6', actor: 'Maria Lopez', atendida: true, actaDocumento: 'Acta.pdf', observaciones: 'Todo bien', abogadoComparece: 'Lic. Demo', prioridad: 'Media', materia: 'Civil' }
-      
+        { id: '1', expediente: '100/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' }, // Pendiente
+        { id: '2', expediente: '200/2025', tipo: 'Intermedia', fecha: '2025-11-20', hora: '12:00', tribunal: 'Juzgado 2', actor: 'Maria Lopez', atendida: false, actaDocumento: 'Acta_Preliminar.pdf', abogadoComparece: 'Lic. Demo' }, // Con Acta
+        { id: '3', expediente: '300/2025', tipo: 'Juicio', fecha: '2025-10-15', hora: '09:00', tribunal: 'Juzgado 3', actor: 'Pedro Sola', atendida: true, actaDocumento: 'Sentencia.pdf', abogadoComparece: 'Lic. Demo' } // Concluida
       ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
@@ -114,10 +110,21 @@ function loadAudiencias() {
 
     // Lógica visual
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
-    const estadoBadge = a.atendida 
-        ? '<span class="inline-flex items-center bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded border border-green-200"><i class="fas fa-check mr-1"></i> Desahogada</span>'
-        : '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
-
+    
+    // --- NUEVA LÓGICA DE ESTADOS (3 ESTADOS) ---
+    let estadoBadge = '';
+    
+    if (a.atendida) {
+        // Estado: CONCLUIDA (Finalizada)
+        estadoBadge = '<span class="inline-flex items-center bg-gray-800 text-white text-xs font-bold px-2.5 py-0.5 rounded border border-gray-600"><i class="fas fa-flag-checkered mr-1"></i> Concluida</span>';
+    } else if (a.actaDocumento) {
+        // Estado: CON ACTA (Tiene archivo, falta confirmar)
+        estadoBadge = '<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200"><i class="fas fa-file-signature mr-1"></i> Con Acta</span>';
+    } else {
+        // Estado: PENDIENTE (No tiene archivo)
+        estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
+    }
+      
     html += `
       <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
         <td class="px-4 py-3 text-center">
@@ -134,22 +141,26 @@ function loadAudiencias() {
             </div>
           </div>
         </td>
-        <td class="px-4 py-3 text-sm text-gray-700">${escapeHTML(a.tribunal || 'N/D')}</td>
+        <td class="px-4 py-3 text-sm text-gray-700">${escapeHTML(a.tribunal)}</td>
         <td class="px-4 py-3 text-sm font-bold text-gob-guinda">${escapeHTML(a.expediente)}</td>
-        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">${escapeHTML(a.actor)}</td>
-        <td class="px-4 py-3">${estadoBadge}</td>
-        
-        <td class="px-4 py-3 text-right whitespace-nowrap relative">
+        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]">${escapeHTML(a.actor)}</td>
+        <td class="px-4 py-3">${estadoBadge}</td> <td class="px-4 py-3 text-right whitespace-nowrap relative">
             <div class="flex items-center justify-end gap-2">
-                <button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit fa-lg"></i></button>
-                
-                <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones">
-                    <i class="fas fa-ellipsis-v fa-lg"></i>
-                </button>
-                <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
-                    ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
-                </div>
-                
+                ${!a.atendida ? 
+                    `<button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit fa-lg"></i></button>` : 
+                    `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock fa-lg"></i></button>`
+                }
+                <div class="relative action-menu-container">
+
+                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones">
+                        <i class="fas fa-ellipsis-v fa-lg"></i>
+                    </button>
+                    
+                     <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
+
+                        ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
+                    </div>
+                </div>   
                 <input type="file" class="input-acta-hidden hidden" data-id="${a.id}" accept=".pdf,.doc,.docx">
             </div>
         </td>
@@ -158,35 +169,16 @@ function loadAudiencias() {
       <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
         <td colspan="7" class="p-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Tipo Audiencia</span>
-                    <span class="font-medium text-gray-800">${escapeHTML(a.tipo || 'General')}</span>
-                </div>
-                <div>
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Abogado Comparece</span>
-                    <span class="font-medium text-gray-800"><i class="fas fa-user-tie text-gob-oro mr-1"></i> ${escapeHTML(a.abogadoComparece || 'Sin asignar')}</span>
-                </div>
-                <div>
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Sala / Lugar</span>
-                    <span class="font-medium text-gray-800">${escapeHTML(a.sala || 'N/D')}</span>
-                </div>
-                <div class="md:col-span-3">
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Observaciones</span>
-                    <p class="text-gray-600 italic mt-1">${escapeHTML(a.observaciones || 'Sin observaciones registradas.')}</p>
-                </div>
+                <div><span class="block text-xs font-bold text-gray-400 uppercase">Tipo</span><span class="font-medium text-gray-800">${escapeHTML(a.tipo)}</span></div>
+                <div><span class="block text-xs font-bold text-gray-400 uppercase">Abogado</span><span class="font-medium text-gray-800">${escapeHTML(a.abogadoComparece)}</span></div>
+                <div><span class="block text-xs font-bold text-gray-400 uppercase">Observaciones</span><p class="text-gray-600 italic">${escapeHTML(a.observaciones)}</p></div>
             </div>
         </td>
       </tr>
     `;
   });
-
-  if(AUDIENCIAS.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay audiencias registradas.</td></tr>`;
-  } else if (html === '') {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No se encontraron resultados con los filtros actuales.</td></tr>`;
-  } else {
-      tbody.innerHTML = html;
-  }
+  
+  tbody.innerHTML = html || `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay datos.</td></tr>`;
 }
 
 // -------------------------------
@@ -194,30 +186,41 @@ function loadAudiencias() {
 // -------------------------------
 function generarAccionesRapidasAudiencia(audiencia, rol) {
     let html = '';
-    // Estilo base: Fuente Montserrat (font-headings), padding cómodo, hover suave
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
     // Acciones Comunes
     html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Asunto</button>`;
 
+// LÓGICA DE FLUJO DE 3 ESTADOS
     if (!audiencia.atendida) {
-        // REGLA: Si YA tiene acta...
+        // CASO: NO ESTÁ CONCLUIDA
+        
         if (audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-gob-guinda"></i> Ver Acta</button>`;
-            html += `<button class="${itemClass} action-desahogar"><i class="fas fa-check-circle text-green-600"></i> <strong>Desahogar</strong></button>`;
+            // ESTADO: CON ACTA (Azul)
+            // 1. Ver el acta subida
+            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-blue-600"></i> Ver Acta</button>`;
+            
+            // 2. Acción Principal: CONCLUIR (Antes Desahogar)
+            html += `<button class="${itemClass} action-desahogar"><i class="fas fa-flag-checkered text-green-600"></i> <strong>Concluir</strong></button>`;
+            
+            // 3. Corrección: Quitar Acta (Regresa a Pendiente)
             html += `<button class="${itemClass} action-remove-acta"><i class="fas fa-times-circle text-red-500"></i> Quitar Acta</button>`;
+        
         } else {
-            // Si NO tiene acta...
+            // ESTADO: PENDIENTE (Amarillo)
+            // Solo permite subir el acta
             html += `<button class="${itemClass} action-upload-acta"><i class="fas fa-cloud-upload-alt text-gob-oro"></i> <strong>Subir Acta</strong></button>`;
         }
+        
     } else {
-        // Desahogada
+        // CASO: ESTADO CONCLUIDA (Gris/Verde)
+        // Ya no permite editar acta ni concluir de nuevo. Solo ver.
         if(audiencia.actaDocumento) {
             html += `<button class="${itemClass} action-view-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
         }
     }
 
-    // Opciones extra (Comentarios siempre útil)
+    // Opciones Extras
     html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
 
     if (rol === 'Direccion' || rol === 'Gerente') {
@@ -332,19 +335,31 @@ function setupActionMenuListenerAudiencia() {
             if (target.classList.contains('action-view-asunto-audiencia')) window.location.href = `asuntos-detalle.html?id=${audiencia.asuntoId}`;
             else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
             else if (target.classList.contains('action-remove-acta')) {
-                if(confirm('¿Quitar el archivo adjunto?')) quitarActa(id);
-            }
+            mostrarConfirmacionAudiencia(
+                'Quitar Acta',
+                '¿Estás seguro de quitar el archivo adjunto? La audiencia regresará al estado "Pendiente".',
+                () => {
+                    quitarActa(id);
+                }
+            );
+        }
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
-            else if (target.classList.contains('action-view-acta')) alert('Descargando ' + audiencia.actaDocumento);
+            else if (target.classList.contains('action-view-acta')) {
+                mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
+            }
             else if (target.classList.contains('action-comment-audiencia')) openComentariosModal(id);
             else if (target.classList.contains('action-delete-audiencia')) {
-                if(confirm('¿Eliminar?')) {
+            mostrarConfirmacionAudiencia(
+                'Eliminar Audiencia',
+                '¿Eliminar este registro permanentemente? Esta acción no se puede deshacer.',
+                () => {
                     AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
                     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
                     loadAudiencias();
                 }
-            }
+            );
         }
+    }
         
         // Ocultar menús tras acción
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
@@ -668,4 +683,73 @@ function renderTipoOptions(){
 function cargarAbogadosSelects(){
     const sel = document.getElementById('abogado-comparece');
     if(sel) sel.innerHTML += '<option>Lic. Demo</option>';
+}
+
+// ===============================================
+// SISTEMA DE CONFIRMACIÓN (AUDIENCIAS)
+// ===============================================
+
+let onConfirmAudiencia = null;
+
+function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
+    const modal = document.getElementById('modal-confirmacion-audiencia');
+    const tituloEl = document.getElementById('confirm-titulo-audiencia');
+    const mensajeEl = document.getElementById('confirm-mensaje-audiencia');
+    const btnConfirm = document.getElementById('btn-confirm-accept-audiencia');
+    const btnCancel = document.getElementById('btn-confirm-cancel-audiencia');
+
+    if (!modal) return;
+
+    tituloEl.textContent = titulo;
+    mensajeEl.textContent = mensaje;
+    onConfirmAudiencia = callback;
+
+    // Listeners
+    btnConfirm.onclick = function() {
+        if (onConfirmAudiencia) onConfirmAudiencia();
+        cerrarConfirmacionAudiencia();
+    };
+    btnCancel.onclick = cerrarConfirmacionAudiencia;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function cerrarConfirmacionAudiencia() {
+    const modal = document.getElementById('modal-confirmacion-audiencia');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    onConfirmAudiencia = null;
+}
+
+// ===============================================
+// SISTEMA DE ALERTAS (AUDIENCIAS)
+// ===============================================
+
+function mostrarAlertaAudiencia(mensaje) {
+    const modal = document.getElementById('modal-alerta-audiencia');
+    const mensajeEl = document.getElementById('alerta-mensaje-audiencia');
+    const btnAccept = document.getElementById('btn-alerta-accept-audiencia');
+
+    if (!modal) return;
+
+    // Configurar texto
+    mensajeEl.textContent = mensaje;
+
+    // Configurar botón
+    btnAccept.onclick = cerrarAlertaAudiencia;
+
+    // Mostrar
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function cerrarAlertaAudiencia() {
+    const modal = document.getElementById('modal-alerta-audiencia');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }

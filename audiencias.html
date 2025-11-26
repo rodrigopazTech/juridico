@@ -60,7 +60,6 @@
     </style>
   </head>
   <body class="font-sans text-gob-gris antialiased bg-gob-fondo">
-
     <aside
       id="logo-sidebar"
       class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-gob-verde border-r border-gob-verdeDark shadow-xl flex flex-col"
@@ -128,7 +127,7 @@
               <span class="ms-3">Expedientes</span>
             </a>
           </li>
-         <li>
+          <li>
             <a
               href="audiencias.html"
               class="nav-item flex items-center p-2 text-white bg-white/10 border-l-4 border-gob-oro rounded-r-lg shadow-sm group transition-all duration-200"
@@ -620,7 +619,7 @@
       >
         <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
           <h2 class="text-lg font-bold text-green-700 font-headings">
-            Desahogar Audiencia
+            Concluir Audiencia
           </h2>
           <button
             id="close-modal-finalizar"
@@ -660,7 +659,7 @@
             id="confirmar-finalizar"
             class="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold hover:bg-green-700"
           >
-            Confirmar Desahogo
+            Confirmar Conclusión
           </button>
         </div>
       </div>
@@ -692,6 +691,87 @@
             class="bg-gob-guinda text-white px-4 py-2 rounded w-full"
           >
             Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modal-confirmacion-audiencia"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="relative w-full max-w-md bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down"
+      >
+        <div class="p-6 text-center">
+          <div
+            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100"
+          >
+            <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+          </div>
+          <h3
+            id="confirm-titulo-audiencia"
+            class="mb-2 text-lg font-bold text-gob-gris font-headings"
+          >
+            Confirmar Acción
+          </h3>
+          <p
+            id="confirm-mensaje-audiencia"
+            class="text-sm text-gray-500 font-sans"
+          >
+            ¿Estás seguro de realizar esta acción?
+          </p>
+        </div>
+
+        <div
+          class="flex items-center justify-center gap-3 p-4 border-t bg-gray-50 rounded-b-lg"
+        >
+          <button
+            id="btn-confirm-cancel-audiencia"
+            class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+          >
+            Cancelar
+          </button>
+          <button
+            id="btn-confirm-accept-audiencia"
+            class="px-5 py-2.5 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md"
+          >
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modal-alerta-audiencia"
+      class="fixed inset-0 z-[80] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-blue-500 animate-fade-in-down"
+      >
+        <div class="p-6 text-center">
+          <div
+            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100"
+          >
+            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+          </div>
+          <h3 class="mb-2 text-lg font-bold text-gob-gris font-headings">
+            Información
+          </h3>
+          <p
+            id="alerta-mensaje-audiencia"
+            class="text-sm text-gray-500 font-sans"
+          ></p>
+        </div>
+
+        <div
+          class="flex items-center justify-center p-4 border-t bg-gray-50 rounded-b-lg"
+        >
+          <button
+            id="btn-alerta-accept-audiencia"
+            class="w-full px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md"
+          >
+            Aceptar
           </button>
         </div>
       </div>

@@ -182,7 +182,7 @@ export class NotificacionesModule {
     /**
      * Agrega una nueva notificación
      */
-    addNotification({ eventType, title, details, expediente, eventAtISO, notifyType, offset }) {
+    addNotification({ eventType, title, details, detalles, expediente, eventAtISO, notifyType, offset }) {
         let notifyAt;
         if (notifyType === 'datetime') {
             notifyAt = this.computeNotifyAt(eventAtISO, 'datetime', 0);
@@ -197,6 +197,7 @@ export class NotificacionesModule {
             eventType: eventType || 'recordatorio',
             title: title || '',
             details: details || '',
+            detalles: detalles || null,
             expediente: expediente || '',
             eventAt: eventAtISO || new Date().toISOString(),
             notifyType: notifyType || 'datetime',
@@ -272,52 +273,87 @@ export class NotificacionesModule {
         const now = new Date();
         const in3Days = new Date(now);
         in3Days.setDate(now.getDate() + 3);
+        const in5Days = new Date(now);
+        in5Days.setDate(now.getDate() + 5);
         const in4Hours = new Date(now);
         in4Hours.setHours(now.getHours() + 4);
         const todayLater = new Date(now);
         todayLater.setHours(now.getHours() + 2);
 
-        // Audiencias
-        this.addNotification({
+        // Audiencias con estructura completa
+        this.notifications.push({
+            id: this.uid(),
             eventType: 'audiencia',
-            title: 'Audiencia Preliminar - Caso Civil',
-            expediente: 'EXP-2025-001',
-            details: 'Presentar argumentos iniciales. Sala 3, Juzgado Primero Civil.',
-            eventAtISO: in3Days.toISOString(),
+            title: 'Audiencia inicial - Juicio ordinario civil',
+            expediente: 'Exp. 2024-00123',
+            detalles: {
+                juzgado: 'Segundo Civil, Sala 4',
+                representante: 'Lic. María González',
+                tipoJuicio: 'Ordinario Civil'
+            },
+            eventAt: in3Days.toISOString(),
             notifyType: 'days',
-            offset: 1
+            offset: 1,
+            notifyAt: this.computeNotifyAt(in3Days.toISOString(), 'days', 1),
+            createdAt: new Date().toISOString(),
+            sent: false
         });
 
-        this.addNotification({
+        this.notifications.push({
+            id: this.uid(),
             eventType: 'audiencia',
-            title: 'Audiencia de Conciliación',
-            expediente: 'EXP-2025-078',
-            details: 'Centro de Justicia Laboral',
-            eventAtISO: in4Hours.toISOString(),
+            title: 'Audiencia de pruebas - Juicio mercantil',
+            expediente: 'Exp. 2024-00156',
+            detalles: {
+                juzgado: 'Primero Mercantil, Sala 2',
+                representante: 'Lic. Carlos Hernández',
+                tipoJuicio: 'Mercantil'
+            },
+            eventAt: in5Days.toISOString(),
             notifyType: 'hours',
-            offset: 2
+            offset: 2,
+            notifyAt: this.computeNotifyAt(in5Days.toISOString(), 'hours', 2),
+            createdAt: new Date().toISOString(),
+            sent: false
         });
 
-        // Términos
-        this.addNotification({
+        // Términos con estructura completa
+        this.notifications.push({
+            id: this.uid(),
             eventType: 'termino',
-            title: 'Vencimiento de Término - Promoción',
-            expediente: 'EXP-2025-045',
-            details: 'Presentar alegatos de bien probado',
-            eventAtISO: todayLater.toISOString(),
+            title: 'Vencimiento de plazo para contestar demanda',
+            expediente: 'Exp. 2024-00087',
+            detalles: {
+                partesProcesales: 'Ortega Ibarra Juan Carlos',
+                actuacion: 'Despido injustificado',
+                estado: 'Pendiente'
+            },
+            eventAt: in5Days.toISOString(),
             notifyType: 'hours',
-            offset: 1
+            offset: 1,
+            notifyAt: this.computeNotifyAt(in5Days.toISOString(), 'hours', 1),
+            createdAt: new Date().toISOString(),
+            sent: false
         });
 
-        // Recordatorios
-        this.addNotification({
+        // Recordatorios con estructura completa
+        this.notifications.push({
+            id: this.uid(),
             eventType: 'recordatorio',
-            title: 'Revisión de Expedientes Semanales',
-            details: '15 expedientes pendientes de revisión',
-            eventAtISO: todayLater.toISOString(),
-            notifyType: 'datetime'
+            title: 'Junta de seguimiento de casos',
+            expediente: 'Reunión interna',
+            detalles: {
+                descripcion: 'Sala de juntas, piso 3'
+            },
+            eventAt: todayLater.toISOString(),
+            notifyType: 'datetime',
+            offset: 0,
+            notifyAt: todayLater.toISOString(),
+            createdAt: new Date().toISOString(),
+            sent: false
         });
 
+        this.saveNotifications();
         console.log('Datos de demostración cargados');
     }
 
@@ -406,6 +442,71 @@ export class NotificacionesModule {
         const when = notifyDate.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         const relativeTime = this.formatRelativeTime(notifyDate);
 
+        // Renderizar detalles específicos según el tipo
+        let detailsHTML = '';
+        
+        if (n.eventType === 'audiencia' && n.detalles) {
+            // Audiencias: Juzgado, Representante, Tipo de Juicio
+            detailsHTML = `
+                <div class="horizontal-details">
+                    ${n.detalles.juzgado ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Juzgado</span>
+                            <span class="horizontal-value">${n.detalles.juzgado}</span>
+                        </div>
+                    ` : ''}
+                    ${n.detalles.representante ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Representante</span>
+                            <span class="horizontal-value">${n.detalles.representante}</span>
+                        </div>
+                    ` : ''}
+                    ${n.detalles.tipoJuicio ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Tipo de Juicio</span>
+                            <span class="horizontal-value">${n.detalles.tipoJuicio}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else if (n.eventType === 'termino' && n.detalles) {
+            // Términos: Partes procesales, Actuación, Estado
+            detailsHTML = `
+                <div class="horizontal-details">
+                    ${n.detalles.partesProcesales ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Partes procesales</span>
+                            <span class="horizontal-value">${n.detalles.partesProcesales}</span>
+                        </div>
+                    ` : ''}
+                    ${n.detalles.actuacion ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Actuación</span>
+                            <span class="horizontal-value">${n.detalles.actuacion}</span>
+                        </div>
+                    ` : ''}
+                    ${n.detalles.estado ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Estado</span>
+                            <span class="horizontal-value">${n.detalles.estado}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else if (n.eventType === 'recordatorio' && n.detalles) {
+            // Recordatorios: solo descripción
+            detailsHTML = `
+                <div class="horizontal-details">
+                    ${n.detalles.descripcion ? `
+                        <div class="horizontal-detail">
+                            <span class="horizontal-label">Descripción</span>
+                            <span class="horizontal-value">${n.detalles.descripcion}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
         return `
             <div class="horizontal-notification ${n.eventType}" data-id="${n.id}">
                 ${showActions ? `
@@ -424,14 +525,7 @@ export class NotificacionesModule {
                         </div>
                     </div>
                     <h4 class="horizontal-title">${n.title}</h4>
-                    ${n.details ? `
-                        <div class="horizontal-details">
-                            <div class="horizontal-detail">
-                                <span class="horizontal-label">Detalles</span>
-                                <span class="horizontal-value">${n.details}</span>
-                            </div>
-                        </div>
-                    ` : ''}
+                    ${detailsHTML}
                     <div class="horizontal-time">
                         <i class="fas fa-clock text-gob-guinda"></i>
                         <span class="time-text">${relativeTime} •</span>

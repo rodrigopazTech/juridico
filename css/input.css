@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .chart-container {
+    position: relative;
+    height: 350px;
+    width: 100%;
+  }
+
+  /* --- ESTILOS MIGRADOS DE USUARIO MODULE --- */
+  .checkbox-container {
+    @apply border border-gray-300 rounded-md p-3 max-h-[180px] overflow-y-auto bg-gray-50;
+  }
+  
+  .checkbox-container div {
+    @apply mb-2 flex items-center;
+  }
+  
+  .checkbox-container input[type="checkbox"] {
+    @apply mr-2 w-4 h-4 text-gob-oro focus:ring-gob-oro border-gray-300 rounded;
+    /* Tailwind forms plugin maneja esto mejor, pero esto sirve por ahora */
+    accent-color: #B38E5D; 
+  }
+  
+  .checkbox-container label {
+    @apply mb-0 font-normal text-gray-700 select-none cursor-pointer;
+  }
+}
+
+/* Fuentes base */
+body {
+  font-family: 'Noto Sans', sans-serif;
+}
+.font-headings {
+  font-family: 'Montserrat', sans-serif;
+}

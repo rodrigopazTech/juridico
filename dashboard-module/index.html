@@ -4,65 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Sistema Legal</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Noto Sans"', 'sans-serif'],
-            headings: ['"Montserrat"', 'sans-serif'],
-          },
-          colors: {
-            gob: {
-              guinda: '#9D2449',
-              guindaDark: '#611232',
-              oro: '#B38E5D',
-              oroLight: '#DDC9A3',
-              gris: '#545454',
-              plata: '#98989A',
-              verde: '#13322B',
-              verdeDark: '#0C231E',
-              fondo: '#F5F5F5'
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <!-- Font Awesome -->
+  
+  <link href="../css/output.css" rel="stylesheet" />
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <!-- Google Fonts -->
+  
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
-  <!-- Chart.js -->
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    body { font-family: 'Noto Sans', sans-serif; }
-    .font-headings { font-family: 'Montserrat', sans-serif; }
-    .chart-container {
-      position: relative;
-      height: 350px;
-      width: 100%;
-    }
-  </style>
 </head>
 <body class="bg-gray-50">
-  <!-- Sidebar -->
-  <div data-include="./components/sidebar.html"></div>
+  
+  <div data-include="../components/sidebar.html"></div>
 
-  <!-- Main Content Wrapper -->
   <div class="p-4 sm:ml-64">
-    <!-- Navbar -->
-    <div data-include="./components/navbar.html"></div>
+    
+    <div data-include="../components/navbar.html"></div>
 
-    <!-- Stats Cards -->
     <div data-include="./components/stats-cards.html"></div>
 
-    <!-- First Row - Distribución por Gerencia (Priority 1) -->
     <div class="grid grid-cols-1 gap-6 mb-6">
-      
-      <!-- Distribución por Gerencia -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gob-guinda font-headings">
@@ -73,10 +34,8 @@
           <canvas id="chartGerencias"></canvas>
         </div>
       </div>
-
     </div>
 
-    <!-- Unified Filter Bar -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div class="flex items-center gap-2">
@@ -100,10 +59,8 @@
       </div>
     </div>
 
-    <!-- Second Row - Carga de Trabajo + Trabajo Completado (Priority 2 & 3) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       
-      <!-- Carga de Trabajo por Usuario -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gob-guinda font-headings">
@@ -115,7 +72,6 @@
         </div>
       </div>
 
-      <!-- Trabajo Completado por Gerencia -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gob-guinda font-headings">
@@ -129,10 +85,7 @@
 
     </div>
 
-    <!-- Third Row - Estados de Expedientes (Priority 4) -->
     <div class="grid grid-cols-1 gap-6 mb-6">
-      
-      <!-- Estados de Expedientes -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gob-guinda font-headings">
@@ -143,20 +96,27 @@
           <canvas id="chartEstados"></canvas>
         </div>
       </div>
-
     </div>
 
   </div>
 
   <script type="module">
-    import { loadIncludes } from './js/loader.js';
+    // Importación Global del Loader
+    import { loadIncludes } from '../js/loader.js';
+    // Importación Local del Módulo
     import { DashboardModule } from './js/dashboard-module.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadIncludes();
       
-      // Wait for DOM to be fully rendered after includes
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Resaltar el link activo en el sidebar global
+      const navDashboard = document.getElementById('nav-dashboard');
+      if(navDashboard) {
+         navDashboard.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+         navDashboard.classList.remove('text-gray-300', 'hover:bg-gob-verdeDark');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       const dashboard = new DashboardModule();
       dashboard.init();

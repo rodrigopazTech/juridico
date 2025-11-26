@@ -47,13 +47,13 @@
 <body class="bg-gray-50">
   
   <!-- Sidebar -->
-  <div data-include="./components/sidebar.html"></div>
+  <div data-include="../global/components/sidebar.html"></div>
 
   <!-- Main Content Wrapper -->
   <div class="p-4 sm:ml-64">
     
     <!-- Navbar -->
-    <div data-include="./components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html"></div>
 
     <!-- Calendar Header (Navigation + Filters) -->
     <div data-include="./components/calendar-header.html"></div>
@@ -93,15 +93,23 @@
   <!-- Scripts -->
   <script type="module" src="./js/loader.js"></script>
   <script type="module">
+    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
     import { CalendarioModule } from './js/calendario-module.js';
     
-    // Initialize module
-    window.calendarioModule = new CalendarioModule();
-    
-    // Wait for components to load
-    setTimeout(() => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadIncludes();
+      
+      // Wait for components to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Initialize navigation
+      initSidebar('calendario');
+      setNavbarTitle('fa-calendar', 'Calendario');
+      
+      // Initialize module
+      window.calendarioModule = new CalendarioModule();
       window.calendarioModule.init();
-    }, 500);
+    });
   </script>
 
 </body>

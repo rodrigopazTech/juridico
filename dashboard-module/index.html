@@ -49,12 +49,12 @@
 </head>
 <body class="bg-gray-50">
   <!-- Sidebar -->
-  <div data-include="./components/sidebar.html"></div>
+  <div data-include="../global/components/sidebar.html"></div>
 
   <!-- Main Content Wrapper -->
   <div class="p-4 sm:ml-64">
     <!-- Navbar -->
-    <div data-include="./components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html"></div>
 
     <!-- Stats Cards -->
     <div data-include="./components/stats-cards.html"></div>
@@ -149,7 +149,7 @@
   </div>
 
   <script type="module">
-    import { loadIncludes } from './js/loader.js';
+    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
     import { DashboardModule } from './js/dashboard-module.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -157,6 +157,10 @@
       
       // Wait for DOM to be fully rendered after includes
       await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Initialize navigation
+      initSidebar('dashboard');
+      setNavbarTitle('fa-chart-line', 'Dashboard Analítico');
       
       const dashboard = new DashboardModule();
       dashboard.init();

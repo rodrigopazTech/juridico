@@ -61,12 +61,12 @@
 <body class="font-sans text-gob-gris antialiased bg-gob-fondo">
 
   <!-- Sidebar -->
-  <div data-include="./components/sidebar.html"></div>
+  <div data-include="../global/components/sidebar.html"></div>
 
   <div class="p-4 sm:ml-64">
     
     <!-- Navbar -->
-    <div data-include="./components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html"></div>
 
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
@@ -92,11 +92,16 @@
   </div>
 
   <script type="module">
-    import { loadIncludes } from './js/loader.js';
+    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
     import { ExpedientesModule } from './js/expedientes.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadIncludes();
+      
+      // Initialize navigation
+      initSidebar('expedientes');
+      setNavbarTitle('fa-folder-open', 'Expedientes');
+      
       const module = new ExpedientesModule();
       module.init();
     });

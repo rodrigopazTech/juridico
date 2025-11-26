@@ -63,12 +63,12 @@
 </head>
 <body class="bg-gray-50">
   <!-- Sidebar -->
-  <div data-include="./components/sidebar.html"></div>
+  <div data-include="../global/components/sidebar.html"></div>
 
   <!-- Main Content Wrapper -->
   <div class="p-4 sm:ml-64">
     <!-- Navbar -->
-    <div data-include="./components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html"></div>
 
     <!-- Tabs -->
     <div class="mb-6">
@@ -101,11 +101,15 @@
   <div data-include="./components/modal-manage-materias.html"></div>
 
   <script type="module">
-    import { loadIncludes } from './js/loader.js';
+    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
     import { UsuarioModule } from './js/usuarios-module.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadIncludes();
+      
+      // Initialize navigation
+      initSidebar('usuarios');
+      setNavbarTitle('fa-users', 'Gestión de Usuarios');
       
       const usuarioModule = new UsuarioModule();
       usuarioModule.init();

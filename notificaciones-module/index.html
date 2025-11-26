@@ -42,12 +42,227 @@
     <style>
         body { font-family: 'Noto Sans', sans-serif; }
         .font-headings { font-family: 'Montserrat', sans-serif; }
-        .notification-card { transition: all 0.2s ease; }
-        .notification-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        /* Estilos mejorados según Guía Gráfica V3 */
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
         .hidden-section { display: none; }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+        }
+        
+        .badge-audiencia {
+            background-color: rgba(157, 36, 73, 0.1);
+            color: #9D2449;
+            border: 1px solid rgba(157, 36, 73, 0.2);
+        }
+        
+        .badge-termino {
+            background-color: rgba(179, 142, 93, 0.1);
+            color: #B38E5D;
+            border: 1px solid rgba(179, 142, 93, 0.2);
+        }
+        
+        .badge-asunto {
+            background-color: rgba(19, 50, 43, 0.1);
+            color: #13322B;
+            border: 1px solid rgba(19, 50, 43, 0.2);
+        }
+        
+        .badge-recordatorio {
+            background-color: rgba(84, 84, 84, 0.1);
+            color: #545454;
+            border: 1px solid rgba(84, 84, 84, 0.2);
+        }
+        
+        .section-header {
+            background: linear-gradient(to right, #f8f9fa, #f1f3f4);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .empty-state {
+            background-color: #f9fafb;
+            border: 1px dashed #d1d5db;
+        }
+        
+        /* Notificaciones Horizontales */
+        .horizontal-notification {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .horizontal-notification:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .horizontal-notification.audiencia {
+            border-left: 4px solid #9D2449;
+        }
+        
+        .horizontal-notification.termino {
+            border-left: 4px solid #B38E5D;
+        }
+        
+        .horizontal-notification.asunto {
+            border-left: 4px solid #13322B;
+        }
+        
+        .horizontal-notification.recordatorio {
+            border-left: 4px solid #545454;
+        }
+        
+        .horizontal-icon {
+            flex-shrink: 0;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .horizontal-icon.audiencia {
+            background-color: rgba(157, 36, 73, 0.1);
+            color: #9D2449;
+        }
+        
+        .horizontal-icon.termino {
+            background-color: rgba(179, 142, 93, 0.1);
+            color: #B38E5D;
+        }
+        
+        .horizontal-icon.asunto {
+            background-color: rgba(19, 50, 43, 0.1);
+            color: #13322B;
+        }
+        
+        .horizontal-icon.recordatorio {
+            background-color: rgba(84, 84, 84, 0.1);
+            color: #545454;
+        }
+        
+        .horizontal-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .horizontal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .horizontal-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .horizontal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #374151;
+            line-height: 1.4;
+        }
+        
+        .horizontal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .horizontal-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .horizontal-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        
+        .horizontal-value {
+            font-size: 0.875rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .horizontal-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+            margin-top: auto;
+        }
+        
+        .time-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #9D2449;
+        }
+        
+        .time-date {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            color: #98989A;
+            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+        }
+        
+        .delete-btn:hover {
+            color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        @media (max-width: 768px) {
+            .horizontal-details {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .horizontal-notification {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .horizontal-icon {
+                align-self: center;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
 
     <!-- Sidebar -->
     <div data-include="../global/components/sidebar.html"></div>
@@ -60,18 +275,8 @@
 
         <!-- Título y descripción -->
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gob-gris font-headings tracking-tight">
-                <i class="fas fa-bell text-gob-oro mr-2"></i>Panel de Notificaciones
-            </h1>
-            <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
-        </div>
-
-        <!-- Botón Nueva Notificación y Toolbar -->
-        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <button type="button" id="btn-nueva-notificacion" class="flex items-center justify-center text-white bg-gob-guinda hover:bg-gob-guindaDark focus:ring-4 focus:ring-gob-guinda/30 font-bold rounded text-sm px-5 py-2.5 shadow-sm transition-all">
-                <i class="fas fa-plus mr-2"></i>
-                Nueva Notificación
-            </button>
+            <h1 class="text-3xl font-bold text-gob-gris font-headings tracking-tight">Panel de Notificaciones</h1>
+            <p class="text-gray-500 text-sm mt-1 border-l-4 border-gob-oro pl-2">Alertas y recordatorios programados desde Audiencias, Términos y Recordatorios.</p>
         </div>
 
         <!-- Incluir componente Toolbar -->

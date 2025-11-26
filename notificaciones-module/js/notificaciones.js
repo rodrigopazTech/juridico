@@ -130,6 +130,11 @@ export class NotificacionesModule {
      */
     saveNotifications() {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.notifications));
+        
+        // Actualizar badge del sidebar
+        if (typeof window.updateNotificationBadge === 'function') {
+            window.updateNotificationBadge();
+        }
     }
 
     /**
@@ -370,14 +375,14 @@ export class NotificacionesModule {
      */
     renderSection(title, icon, notifications, showActions = true) {
         let html = `
-            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-                    <h3 class="text-lg font-bold text-gob-gris font-headings flex items-center">
-                        <i class="fas fa-${icon} mr-2 text-gob-oro"></i>
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden card-shadow">
+                <div class="section-header p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gob-gris font-headings flex items-center gap-2">
+                        <i class="fas fa-${icon} text-gob-oro"></i>
                         ${title}
                     </h3>
                 </div>
-                <div class="p-6 space-y-4">
+                <div class="p-6">
         `;
 
         notifications.forEach(n => {
@@ -393,7 +398,7 @@ export class NotificacionesModule {
     }
 
     /**
-     * Renderiza una tarjeta de notificación
+     * Renderiza una tarjeta de notificación horizontal
      */
     renderNotificationCard(n, showActions) {
         const typeInfo = this.getEventTypeInfo(n.eventType);
@@ -402,36 +407,35 @@ export class NotificacionesModule {
         const relativeTime = this.formatRelativeTime(notifyDate);
 
         return `
-            <div class="notification-card border-l-4 ${typeInfo.borderClass} bg-white rounded-r-lg p-4 border border-gray-200 hover:shadow-md transition-all" data-id="${n.id}">
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0 w-12 h-12 ${typeInfo.bgClass} rounded-lg flex items-center justify-center">
-                        <i class="fas ${typeInfo.icon} ${typeInfo.textClass} text-xl"></i>
+            <div class="horizontal-notification ${n.eventType}" data-id="${n.id}">
+                ${showActions ? `
+                    <button class="delete-btn" title="Eliminar notificación">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
+                <div class="horizontal-icon ${n.eventType}">
+                    <i class="fas ${typeInfo.icon}"></i>
+                </div>
+                <div class="horizontal-content">
+                    <div class="horizontal-header">
+                        <div class="horizontal-meta">
+                            <span class="badge badge-${n.eventType}">${typeInfo.label}</span>
+                            ${n.expediente ? `<span class="text-sm text-gob-plata">${n.expediente}</span>` : ''}
+                        </div>
                     </div>
-                    
-                    <div class="flex-1">
-                        <div class="flex items-start justify-between mb-2">
-                            <div>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeInfo.badgeClass}">
-                                    ${typeInfo.label}
-                                </span>
-                                ${n.expediente ? `<span class="ml-2 text-xs text-gray-500">${n.expediente}</span>` : ''}
+                    <h4 class="horizontal-title">${n.title}</h4>
+                    ${n.details ? `
+                        <div class="horizontal-details">
+                            <div class="horizontal-detail">
+                                <span class="horizontal-label">Detalles</span>
+                                <span class="horizontal-value">${n.details}</span>
                             </div>
-                            ${showActions ? `
-                                <button class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-1">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            ` : ''}
                         </div>
-                        
-                        <h4 class="text-base font-semibold text-gray-800 mb-1">${n.title}</h4>
-                        
-                        ${n.details ? `<p class="text-sm text-gray-600 mb-2">${n.details}</p>` : ''}
-                        
-                        <div class="flex items-center gap-2 text-sm">
-                            <i class="fas fa-bell text-gob-oro"></i>
-                            <span class="font-medium text-gob-guinda">${relativeTime}</span>
-                            <span class="text-gray-400">(${when})</span>
-                        </div>
+                    ` : ''}
+                    <div class="horizontal-time">
+                        <i class="fas fa-clock text-gob-guinda"></i>
+                        <span class="time-text">${relativeTime} •</span>
+                        <span class="time-date">${when}</span>
                     </div>
                 </div>
             </div>
@@ -445,38 +449,22 @@ export class NotificacionesModule {
         const types = {
             audiencia: {
                 label: 'Audiencia',
-                icon: 'fa-gavel',
-                bgClass: 'bg-blue-100',
-                textClass: 'text-blue-600',
-                borderClass: 'border-blue-500',
-                badgeClass: 'bg-blue-100 text-blue-800'
+                icon: 'fa-gavel'
             },
             termino: {
                 label: 'Término',
-                icon: 'fa-calendar-check',
-                bgClass: 'bg-green-100',
-                textClass: 'text-green-600',
-                borderClass: 'border-green-500',
-                badgeClass: 'bg-green-100 text-green-800'
+                icon: 'fa-hourglass-end'
             },
             asunto: {
                 label: 'Asunto',
-                icon: 'fa-folder-open',
-                bgClass: 'bg-yellow-100',
-                textClass: 'text-yellow-600',
-                borderClass: 'border-yellow-500',
-                badgeClass: 'bg-yellow-100 text-yellow-800'
+                icon: 'fa-briefcase'
             },
             recordatorio: {
                 label: 'Recordatorio',
-                icon: 'fa-bell',
-                bgClass: 'bg-purple-100',
-                textClass: 'text-purple-600',
-                borderClass: 'border-purple-500',
-                badgeClass: 'bg-purple-100 text-purple-800'
+                icon: 'fa-sticky-note'
             }
         };
-        return types[type] || types.recordatorio;
+        return types[type] || { label: 'Notificación', icon: 'fa-bell' };
     }
 
     // ==================== MANEJO DE EVENTOS ====================
@@ -488,7 +476,7 @@ export class NotificacionesModule {
         const button = event.target.closest('.btn-filter');
         if (!button) return;
 
-        // Actualizar clases de botones
+        // Actualizar clases de botones - estilo pills
         this.filterButtons.forEach(btn => {
             btn.classList.remove('active', 'bg-gob-guinda', 'text-white', 'border-gob-guinda');
             btn.classList.add('bg-white', 'text-gob-gris', 'border-gray-300');
@@ -507,7 +495,7 @@ export class NotificacionesModule {
      */
     handleSearch(event) {
         const searchTerm = event.target.value.toLowerCase();
-        const allCards = document.querySelectorAll('.notification-card');
+        const allCards = document.querySelectorAll('.horizontal-notification');
 
         allCards.forEach(card => {
             const content = card.textContent.toLowerCase();
@@ -519,7 +507,7 @@ export class NotificacionesModule {
      * Elimina una notificación con animación
      */
     deleteNotification(button) {
-        const card = button.closest('.notification-card');
+        const card = button.closest('.horizontal-notification');
         if (!card) return;
 
         const id = card.getAttribute('data-id');

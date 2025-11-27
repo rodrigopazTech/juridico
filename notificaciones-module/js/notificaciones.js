@@ -705,25 +705,3 @@ export class NotificacionesModule {
         }
     }
 }
-
-// Inicializar módulo cuando el DOM esté listo
-let notificacionesModule;
-
-document.addEventListener('DOMContentLoaded', () => {
-    notificacionesModule = new NotificacionesModule();
-    notificacionesModule.init();
-});
-
-// Exportar para uso global
-window.NotificacionesModule = NotificacionesModule;
-window.notificacionesModule = notificacionesModule;
-
-// API Pública compatible con versión anterior
-window.Notificaciones = {
-    add: (params) => notificacionesModule?.addNotification(params),
-    remove: (id) => notificacionesModule?.removeNotification(id),
-    markSent: (id) => notificacionesModule?.markSent(id),
-    upcoming: (limit, filter) => notificacionesModule?.upcoming(limit, filter),
-    today: (filter) => notificacionesModule?.today(filter),
-    all: () => notificacionesModule?.notifications || []
-};

@@ -444,34 +444,57 @@ export class DashboardModule {
       return;
     }
 
-    // Count expedientes by gerencia
-    const gerenciaData = this.gerencias.map(gerencia => {
-      const count = this.expedientes.filter(e => e.gerenciaId === gerencia.id).length;
-      return {
+    // Destroy existing chart if it exists
+    if (this.charts.gerencias) {
+      this.charts.gerencias.destroy();
+      this.charts.gerencias = null;
+    }
+
+    // Calculate distribution fresh each time
+    const distribution = {};
+    
+    this.gerencias.forEach(gerencia => {
+      distribution[gerencia.id] = {
         nombre: gerencia.nombre,
-        count: count
+        count: 0
       };
     });
 
+    // Count expedientes per gerencia
+    this.expedientes.forEach(exp => {
+      if (exp.gerenciaId && distribution[exp.gerenciaId]) {
+        distribution[exp.gerenciaId].count++;
+      }
+    });
+
+    // Convert to array and filter out gerencias with 0 expedientes
+    const data = Object.values(distribution).filter(item => item.count > 0);
+    
     // Sort by count descending
-    const sorted = gerenciaData.sort((a, b) => b.count - a.count);
+    data.sort((a, b) => b.count - a.count);
 
-    console.log('Gerencia data for chart:', sorted);
+    if (data.length === 0) {
+      ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+      return;
+    }
 
+    // Create new chart
     this.charts.gerencias = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: sorted.map(g => g.nombre),
+        labels: data.map(item => item.nombre),
         datasets: [{
-          data: sorted.map(g => g.count),
+          data: data.map(item => item.count),
           backgroundColor: [
             this.gobColors.guinda,
             this.gobColors.oro,
             this.gobColors.verde,
-            this.gobColors.gris
+            this.gobColors.gris,
+            this.chartColors[4],
+            this.chartColors[5]
           ],
           borderWidth: 2,
-          borderColor: '#fff'
+          borderColor: '#ffffff'
         }]
       },
       options: {
@@ -483,17 +506,29 @@ export class DashboardModule {
             labels: {
               padding: 15,
               font: {
-                size: 12
-              }
+                size: 12,
+                family: "'Noto Sans', sans-serif"
+              },
+              usePointStyle: true,
+              pointStyle: 'circle'
             }
           },
           tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            },
             callbacks: {
               label: (context) => {
                 const label = context.label || '';
                 const value = context.parsed;
                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                 return `${label}: ${value} expedientes (${percentage}%)`;
               }
             }

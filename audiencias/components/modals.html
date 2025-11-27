@@ -1,0 +1,97 @@
+<div id="modal-audiencia" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t">
+            <h2 class="text-xl font-bold text-gob-guinda font-headings" id="modal-audiencia-title">Nueva Audiencia</h2>
+            <button id="close-modal-audiencia" class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6">
+            <form id="form-audiencia">
+                <input type="hidden" id="audiencia-id">
+                <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
+                    <label class="block text-sm font-bold text-gob-guinda mb-2">Seleccionar Asunto *</label>
+                    <select id="asunto-selector-audiencia" required class="bg-white border border-gray-300 text-gray-900 text-sm rounded block w-full p-2.5 focus:ring-gob-oro"><option value="">Cargando...</option></select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div><label class="block text-xs font-bold text-gob-gris">Expediente</label><input type="text" id="expediente-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                    <div><label class="block text-xs font-bold text-gob-gris">Materia</label><input type="text" id="materia-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                    <div><label class="block text-xs font-bold text-gob-gris">Gerencia</label><input type="text" id="gerencia-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                    <div><label class="block text-xs font-bold text-gob-gris">Abogado Resp.</label><input type="text" id="abogado-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-bold text-gob-gris">Partes</label><input type="text" id="partes-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-bold text-gob-gris">Órgano</label><input type="text" id="organo-auto-audiencia" readonly class="readonly-field block w-full p-2 text-sm border border-gray-200 rounded"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2"><label class="block text-sm font-bold text-gob-gris mb-1">Tipo de Audiencia*</label><select id="tipo-audiencia" required class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5"><option value="">Seleccione...</option></select></div>
+                    <div><label class="block text-sm font-bold text-gob-gris mb-1">Fecha*</label><input type="date" id="fecha-audiencia" required class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5"></div>
+                    <div><label class="block text-sm font-bold text-gob-gris mb-1">Hora*</label><input type="time" id="hora-audiencia" required class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5"></div>
+                    <div class="md:col-span-2"><label class="block text-sm font-bold text-gob-gris mb-1">Sala / Lugar</label><input type="text" id="sala-audiencia" class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5"></div>
+                    <div class="md:col-span-2"><label class="block text-sm font-bold text-gob-gris mb-1">Abogado que Comparece*</label><select id="abogado-comparece" required class="bg-gray-50 border border-gray-300 text-sm rounded block w-full p-2.5"></select></div>
+                </div>
+            </form>
+        </div>
+        <div class="flex-none flex items-center justify-end p-4 border-t bg-gray-50 rounded-b gap-3">
+            <button id="cancel-audiencia" class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancelar</button>
+            <button id="save-audiencia" class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md">Guardar Audiencia</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-finalizar-audiencia" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-lg bg-white rounded-lg shadow-xl border-t-4 border-green-500 animate-fade-in-down">
+        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-green-700 font-headings">Concluir Audiencia</h2>
+            <button id="close-modal-finalizar" class="text-gray-400 hover:text-gray-900"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-6">
+            <input type="hidden" id="finalizar-audiencia-id">
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+                <p class="text-sm text-green-800 font-bold">Acta subida correctamente.</p>
+                <p class="text-xs text-green-700">Confirma para marcar la audiencia como concluida.</p>
+            </div>
+            <label class="block text-sm font-bold text-gob-gris mb-2">Observaciones Finales *</label>
+            <textarea id="observaciones-finales" rows="4" class="w-full p-2 border border-gray-300 rounded focus:border-gob-oro text-sm"></textarea>
+        </div>
+        <div class="flex justify-end p-4 border-t gap-2 bg-gray-50">
+            <button id="cancel-finalizar" class="px-4 py-2 bg-white border border-gray-300 rounded text-sm">Cancelar</button>
+            <button id="confirmar-finalizar" class="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold hover:bg-green-700">Confirmar Conclusión</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-comentarios" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4">
+    <div class="bg-white w-full max-w-2xl rounded-lg shadow-xl h-[80vh] flex flex-col animate-fade-in-down">
+        <div class="p-4 border-b flex justify-between"><h2 class="font-bold">Comentarios</h2><button id="close-modal-comentarios">X</button></div>
+        <div class="flex-1 p-4 overflow-y-auto"><ul id="lista-comentarios" class="space-y-3"></ul></div>
+        <div class="p-4 border-t bg-gray-50">
+            <input type="hidden" id="comentarios-audiencia-id">
+            <textarea id="nuevo-comentario" class="w-full border p-2 rounded mb-2" placeholder="Escribe..."></textarea>
+            <button id="save-comentario" class="bg-gob-guinda text-white px-4 py-2 rounded w-full">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-confirmacion-audiencia" class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        <div class="p-6 text-center">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100"><i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i></div>
+            <h3 id="confirm-titulo-audiencia" class="mb-2 text-lg font-bold text-gob-gris font-headings">Confirmar Acción</h3>
+            <p id="confirm-mensaje-audiencia" class="text-sm text-gray-500 font-sans"></p>
+        </div>
+        <div class="flex items-center justify-center gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
+            <button id="btn-confirm-cancel-audiencia" class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">Cancelar</button>
+            <button id="btn-confirm-accept-audiencia" class="px-5 py-2.5 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-alerta-audiencia" class="fixed inset-0 z-[80] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-blue-500 animate-fade-in-down">
+        <div class="p-6 text-center">
+            <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100"><i class="fas fa-info-circle text-blue-600 text-xl"></i></div>
+            <h3 class="mb-2 text-lg font-bold text-gob-gris font-headings">Información</h3>
+            <p id="alerta-mensaje-audiencia" class="text-sm text-gray-500 font-sans"></p>
+        </div>
+        <div class="flex items-center justify-center p-4 border-t bg-gray-50 rounded-b-lg">
+            <button id="btn-alerta-accept-audiencia" class="w-full px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-md">Aceptar</button>
+        </div>
+    </div>
+</div>

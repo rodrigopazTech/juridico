@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Configuración de tipografías */
+@layer base {
+  body {
+    font-family: 'Noto Sans', sans-serif;
+  }
+  
+  .font-headings {
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
+/* Componentes personalizados */
+@layer components {
+  .card-shadow {
+    @apply shadow-sm;
+  }
+  
+  .btn-primary {
+    @apply bg-gob-guinda hover:bg-gob-guindaDark text-white font-bold py-2.5 px-5 rounded focus:ring-4 focus:ring-gob-guinda/30 transition-all;
+  }
+  
+  .btn-secondary {
+    @apply bg-gob-oro hover:bg-gob-oroLight text-white font-bold py-2.5 px-5 rounded focus:ring-4 focus:ring-gob-oro/30 transition-all;
+  }
+}
+
+/* Utilidades personalizadas para Charts */
+@layer utilities {
+  .chart-container {
+    position: relative;
+    height: 350px !important;
+    width: 100% !important;
+  }
+  
+  .chart-container canvas {
+    display: block !important;
+    box-sizing: border-box !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+}

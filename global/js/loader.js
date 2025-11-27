@@ -15,6 +15,15 @@ export async function loadIncludes() {
       if (response.ok) {
         const html = await response.text();
         element.innerHTML = html;
+        
+        // Si es el navbar y tiene atributos de título, aplicarlos inmediatamente
+        if (file.includes('navbar.html')) {
+          const icon = element.getAttribute('data-navbar-icon');
+          const title = element.getAttribute('data-navbar-title');
+          if (icon && title) {
+            setNavbarTitle(icon, title);
+          }
+        }
       } else {
         console.error(`Failed to load ${file}`);
       }

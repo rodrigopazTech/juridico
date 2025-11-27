@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda General - Sistema Jurídico</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS Local -->
+    <link rel="stylesheet" href="../dist/output.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- CSS del módulo -->
+    <link rel="stylesheet" href="./css/agenda-general.css">
+</head>
+<body class="font-sans text-gob-gris bg-gob-fondo antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div data-include="../global/components/sidebar.html"></div>
+
+        <!-- Contenido principal -->
+        <div class="flex-1 sm:ml-64">
+            <!-- Navbar -->
+            <div data-include="../global/components/navbar.html" data-navbar-icon="fa-calendar-check" data-navbar-title="Agenda General"></div>
+            
+            <!-- Tabs Section -->
+            <div class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm mb-6">
+                <div class="border-b border-gray-200">
+                    <div class="flex overflow-x-auto px-6">
+                        <button class="tab-button active flex items-center gap-2 whitespace-nowrap" onclick="showModule('audiencias')">
+                            <i class="fas fa-gavel"></i>
+                            <span>Audiencias Desahogadas</span>
+                        </button>
+                        <button class="tab-button flex items-center gap-2 whitespace-nowrap" onclick="showModule('terminos')">
+                            <i class="fas fa-clock"></i>
+                            <span>Términos Presentados</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Área de contenido -->
+            <div class="p-6">
+                <!-- Módulo: Audiencias Desahogadas -->
+                <div class="module-content active" id="module-audiencias">
+                    <!-- Toolbar -->
+                    <div data-include="./components/toolbar-audiencias.html"></div>
+                    
+                    <!-- Tabla -->
+                    <div data-include="./components/table-audiencias.html"></div>
+                </div>
+
+                <!-- Módulo: Términos Presentados -->
+                <div class="module-content" id="module-terminos">
+                    <!-- Toolbar -->
+                    <div data-include="./components/toolbar-terminos.html"></div>
+                    
+                    <!-- Tabla -->
+                    <div data-include="./components/table-terminos.html"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Observaciones -->
+    <div data-include="./components/modal-observaciones.html"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { loadIncludes, initSidebar } from '../global/js/loader.js';
+        import { initAgendaGeneral } from './js/agenda-general-module.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('📄 DOM Cargado, iniciando carga de componentes...');
+            await loadIncludes();
+            console.log('✅ Componentes cargados, inicializando Agenda General...');
+            
+            // Initialize navigation
+            initSidebar('agenda-general');
+            
+            initAgendaGeneral();
+        });
+    </script>
+</body>
+</html>

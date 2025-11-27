@@ -53,7 +53,7 @@
   <div class="p-4 sm:ml-64">
     
     <!-- Navbar -->
-    <div data-include="../global/components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html" data-navbar-icon="fa-calendar" data-navbar-title="Calendario"></div>
 
     <!-- Calendar Header (Navigation + Filters) -->
     <div data-include="./components/calendar-header.html"></div>
@@ -92,18 +92,14 @@
 
   <!-- Scripts -->
   <script type="module">
-    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
+    import { loadIncludes, initSidebar } from '../global/js/loader.js';
     import { CalendarioModule } from './js/calendario-module.js';
     
     document.addEventListener('DOMContentLoaded', async () => {
       await loadIncludes();
       
-      // Wait for components to load
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       // Initialize navigation
       initSidebar('calendario');
-      setNavbarTitle('fa-calendar', 'Calendario');
       
       // Initialize module
       window.calendarioModule = new CalendarioModule();

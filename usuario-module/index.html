@@ -59,6 +59,8 @@
       margin-bottom: 0;
       font-weight: normal;
     }
+    body { opacity: 0; transition: opacity 0.2s ease-in; }
+    body.loaded { opacity: 1; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -68,7 +70,7 @@
   <!-- Main Content Wrapper -->
   <div class="p-4 sm:ml-64">
     <!-- Navbar -->
-    <div data-include="../global/components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html" data-navbar-icon="fa-users" data-navbar-title="Gestión de Usuarios"></div>
 
     <!-- Tabs -->
     <div class="mb-6">
@@ -101,15 +103,15 @@
   <div data-include="./components/modal-manage-materias.html"></div>
 
   <script type="module">
-    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
+    import { loadIncludes, initSidebar } from '../global/js/loader.js';
     import { UsuarioModule } from './js/usuarios-module.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadIncludes();
+      document.body.classList.add('loaded');
       
       // Initialize navigation
       initSidebar('usuarios');
-      setNavbarTitle('fa-users', 'Gestión de Usuarios');
       
       const usuarioModule = new UsuarioModule();
       usuarioModule.init();

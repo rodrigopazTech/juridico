@@ -41,6 +41,10 @@
     
     <!-- Estilos específicos del módulo -->
     <link rel="stylesheet" href="./css/notificaciones.css">
+    <style>
+        body { opacity: 0; transition: opacity 0.2s ease-in; }
+        body.loaded { opacity: 1; }
+    </style>
 </head>
 <body class="font-sans text-gob-gris antialiased bg-gob-fondo">
 
@@ -51,7 +55,7 @@
     <div class="p-4 sm:ml-64">
         
         <!-- Navbar -->
-        <div data-include="../global/components/navbar.html"></div>
+        <div data-include="../global/components/navbar.html" data-navbar-icon="fa-bell" data-navbar-title="Notificaciones"></div>
 
         <!-- Título y descripción -->
         <div class="mb-6">
@@ -74,18 +78,15 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
+        import { loadIncludes, initSidebar } from '../global/js/loader.js';
         import { NotificacionesModule } from './js/notificaciones.js';
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadIncludes();
-            
-            // Wait for DOM to be fully rendered after includes
-            await new Promise(resolve => setTimeout(resolve, 100));
+            document.body.classList.add('loaded');
             
             // Initialize navigation
             initSidebar('notificaciones');
-            setNavbarTitle('fa-bell', 'Notificaciones');
             
             const notificacionesModule = new NotificacionesModule();
             notificacionesModule.init();

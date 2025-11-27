@@ -66,7 +66,7 @@
   <div class="p-4 sm:ml-64">
     
     <!-- Navbar -->
-    <div data-include="../global/components/navbar.html"></div>
+    <div data-include="../global/components/navbar.html" data-navbar-icon="fa-folder-open" data-navbar-title="Expedientes"></div>
 
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
@@ -92,7 +92,7 @@
   </div>
 
   <script type="module">
-    import { loadIncludes, initSidebar, setNavbarTitle } from '../global/js/loader.js';
+    import { loadIncludes, initSidebar } from '../global/js/loader.js';
     import { ExpedientesModule } from './js/expedientes.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -100,7 +100,6 @@
       
       // Initialize navigation
       initSidebar('expedientes');
-      setNavbarTitle('fa-folder-open', 'Expedientes');
       
       const module = new ExpedientesModule();
       module.init();

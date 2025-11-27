@@ -4,196 +4,694 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda General - Agenda Legal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/agenda-general.css">
-</head>
-<body>
-    <!-- Sidebar de navegación -->
-    <div id="sidebar-container"></div>
     
-    <!-- Contenido principal -->
-    <div class="main-content">
-        <div class="container">
-            <header>
-                <div class="header-content">
-                    <h1><i class="fas fa-calendar-alt"></i> Agenda General</h1>
-                    <div class="user-info">
-                        <i class="fas fa-user-circle"></i> Usuario Abogado
-                    </div>
-                </div>
-            </header>
+    <!-- Fuentes oficiales -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS y Flowbite -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-            <!-- Barra de herramientas -->
-            <div class="toolbar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-agenda" placeholder="Buscar en agenda general...">
-                </div>
-                <div class="time-filters">
-                    <button class="btn btn-primary active" data-period="hoy">
-                        <i class="fas fa-calendar-day"></i> Hoy
-                    </button>
-                    <button class="btn btn-secondary" data-period="semana">
-                        <i class="fas fa-calendar-week"></i> Esta Semana
-                    </button>
-                    <button class="btn btn-secondary" data-period="mes">
-                        <i class="fas fa-calendar"></i> Este Mes
-                    </button>
-                    <button class="btn btn-secondary" id="btn-otro-mes">
-                        <i class="fas fa-calendar-alt"></i> Otro Mes
-                    </button>
-                    <select id="select-mes" class="form-control" style="display: none;">
-                        <option value="">Seleccionar Mes</option>
-                        <option value="01">Enero</option>
-                        <option value="02">Febrero</option>
-                        <option value="03">Marzo</option>
-                        <option value="04">Abril</option>
-                        <option value="05">Mayo</option>
-                        <option value="06">Junio</option>
-                        <option value="07">Julio</option>
-                        <option value="08">Agosto</option>
-                        <option value="09">Septiembre</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                    </select>
-                </div>
-
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans"', 'sans-serif'],
+                        headings: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        gob: {
+                            guinda: '#9D2449',
+                            guindaDark: '#611232',
+                            oro: '#B38E5D',
+                            oroLight: '#DDC9A3',
+                            gris: '#545454',
+                            plata: '#98989A',
+                            verde: '#13322B',
+                            verdeDark: '#0C231E',
+                            fondo: '#F5F5F5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos personalizados adicionales */
+        .font-heading {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .expediente {
+            font-weight: 500;
+            color: #9D2449;
+        }
+        
+        .tipo-audiencia {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .tipo-conciliacion {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .tipo-vista {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .tipo-juicio {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .module-content {
+            display: none;
+        }
+        
+        .module-content.active {
+            display: block;
+        }
+        
+        /* Estilos para pestañas horizontales */
+        .tab-button {
+            position: relative;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: #9D2449;
+            border-bottom-color: #9D2449;
+            background-color: rgba(157, 36, 73, 0.05);
+        }
+        
+        .tab-button:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        .tab-button .badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #B38E5D;
+            color: white;
+            border-radius: 50%;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        
+        /* Estilo para etiqueta dorada */
+        .gold-badge {
+            background-color: #B38E5D;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            margin-left: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        /* Estilos para el dropdown de meses */
+        .meses-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .meses-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+        }
+        
+        .meses-dropdown-content.show {
+            display: block;
+        }
+        
+        .meses-dropdown-content a {
+            color: #545454;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+        }
+        
+        .meses-dropdown-content a:hover {
+            background-color: #f8f9fa;
+            color: #9D2449;
+        }
+        
+        .meses-dropdown-content a:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="font-sans text-gob-gris bg-gob-fondo antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar de navegación principal -->
+        <aside id="logo-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-gob-verde border-r border-gob-verdeDark shadow-xl" aria-label="Sidebar">
+            <div class="h-16 flex items-center px-6 border-b border-gob-verdeDark/50 bg-gob-verdeDark/30">
+                <img src="https://framework-gb.cdn.gob.mx/landing/img/logoheader.svg" alt="Gobierno de México" class="h-8 w-auto filter brightness-0 invert mr-3">
+            
             </div>
 
+            <div class="h-full px-3 py-6 overflow-y-auto">
+                <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Principal</div>
+                <ul class="space-y-1 font-medium mb-6">
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <i class="fas fa-home w-5 h-5 transition duration-75 group-hover:text-gob-oro"></i>
+                            <span class="ms-3">Inicio</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <i class="fas fa-chart-bar w-5 h-5 transition duration-75 group-hover:text-gob-oro"></i>
+                            <span class="ms-3">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
 
-
-            <!-- Contenido principal con pestañas -->
-            <div class="tabs-container">
-                <div class="tabs">
-                    <button class="tab-button active" data-tab="audiencias-desahogadas">
-                        <i class="fas fa-gavel"></i> Audiencias Desahogadas
-                    </button>
-                    <button class="tab-button" data-tab="terminos-presentados">
-                        <i class="fas fa-clock"></i> Términos Presentados
-                    </button>
-                </div>
-
-                <!-- Audiencias Desahogadas -->
-                <div class="tab-content active" id="audiencias-desahogadas">
-                    <div class="section-header">
-                        <h3><i class="fas fa-gavel"></i> Audiencias Desahogadas</h3>
-                    </div>
-                    
-                    <div class="table-container">
-                        <table id="tabla-audiencias-desahogadas">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Expediente</th>
-                                    <th>Tipo</th>
-                                    <th>Partes</th>
-                                    <th>Abogado</th>
-                                    <th class="text-center">Acciones</th> </tr>
-                            </thead>
-                            <tbody id="audiencias-desahogadas-body">
-                                <!-- Los datos se cargarán dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Términos Presentados -->
-                <div class="tab-content" id="terminos-presentados">
-                    <div class="section-header">
-                        <h3><i class="fas fa-clock"></i> Términos Presentados</h3>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="window.location.href='terminos.html'">
-                                <i class="fas fa-plus"></i> Nuevo Término
-                            </button>
+                <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-heading">Gestión</div>
+                <ul class="space-y-1 font-medium">
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <i class="fas fa-users w-5 h-5 transition duration-75 group-hover:text-gob-oro"></i>
+                            <span class="ms-3">Usuarios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <i class="fas fa-folder w-5 h-5 transition duration-75 group-hover:text-gob-oro"></i>
+                            <span class="ms-3">Expedientes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="agenda-general.html" class="flex items-center p-2 text-white bg-white/10 border-l-4 border-gob-oro rounded-r-lg shadow-sm group">
+                            <i class="fas fa-calendar-alt w-5 h-5 text-gob-oro"></i>
+                            <span class="ms-3 font-bold">Agenda General</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                            <i class="fas fa-clock w-5 h-5 transition duration-75 group-hover:text-gob-oro"></i>
+                            <span class="ms-3">Términos</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="absolute bottom-0 left-0 w-full p-4 border-t border-gob-verdeDark bg-gob-verdeDark">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full border-2 border-gob-oro flex items-center justify-center bg-white text-gob-guinda font-bold text-xs">
+                            SD
+                        </div>
+                        <div class="font-medium text-white text-sm">
+                            <div class="font-heading">Subdirector</div>
+                            <div class="text-xs text-gob-plata">Agenda Legal</div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <div class="flex-1 sm:ml-64">
+            <!-- Header con título y usuario -->
+            <div class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+                <div class="px-6 py-4 flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <div class="flex items-center">
+                            <h1 id="page-main-title" class="text-2xl font-heading font-semibold text-gob-gris">Agenda General</h1>
+                        
+                        </div>
+                        <p class="text-gray-500 text-sm mt-1 border-l-4 border-gob-oro pl-2">Gestión y seguimiento de alertas y recordatorios del sistema.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center text-gob-gris">
+            
                     
-                    <div class="table-container">
-                        <table id="tabla-terminos-presentados">
-                            <thead>
-                                <tr>
-                                    <th>F. Presentación</th>
-                                    <th>F. Vencimiento</th>
-                                    <th>Expediente</th>
-                                    <th>Actuación</th>
-                                    <th>Partes</th>
-                                    <th class="text-center">Acciones</th> </tr>
-                            </thead>
-                            <tbody id="terminos-presentados-body">
-                                <!-- Los datos se cargarán dinámicamente -->
-                            </tbody>
-                        </table>
+                        </div>
+                        <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar" aria-controls="logo-sidebar" type="button" class="inline-flex items-center p-2 text-sm text-gob-gris rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Navegación por pestañas horizontales -->
+                <div class="border-b border-gray-200">
+                    <div class="flex overflow-x-auto">
+                        <button class="tab-button active flex items-center gap-2 whitespace-nowrap" onclick="showModule('audiencias')">
+                            <i class="fas fa-gavel"></i>
+                            <span>Audiencias Desahogadas</span>
+                            
+                          </button>
+                        <button class="tab-button flex items-center gap-2 whitespace-nowrap" onclick="showModule('terminos')">
+                            <i class="fas fa-clock"></i>
+                            <span>Términos Presentados</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Área de contenido -->
+            <div class="p-6">
+                <!-- Módulo: Audiencias Desahogadas -->
+                <div class="module-content active" id="module-audiencias">
+                    <!-- Barra de herramientas -->
+                    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="relative w-full md:w-96">
+                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="search-audiencias" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar en audiencias...">
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-white bg-gob-guinda rounded border border-gob-guinda hover:bg-gob-guindaDark shadow-sm transition-all" data-period="hoy">
+                                <i class="fas fa-calendar-day mr-2"></i> Hoy
+                            </button>
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="semana">
+                                <i class="fas fa-calendar-week mr-2"></i> Esta Semana
+                            </button>
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="mes">
+                                <i class="fas fa-calendar mr-2"></i> Este Mes
+                            </button>
+                            
+                            <!-- Botón Otro Mes con dropdown integrado -->
+                            <div class="meses-dropdown">
+                                <button class="flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" id="btn-otro-mes-audiencias">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Otro Mes
+                                    <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                                </button>
+                                <div class="meses-dropdown-content" id="dropdown-meses-audiencias">
+                                    <a href="#" onclick="seleccionarMesAudiencias('Enero')">Enero</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Febrero')">Febrero</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Marzo')">Marzo</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Abril')">Abril</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Mayo')">Mayo</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Junio')">Junio</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Julio')">Julio</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Agosto')">Agosto</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Septiembre')">Septiembre</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Octubre')">Octubre</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Noviembre')">Noviembre</a>
+                                    <a href="#" onclick="seleccionarMesAudiencias('Diciembre')">Diciembre</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido de audiencias -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div class="bg-gray-50 p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-heading font-semibold text-gob-gris flex items-center">
+                                <i class="fas fa-gavel text-gob-guinda mr-2"></i> Audiencias Desahogadas
+                            </h3>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gob-gris">
+                                <thead class="text-xs text-gob-gris uppercase bg-gray-100 border-b border-gray-200 font-heading">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 font-bold">Fecha</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Hora</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Expediente</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Tipo</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Partes</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Abogado</th>
+                                        <th scope="col" class="px-6 py-3 font-bold text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" id="audiencias-desahogadas-body">
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">15/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">09:30 AM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-0456</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="tipo-audiencia tipo-conciliacion">Conciliación</span></td>
+                                        <td class="px-6 py-4">Martínez vs. Rodríguez</td>
+                                        <td class="px-6 py-4">Dra. Laura Méndez</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acta" onclick="descargarActa('EXP-2023-0456')">
+                                                    <i class="fas fa-file-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-0456')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">16/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">11:00 AM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-0789</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="tipo-audiencia tipo-vista">Vista Preliminar</span></td>
+                                        <td class="px-6 py-4">Pérez e Hijos S.A. vs. Estado</td>
+                                        <td class="px-6 py-4">Lic. Carlos Ruiz</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acta" onclick="descargarActa('EXP-2023-0789')">
+                                                    <i class="fas fa-file-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-0789')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">18/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">03:15 PM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-1123</td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="tipo-audiencia tipo-juicio">Juicio Oral</span></td>
+                                        <td class="px-6 py-4">González vs. Instituto Federal</td>
+                                        <td class="px-6 py-4">Lic. Ana Vargas</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acta" onclick="descargarActa('EXP-2023-1123')">
+                                                    <i class="fas fa-file-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-1123')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Módulo: Términos Presentados -->
+                <div class="module-content" id="module-terminos">
+                    <!-- Barra de herramientas -->
+                    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="relative w-full md:w-96">
+                            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="search-terminos" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar en términos...">
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-white bg-gob-guinda rounded border border-gob-guinda hover:bg-gob-guindaDark shadow-sm transition-all" data-period="hoy">
+                                <i class="fas fa-calendar-day mr-2"></i> Hoy
+                            </button>
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="semana">
+                                <i class="fas fa-calendar-week mr-2"></i> Esta Semana
+                            </button>
+                            <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="mes">
+                                <i class="fas fa-calendar mr-2"></i> Este Mes
+                            </button>
+                            
+                            <!-- Botón Otro Mes con dropdown integrado -->
+                            <div class="meses-dropdown">
+                                <button class="flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" id="btn-otro-mes-terminos">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Otro Mes
+                                    <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                                </button>
+                                <div class="meses-dropdown-content" id="dropdown-meses-terminos">
+                                    <a href="#" onclick="seleccionarMesTerminos('Enero')">Enero</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Febrero')">Febrero</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Marzo')">Marzo</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Abril')">Abril</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Mayo')">Mayo</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Junio')">Junio</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Julio')">Julio</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Agosto')">Agosto</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Septiembre')">Septiembre</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Octubre')">Octubre</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Noviembre')">Noviembre</a>
+                                    <a href="#" onclick="seleccionarMesTerminos('Diciembre')">Diciembre</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido de términos -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div class="bg-gray-50 p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-heading font-semibold text-gob-gris flex items-center">
+                                <i class="fas fa-clock text-gob-guinda mr-2"></i> Términos Presentados
+                            </h3>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gob-gris" id="tabla-terminos-presentados">
+                                <thead class="text-xs text-gob-gris uppercase bg-gray-100 border-b border-gray-200 font-heading">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 font-bold">F. Presentación</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">F. Vencimiento</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Expediente</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Actuación</th>
+                                        <th scope="col" class="px-6 py-3 font-bold">Partes</th>
+                                        <th scope="col" class="px-6 py-3 font-bold text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200" id="terminos-presentados-body">
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">10/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">25/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-0456</td>
+                                        <td class="px-6 py-4">Presentación de pruebas</td>
+                                        <td class="px-6 py-4">Martínez vs. Rodríguez</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acuse" onclick="descargarAcuse('EXP-2023-0456')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-0456')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">05/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">20/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-0789</td>
+                                        <td class="px-6 py-4">Alegatos</td>
+                                        <td class="px-6 py-4">Pérez e Hijos S.A. vs. Estado</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acuse" onclick="descargarAcuse('EXP-2023-0789')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-0789')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap">01/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">16/05/2023</td>
+                                        <td class="px-6 py-4 whitespace-nowrap expediente">EXP-2023-1123</td>
+                                        <td class="px-6 py-4">Recurso de apelación</td>
+                                        <td class="px-6 py-4">González vs. Instituto Federal</td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex justify-center gap-2">
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Descargar acuse" onclick="descargarAcuse('EXP-2023-1123')">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="text-gray-400 hover:text-gob-guinda transition-colors p-1" title="Ver observaciones" onclick="openObservacionesModal('EXP-2023-1123')">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para ver detalles del evento -->
-    <div class="modal" id="modal-evento">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-evento-title">Detalles del Evento</h2>
-                <button class="btn btn-danger" id="close-modal-evento">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="evento-detalles">
-                    <!-- Detalles se cargarán dinámicamente -->
+    <!-- Modal para observaciones -->
+    <div id="modal-observaciones" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-black/50">
+        <div class="relative p-4 w-full max-w-2xl max-h-full">
+            <div class="relative bg-white rounded-lg shadow">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                    <h3 class="text-xl font-heading font-semibold text-gob-gris" id="obs-modal-title">Observaciones</h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="modal-observaciones">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                        <span class="sr-only">Cerrar modal</span>
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="btn-ir-expediente">
-                    <i class="fas fa-folder-open"></i> Ir al Expediente
-                </button>
-                <button class="btn btn-warning" onclick="window.location.href='terminos.html'">
-                    <i class="fas fa-clock"></i> Nuevo Término
-                </button>
-                <button class="btn btn-secondary" id="btn-cerrar-evento">
-                    Cerrar
-                </button>
+                <div class="p-4 md:p-5 space-y-4">
+                    <div id="obs-modal-expediente" class="pb-3 border-b border-dashed border-gray-200"></div>
+                    <div id="obs-modal-content" class="bg-gray-50 p-4 border-l-4 border-gob-guinda rounded">
+                        Contenido de las observaciones aparecerá aquí.
+                    </div>
+                </div>
+                <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
+                    <button data-modal-hide="modal-observaciones" type="button" class="py-2.5 px-5 text-sm font-medium text-gob-gris bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-gob-gris focus:z-10 focus:ring-2 focus:ring-gob-oro transition-colors">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-     <script src="js/dashboard.js"></script>
-    <script src="js/agenda-general.js"></script>
-    
-    <!-- Cargar componentes -->
-    <script src="js/components.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
     <script>
+        // Funcionalidad básica
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar sidebar y marcar la página activa
-            if (typeof loadSidebar === 'function') {
-                loadSidebar('agenda-general.html');
+            // Manejo de filtros de tiempo
+            const timeButtons = document.querySelectorAll('.time-filter-btn');
+            
+            timeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    timeButtons.forEach(btn => {
+                        btn.classList.remove('bg-gob-guinda', 'text-white', 'border-gob-guinda');
+                        btn.classList.add('bg-white', 'text-gob-gris', 'border-gray-300');
+                    });
+                    
+                    button.classList.remove('bg-white', 'text-gob-gris', 'border-gray-300');
+                    button.classList.add('bg-gob-guinda', 'text-white', 'border-gob-guinda');
+                });
+            });
+            
+            // Manejo de pestañas
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover clase activa de todos los botones
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    // Agregar clase activa al botón clickeado
+                    this.classList.add('active');
+                });
+            });
+            
+            // Manejo del dropdown de meses para Audiencias
+            const btnOtroMesAudiencias = document.getElementById('btn-otro-mes-audiencias');
+            const dropdownMesesAudiencias = document.getElementById('dropdown-meses-audiencias');
+            
+            if (btnOtroMesAudiencias && dropdownMesesAudiencias) {
+                btnOtroMesAudiencias.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMesesAudiencias.classList.toggle('show');
+                });
             }
             
-            // Inicializar agenda
-            if (typeof initAgendaGeneral === 'function') {
-                initAgendaGeneral();
+            // Manejo del dropdown de meses para Términos
+            const btnOtroMesTerminos = document.getElementById('btn-otro-mes-terminos');
+            const dropdownMesesTerminos = document.getElementById('dropdown-meses-terminos');
+            
+            if (btnOtroMesTerminos && dropdownMesesTerminos) {
+                btnOtroMesTerminos.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMesesTerminos.classList.toggle('show');
+                });
+            }
+            
+            // Cerrar dropdowns al hacer clic fuera
+            document.addEventListener('click', function() {
+                if (dropdownMesesAudiencias) dropdownMesesAudiencias.classList.remove('show');
+                if (dropdownMesesTerminos) dropdownMesesTerminos.classList.remove('show');
+            });
+            
+            // Prevenir que los dropdowns se cierren al hacer clic dentro
+            if (dropdownMesesAudiencias) {
+                dropdownMesesAudiencias.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+            
+            if (dropdownMesesTerminos) {
+                dropdownMesesTerminos.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
             }
         });
+
+        // Función para cambiar entre módulos
+        function showModule(module) {
+            // Ocultar todos los módulos
+            document.querySelectorAll('.module-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Mostrar el módulo seleccionado
+            document.getElementById(`module-${module}`).classList.add('active');
+            
+            // Actualizar título de la página
+            if (module === 'audiencias') {
+                document.getElementById('page-main-title').textContent = 'Audiencias Desahogadas';
+            } else if (module === 'terminos') {
+                document.getElementById('page-main-title').textContent = 'Términos Presentados';
+            }
+        }
+
+        // Función para seleccionar un mes en Audiencias
+        function seleccionarMesAudiencias(mes) {
+            alert(`Filtrando audiencias por: ${mes}`);
+            // Aquí iría la lógica real para filtrar por mes en audiencias
+            document.getElementById('dropdown-meses-audiencias').classList.remove('show');
+        }
+
+        // Función para seleccionar un mes en Términos
+        function seleccionarMesTerminos(mes) {
+            alert(`Filtrando términos por: ${mes}`);
+            // Aquí iría la lógica real para filtrar por mes en términos
+            document.getElementById('dropdown-meses-terminos').classList.remove('show');
+        }
+
+        function openObservacionesModal(expediente) {
+            const modal = document.getElementById('modal-observaciones');
+            const expedienteElement = document.getElementById('obs-modal-expediente');
+            const contenido = document.getElementById('obs-modal-content');
+            
+            expedienteElement.innerHTML = `<strong>Expediente:</strong> ${expediente}`;
+            contenido.innerHTML = `
+                <p class="font-medium mb-2">Observaciones registradas para este expediente:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Se requiere seguimiento especial por la complejidad del caso.</li>
+                    <li>Las partes han solicitado una prórroga.</li>
+                    <li>Documentación pendiente de entrega por parte del demandado.</li>
+                </ul>
+            `;
+            
+            // Mostrar el modal usando Flowbite
+            const modalInstance = new Modal(modal);
+            modalInstance.show();
+        }
+
+        function descargarActa(expediente) {
+            alert(`Descargando acta para el expediente: ${expediente}`);
+            // Aquí iría la lógica real para descargar el acta
+        }
+
+        function descargarAcuse(expediente) {
+            alert(`Descargando acuse para el expediente: ${expediente}`);
+            // Aquí iría la lógica real para descargar el acuse
+        }
     </script>
-    <div class="modal" id="modal-observaciones" style="display: none; background-color: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000;">
-        <div class="modal-content" style="background-color: #fff; margin: 15% auto; padding: 0; border: 1px solid #888; width: 40%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; border-radius: 8px 8px 0 0;">
-                <h3 id="obs-modal-title" style="margin: 0; font-size: 1.1rem; color: #333;">Observaciones</h3>
-                <button class="close-modal-obs" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 20px;">
-                <div id="obs-modal-expediente" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ddd;"></div>
-                <div id="obs-modal-content" style="background: #fdfdfe; padding: 15px; border-left: 4px solid #007bff; border-radius: 4px;">
-                    </div>
-            </div>
-            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
-                <button class="btn btn-secondary" id="btn-cerrar-obs">Cerrar</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

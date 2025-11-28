@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audiencias - Agenda Legal</title>
+    
+    <link href="../css/output.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
+
+    <div data-include="../components/sidebar.html"></div>
+
+    <div class="p-4 sm:ml-64">
+        <div data-include="../components/navbar.html"></div>
+
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gob-gris font-headings">
+                <i class="fas fa-gavel text-gob-oro mr-2"></i> Gestión de Audiencias
+            </h1>
+            <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div class="relative w-full md:w-96">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="search-audiencias" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar audiencia...">
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button id="export-audiencias" class="flex-1 md:flex-none text-gob-gris bg-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2.5 shadow-sm">
+                    <i class="fas fa-file-excel text-green-600 mr-2"></i> Exportar
+                </button>
+                <button id="add-audiencia" class="flex-1 md:flex-none text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md">
+                    <i class="fas fa-plus mr-2"></i> Nueva Audiencia
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div class="text-xs font-bold text-gob-oro uppercase tracking-wider font-headings mb-3 border-b border-gray-100 pb-2">
+                <i class="fas fa-filter mr-1"></i> Filtros
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Tipo</label><select id="filter-tipo" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todos</option><option>Inicial</option><option>Intermedia</option><option>Juicio</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Gerencia</label><input type="text" id="filter-gerencia" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2" placeholder="..."></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Materia</label><select id="filter-materia" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todas</option><option>Civil</option><option>Penal</option><option>Laboral</option><option>Mercantil</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Prioridad</label><select id="filter-prioridad" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todas</option><option>Alta</option><option>Media</option><option>Baja</option></select></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gob-gris">
+                    <thead class="text-xs text-gob-gris uppercase bg-gray-50 border-b border-gray-200 font-headings">
+                        <tr>
+                            <th class="px-4 py-3 w-8"></th>
+                            <th class="px-4 py-3">Fecha / Hora</th>
+                            <th class="px-4 py-3">Tribunal / Lugar</th>
+                            <th class="px-4 py-3">Expediente</th>
+                            <th class="px-4 py-3">Partes</th>
+                            <th class="px-4 py-3">Estado</th>
+                            <th class="px-4 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audiencias-body" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div data-include="./components/modals.html"></div>
+
+    <script type="module">
+        // IMPORTAMOS EL LOADER GLOBAL
+        import { loadIncludes } from '../js/loader.js';
+        
+        // No necesitamos importar audiencias.js como módulo si es un script normal,
+        // pero para asegurar el orden de ejecución:
+        
+        document.addEventListener("DOMContentLoaded", async function () {
+            // 1. Cargar Navbar, Sidebar y Modales
+            await loadIncludes();
+            
+            // 2. Resaltar link activo en Sidebar
+            const navLink = document.querySelector('a[href*="audiencias"]'); // Ajusta según tu href en sidebar
+            if(navLink) {
+                navLink.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+                navLink.classList.remove('text-gray-300');
+            }
+
+            // 3. Cargar script de lógica de audiencias dinámicamente
+            // Esto asegura que el HTML (modales) ya exista antes de que el JS intente buscarlos
+            const script = document.createElement('script');
+            script.src = 'js/audiencias.js';
+            script.onload = () => {
+                if (typeof initAudiencias === "function") initAudiencias();
+            };
+            document.body.appendChild(script);
+        });
+    </script>
+</body>
+</html>

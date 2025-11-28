@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expedientes | Módulo</title>
+  
+  <link href="../css/output.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
+
+  <div data-include="../components/sidebar.html"></div>
+
+  <div class="p-4 sm:ml-64">
+    
+    <div data-include="../components/navbar.html"></div>
+
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
+        <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4">
+    </div>
+
+    <div data-include="./components/toolbar.html"></div>
+    <div data-include="./components/filters.html"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="expedientes-list"></div>
+
+    <div data-include="./components/empty-state.html"></div>
+    <div data-include="./components/expediente-card.html"></div>
+    <div data-include="./components/modal-create.html"></div>
+  </div>
+
+  <script type="module">
+    // Loader Global
+    import { loadIncludes } from '../js/loader.js';
+    import { ExpedientesModule } from './js/expedientes.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadIncludes();
+      
+      // Resaltar Sidebar Global (Opcional, si usas la lógica en loader.js esto no es necesario)
+      // Pero si quieres forzarlo aquí:
+      const navItem = document.querySelector('a[href*="expediente-module"]');
+      if(navItem) {
+        navItem.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+        navItem.classList.remove('text-gray-300');
+      }
+
+      const module = new ExpedientesModule();
+      module.init();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<div id="modal-notificacion" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-lg bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gob-guinda font-headings">Nueva Notificación</h3>
+            <button data-modal-hide class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto">
+            <form id="form-notificacion" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-gob-gris mb-1 uppercase">Tipo</label>
+                        <select id="notif-tipo" class="w-full bg-gray-50 border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro">
+                            <option value="recordatorio">Recordatorio General</option>
+                            <option value="audiencia">Audiencia</option>
+                            <option value="termino">Término Legal</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="block text-xs font-bold text-gob-gris mb-1 uppercase">Expediente (Opcional)</label>
+                        <input type="text" id="notif-expediente" class="w-full bg-gray-50 border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro" placeholder="Ej: 123/2024">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gob-gris mb-1 uppercase">Título *</label>
+                    <input type="text" id="notif-titulo" required class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro" placeholder="Título del recordatorio">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gob-gris mb-1 uppercase">Detalles</label>
+                    <textarea id="notif-detalles" rows="3" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro" placeholder="Descripción adicional..."></textarea>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 mt-2">
+                    <label class="block text-sm font-bold text-gob-guinda mb-3">Configuración de Fecha</label>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Fecha Evento *</label>
+                            <input type="date" id="notif-fecha-evento" required class="w-full bg-white border border-gray-300 rounded p-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Hora Evento</label>
+                            <input type="time" id="notif-hora-evento" class="w-full bg-white border border-gray-300 rounded p-2 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 items-end">
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Avisar</label>
+                            <select id="notif-tipo-alerta" class="w-full bg-white border border-gray-300 rounded p-2 text-sm">
+                                <option value="datetime">En la fecha/hora exacta</option>
+                                <option value="days">Días antes</option>
+                                <option value="hours">Horas antes</option>
+                            </select>
+                        </div>
+                        <div id="offset-container" class="col-span-1 hidden">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Cantidad</label>
+                            <input type="number" id="notif-offset" min="1" value="1" class="w-full bg-white border border-gray-300 rounded p-2 text-sm">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex items-center justify-end p-4 border-t gap-3 bg-gray-50 rounded-b-lg">
+            <button data-modal-hide class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100">Cancelar</button>
+            <button type="submit" form="form-notificacion" class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded hover:bg-gob-guindaDark shadow-md">Guardar</button>
+        </div>
+    </div>
+</div>

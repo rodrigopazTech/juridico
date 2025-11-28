@@ -1,0 +1,84 @@
+<div id="modal-edit-expediente" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-3xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        
+        <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <h2 class="text-xl font-bold text-gob-guinda font-headings">
+                <i class="fas fa-edit mr-2"></i> Editar Expediente
+            </h2>
+            <button id="close-edit-expediente" class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <form id="form-edit-expediente">
+                <input type="hidden" id="edit-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">No. Expediente</label>
+                        <input type="text" id="edit-numero" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Materia</label>
+                        <select id="edit-materia" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                            <option value="Civil">Civil</option>
+                            <option value="Penal">Penal</option>
+                            <option value="Laboral">Laboral</option>
+                            <option value="Administrativo">Administrativo</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Gerencia</label>
+                        <select id="edit-gerencia" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                            <option value="1">Civil, Mercantil, Fiscal y Adm.</option>
+                            <option value="2">Laboral y Penal</option>
+                            <option value="3">Transparencia y Amparo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Sede / Estado</label>
+                        <input type="text" id="edit-sede" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Abogado Responsable</label>
+                        <input type="text" id="edit-abogado" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Partes Procesales</label>
+                        <input type="text" id="edit-partes" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Órgano Jurisdiccional</label>
+                        <input type="text" id="edit-organo" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Prioridad</label>
+                        <select id="edit-prioridad" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                            <option value="Alta">Alta</option>
+                            <option value="Media">Media</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Descripción</label>
+                        <textarea id="edit-descripcion" rows="3" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex-none flex items-center justify-end p-4 border-t bg-white rounded-b-lg gap-3">
+            <button id="cancel-edit-expediente" class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Cancelar</button>
+            <button id="save-edit-expediente" class="px-5 py-2.5 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md transition-colors">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>

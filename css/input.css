@@ -3,36 +3,44 @@
 @tailwind utilities;
 
 @layer components {
-  .chart-container {
-    position: relative;
-    height: 350px;
-    width: 100%;
+  /* Estilos de Tarjetas (Migrados de Expedientes) */
+  .card-asunto {
+    @apply bg-white border border-gray-200 rounded-lg p-5 shadow-sm transition-all duration-300 relative border-t-4 border-gob-guinda flex flex-col justify-between h-full;
   }
-
-  /* --- ESTILOS MIGRADOS DE USUARIO MODULE --- */
+  .card-asunto:hover {
+    @apply shadow-xl -translate-y-1 border-gob-oro;
+  }
+  
+  /* Estilos de Checkbox (Migrados de Usuarios) */
   .checkbox-container {
     @apply border border-gray-300 rounded-md p-3 max-h-[180px] overflow-y-auto bg-gray-50;
   }
-  
-  .checkbox-container div {
-    @apply mb-2 flex items-center;
-  }
-  
-  .checkbox-container input[type="checkbox"] {
-    @apply mr-2 w-4 h-4 text-gob-oro focus:ring-gob-oro border-gray-300 rounded;
-    /* Tailwind forms plugin maneja esto mejor, pero esto sirve por ahora */
-    accent-color: #B38E5D; 
-  }
-  
-  .checkbox-container label {
-    @apply mb-0 font-normal text-gray-700 select-none cursor-pointer;
-  }
+  .checkbox-container div { @apply mb-2 flex items-center; }
+  .checkbox-container input[type="checkbox"] { @apply mr-2 w-4 h-4 text-gob-oro focus:ring-gob-oro border-gray-300 rounded; accent-color: #B38E5D; }
+  .checkbox-container label { @apply mb-0 font-normal text-gray-700 select-none cursor-pointer; }
+
+  /* --- ESTILOS MIGRADOS DE AUDIENCIAS (NUEVO) --- */
+  .modal { display: none; }
+  .modal.flex { display: flex; }
+  .readonly-field { @apply bg-gray-50 text-gray-500; }
+  .action-menu { transition: opacity 0.1s ease-out; }
 }
 
-/* Fuentes base */
-body {
-  font-family: 'Noto Sans', sans-serif;
+@layer utilities {
+  .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
 }
-.font-headings {
-  font-family: 'Montserrat', sans-serif;
+
+@keyframes fadeInDown { 
+  from { opacity: 0; transform: translate3d(0, -20px, 0); } 
+  to { opacity: 1; transform: translate3d(0, 0, 0); } 
 }
+
+/* Personalización del Scrollbar (Global) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* Fuentes Base */
+body { font-family: 'Noto Sans', sans-serif; }
+.font-headings { font-family: 'Montserrat', sans-serif; }

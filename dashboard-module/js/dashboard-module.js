@@ -45,15 +45,19 @@ export class DashboardModule {
 
   // ==================== DATA LOADING ====================
   loadData() {
-    // Load expedientes from expediente-module
-    this.expedientes = JSON.parse(localStorage.getItem('expedientesData')) || this.getSampleExpedientes();
+    let storedExpedientes = JSON.parse(localStorage.getItem('expedientesData'));
+
+    if (!storedExpedientes || storedExpedientes.length === 0) {
+        this.expedientes = this.getSampleExpedientes();
+        localStorage.setItem('expedientesData', JSON.stringify(this.expedientes));
+    } else {
+        this.expedientes = storedExpedientes;
+    }
     
-    // Load usuarios from usuario-module
     this.usuarios = JSON.parse(localStorage.getItem('usuarios')) || this.getSampleUsuarios();
-    
-    // Load gerencias from usuario-module
+
     this.gerencias = JSON.parse(localStorage.getItem('gerencias')) || this.getSampleGerencias();
-    
+
     // Load audiencias
     this.audiencias = JSON.parse(localStorage.getItem('audiencias')) || this.getSampleAudiencias();
     
@@ -446,13 +450,12 @@ export class DashboardModule {
 
     // Count expedientes by gerencia
     const gerenciaData = this.gerencias.map(gerencia => {
-      const count = this.expedientes.filter(e => e.gerenciaId === gerencia.id).length;
+      const count = this.expedientes.filter(e => e.gerenciaId == gerencia.id).length;
       return {
         nombre: gerencia.nombre,
         count: count
       };
     });
-
     // Sort by count descending
     const sorted = gerenciaData.sort((a, b) => b.count - a.count);
 

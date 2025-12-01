@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorios | Sistema Legal</title>
+    
+    <link href="../css/output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
+
+    <div data-include="../components/sidebar.html"></div>
+
+    <div class="p-4 sm:ml-64">
+        <div data-include="../components/navbar.html"></div>
+
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gob-gris font-headings">
+                <i class="fas fa-sticky-note text-gob-oro mr-2"></i> Panel de Recordatorios
+            </h1>
+            <hr class="h-1 w-20 bg-gob-guinda border-0 mt-4 mb-4">
+        </div>
+
+        <div data-include="./components/toolbar.html"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2">
+                <div id="lista-recordatorios" class="space-y-4">
+                    <div class="text-center py-10 text-gray-400">
+                        <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="font-headings font-bold text-gob-guinda mb-4 border-b pb-2">Resumen</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Para Hoy</span>
+                            <span id="stat-hoy" class="font-bold text-gob-gris">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Urgentes</span>
+                            <span id="stat-urgentes" class="font-bold text-red-600">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Total</span>
+                            <span id="stat-total" class="font-bold text-blue-600">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-gob-guinda to-gob-guindaDark p-5 rounded-lg shadow-md text-white text-center">
+                    <div class="text-4xl font-bold font-headings mb-1" id="widget-dia">--</div>
+                    <div class="text-sm uppercase tracking-widest opacity-80" id="widget-mes">---</div>
+                    <div class="mt-4 pt-4 border-t border-white/20 text-xs">
+                        Tu agenda está activa
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div data-include="./components/modal-create.html"></div>
+    <div data-include="./components/card-template.html"></div>
+
+    <script type="module">
+        import { loadIncludes } from '../js/loader.js';
+        import { RecordatoriosModule } from './js/recordatorios.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadIncludes();
+            // Resaltar Sidebar
+            const navLink = document.querySelector('a[href*="recordatorios-panel"]');
+            if(navLink) {
+                navLink.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+                navLink.classList.remove('text-gray-300'); // Remover estilo inactivo si existía
+            }
+            
+            const module = new RecordatoriosModule();
+            module.init();
+        });
+    </script>
+</body>
+</html>

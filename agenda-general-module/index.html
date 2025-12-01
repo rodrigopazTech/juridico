@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda General | Sistema Legal</title>
+    
+    <link href="../css/output.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="./css/agenda-general.css">
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
+
+    <div data-include="../components/sidebar.html"></div>
+
+    <div class="p-4 sm:ml-64">
+        <div data-include="../components/navbar.html"></div>
+        
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-3xl font-bold text-gob-gris font-headings">
+                    <i class="fas fa-calendar-check text-gob-oro mr-2"></i> Agenda General
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Histórico y seguimiento de actividades desahogadas y términos presentados.</p>
+            </div>
+            
+            <div class="flex overflow-x-auto px-6">
+                <button class="tab-button active flex items-center gap-2 whitespace-nowrap py-3 px-4 border-b-2 border-gob-guinda text-gob-guinda font-bold" onclick="showModule('audiencias')">
+                    <i class="fas fa-gavel"></i>
+                    <span>Audiencias Desahogadas</span>
+                </button>
+                <button class="tab-button flex items-center gap-2 whitespace-nowrap py-3 px-4 border-b-2 border-transparent text-gray-500 hover:text-gob-gris" onclick="showModule('terminos')">
+                    <i class="fas fa-clock"></i>
+                    <span>Términos Presentados</span>
+                </button>
+            </div>
+        </div>
+        
+        <div>
+            <div class="module-content active" id="module-audiencias">
+                <div data-include="./components/toolbar-audiencias.html"></div>
+                <div data-include="./components/table-audiencias.html"></div>
+            </div>
+
+            <div class="module-content hidden" id="module-terminos">
+                <div data-include="./components/toolbar-terminos.html"></div>
+                <div data-include="./components/table-terminos.html"></div>
+            </div>
+        </div>
+    </div>
+
+    <div data-include="./components/modal-observaciones.html"></div>
+
+    <script type="module">
+        import { loadIncludes } from '../js/loader.js';
+        import { initAgendaGeneral } from './js/agenda-general-module.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadIncludes();
+            
+            // Inicializar lógica del módulo
+            initAgendaGeneral();
+        });
+    </script>
+</body>
+</html>

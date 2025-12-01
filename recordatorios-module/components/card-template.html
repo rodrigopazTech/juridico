@@ -1,0 +1,33 @@
+<template id="template-recordatorio">
+    <div class="reminder-card group relative flex items-start gap-4 p-5 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 mb-4">
+        
+        <button class="js-btn-delete absolute top-2 right-2 text-gray-400 hover:text-red-500 p-2 transition-colors rounded-lg" title="Eliminar">
+            <i class="fas fa-trash"></i>
+        </button>
+        
+        <div class="js-icon-box w-12 h-12 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+            <i class="js-icon fas"></i>
+        </div>
+        
+        <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start pr-8">
+                <h4 class="js-title text-lg font-bold text-gob-gris leading-tight"></h4>
+            </div>
+            
+            <p class="js-details text-sm text-gray-600 mt-1 mb-3"></p>
+            
+            <div class="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
+                <div class="flex items-center gap-2 text-xs font-bold text-gob-guinda">
+                    <i class="fas fa-clock"></i>
+                    <span class="js-date-text"></span>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button class="js-btn-edit px-3 py-1 bg-gob-oro hover:bg-yellow-600 text-white text-xs font-bold rounded transition-colors flex items-center gap-1">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

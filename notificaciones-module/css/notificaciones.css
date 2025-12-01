@@ -1,66 +1,11 @@
 /**
- * Estilos específicos del módulo de notificaciones
- * Sistema Jurídico GOB.MX V3
+ * Estilos estructurales del módulo de notificaciones
+ * NOTA: Los colores se manejan en css/input.css global
  */
 
-/* Tipografías */
-body { font-family: 'Noto Sans', sans-serif; }
-.font-headings { font-family: 'Montserrat', sans-serif; }
+/* ==================== ESTRUCTURA DE LA TARJETA ==================== */
 
-/* Sombras y utilidades */
-.card-shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-.hidden-section { display: none; }
-
-/* Badges por tipo de notificación */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
-}
-
-.badge-audiencia {
-    background-color: rgba(157, 36, 73, 0.1);
-    color: #9D2449;
-    border: 1px solid rgba(157, 36, 73, 0.2);
-}
-
-.badge-termino {
-    background-color: rgba(179, 142, 93, 0.1);
-    color: #B38E5D;
-    border: 1px solid rgba(179, 142, 93, 0.2);
-}
-
-.badge-asunto {
-    background-color: rgba(19, 50, 43, 0.1);
-    color: #13322B;
-    border: 1px solid rgba(19, 50, 43, 0.2);
-}
-
-.badge-recordatorio {
-    background-color: rgba(84, 84, 84, 0.1);
-    color: #545454;
-    border: 1px solid rgba(84, 84, 84, 0.2);
-}
-
-/* Secciones y estados vacíos */
-.section-header {
-    background: linear-gradient(to right, #f8f9fa, #f1f3f4);
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.empty-state {
-    background-color: #f9fafb;
-    border: 1px dashed #d1d5db;
-}
-
-/* ==================== NOTIFICACIONES HORIZONTALES ==================== */
-
+/* Contenedor principal de la tarjeta */
 .horizontal-notification {
     display: flex;
     align-items: flex-start;
@@ -69,7 +14,7 @@ body { font-family: 'Noto Sans', sans-serif; }
     background: white;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
     margin-bottom: 1rem;
     position: relative;
@@ -77,27 +22,10 @@ body { font-family: 'Noto Sans', sans-serif; }
 
 .horizontal-notification:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Bordes laterales por tipo */
-.horizontal-notification.audiencia {
-    border-left: 4px solid #9D2449;
-}
-
-.horizontal-notification.termino {
-    border-left: 4px solid #B38E5D;
-}
-
-.horizontal-notification.asunto {
-    border-left: 4px solid #13322B;
-}
-
-.horizontal-notification.recordatorio {
-    border-left: 4px solid #545454;
-}
-
-/* Iconos por tipo */
+/* Icono (Tamaño y forma, el color viene de global) */
 .horizontal-icon {
     flex-shrink: 0;
     width: 3.5rem;
@@ -109,27 +37,7 @@ body { font-family: 'Noto Sans', sans-serif; }
     font-size: 1.25rem;
 }
 
-.horizontal-icon.audiencia {
-    background-color: rgba(157, 36, 73, 0.1);
-    color: #9D2449;
-}
-
-.horizontal-icon.termino {
-    background-color: rgba(179, 142, 93, 0.1);
-    color: #B38E5D;
-}
-
-.horizontal-icon.asunto {
-    background-color: rgba(19, 50, 43, 0.1);
-    color: #13322B;
-}
-
-.horizontal-icon.recordatorio {
-    background-color: rgba(84, 84, 84, 0.1);
-    color: #545454;
-}
-
-/* Contenido de la notificación */
+/* Contenido Principal */
 .horizontal-content {
     flex: 1;
     display: flex;
@@ -152,11 +60,12 @@ body { font-family: 'Noto Sans', sans-serif; }
 .horizontal-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #374151;
+    color: #374151; /* Gris oscuro neutro */
     line-height: 1.4;
 }
 
-/* Grid de detalles */
+/* ==================== GRID DE DETALLES ==================== */
+
 .horizontal-details {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -171,17 +80,18 @@ body { font-family: 'Noto Sans', sans-serif; }
 
 .horizontal-label {
     font-size: 0.75rem;
-    color: #6B7280;
+    color: #6B7280; /* Gris medio */
     font-weight: 500;
 }
 
 .horizontal-value {
     font-size: 0.875rem;
-    color: #374151;
+    color: #374151; /* Gris oscuro */
     font-weight: 500;
 }
 
-/* Información de tiempo */
+/* ==================== FOOTER / TIEMPO ==================== */
+
 .horizontal-time {
     display: flex;
     align-items: center;
@@ -194,7 +104,7 @@ body { font-family: 'Noto Sans', sans-serif; }
 .time-text {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #9D2449;
+    /* Color definido en global (text-gob-guinda) */
 }
 
 .time-date {
@@ -211,6 +121,9 @@ body { font-family: 'Noto Sans', sans-serif; }
     color: #98989A;
     transition: all 0.2s ease;
     border-radius: 0.375rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
 }
 
 .delete-btn:hover {
@@ -233,5 +146,21 @@ body { font-family: 'Noto Sans', sans-serif; }
     
     .horizontal-icon {
         align-self: center;
+        margin-bottom: 1rem;
+    }
+    
+    .horizontal-header {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .horizontal-time {
+        justify-content: center;
+    }
+    
+    .delete-btn {
+        top: 0.5rem;
+        right: 0.5rem;
     }
 }

@@ -3,11 +3,7 @@
 // ===============================================
 // 1. CONFIGURACIÓN Y DATOS
 // ===============================================
-<<<<<<< HEAD
-const USER_ROLE = 'Direccion'; // Cambia esto para probar permisos (Abogado, Gerente, Direccion)
-=======
 const USER_ROLE = 'Direccion'; 
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 
 const FLUJO_ETAPAS = {
     'Proyectista': { siguiente: 'Revisión', accion: 'enviarRevision', label: 'Enviar a Revisión' },
@@ -31,35 +27,9 @@ const PERMISOS_ETAPAS = {
 let TERMINOS = [];
 
 // ===============================================
-<<<<<<< HEAD
-// 2. INICIALIZACIÓN
-// ===============================================
-function initTerminos() {
-    console.log("Iniciando módulo Términos V3...");
-    cargarDatosIniciales();
-    loadTerminos(); 
-    setupSearchAndFilters();
-    initModalTerminosJS();      
-    initModalPresentar();       
-    initModalReasignar();       
-    setupFileUploads();
-    setupActionMenuListener(); 
-    cargarAsuntosEnSelectorJS();
-    cargarAbogadosSelector();
-
-    // Botón Nuevo
-    const btnNuevo = document.getElementById('add-termino');
-    if (btnNuevo) {
-        const newBtn = btnNuevo.cloneNode(true);
-        btnNuevo.parentNode.replaceChild(newBtn, btnNuevo);
-        newBtn.addEventListener('click', () => openTerminoModalJS());
-    }
-
-    // Botón Exportar
-=======
 // 2. INICIALIZACIÓN (Exportada)
 // ===============================================
-export function initTerminos() {
+function initTerminos() {
     console.log("Iniciando módulo Términos V3...");
     
     cargarDatosIniciales();
@@ -90,7 +60,6 @@ export function initTerminos() {
     }
 
     // Configurar Botón Exportar
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     const btnExportar = document.getElementById('export-terminos');
     if (btnExportar) {
         const newBtnExp = btnExportar.cloneNode(true);
@@ -103,20 +72,6 @@ export function initTerminos() {
 }
 
 function cargarDatosIniciales() {
-<<<<<<< HEAD
-    const localData = JSON.parse(localStorage.getItem('terminos'));
-    if (localData && localData.length > 0) {
-        TERMINOS = localData;
-    } else {
-        // Datos de Ejemplo
-        TERMINOS = [
-            { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-04', acuseDocumento: '' },
-            { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-03', acuseDocumento: '' },
-            { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-01', acuseDocumento: '' },
-            { id: 7, expediente: '1201/2024', actor: 'Ricardo Villalobos', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Concluido', fechaIngreso: '2025-11-25', fechaVencimiento: '2025-11-26', acuseDocumento: 'prueba.pdf' },
-        ];
-        localStorage.setItem('terminos', JSON.stringify(TERMINOS));
-=======
     try {
         const localData = JSON.parse(localStorage.getItem('terminos'));
         if (localData && Array.isArray(localData) && localData.length > 0) {
@@ -133,7 +88,6 @@ function cargarDatosIniciales() {
     } catch (e) {
         console.error("Error cargando datos iniciales", e);
         TERMINOS = [];
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     }
 }
 
@@ -144,10 +98,7 @@ function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-<<<<<<< HEAD
-=======
     // Obtener valores de filtros de forma segura (?. evita error si el elemento no existe)
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     const filtros = {
         tribunal: document.getElementById('filter-tribunal-termino')?.value.toLowerCase() || '',
         estado: document.getElementById('filter-estado-termino')?.value.toLowerCase() || '',
@@ -158,19 +109,12 @@ function loadTerminos() {
     };
 
     const listaFiltrada = TERMINOS.filter(t => {
-<<<<<<< HEAD
-        const textoCompleto = `${t.expediente} ${t.actor} ${t.asunto} ${t.abogado}`.toLowerCase();
-        if (filtros.search && !textoCompleto.includes(filtros.search)) return false;
-        if (filtros.estatus && !filtros.estatus.includes('todos') && t.estatus !== filtros.estatus) return false;
-        if (filtros.prioridad && !filtros.prioridad.includes('todos') && t.prioridad !== filtros.prioridad) return false;
-=======
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
         
         if (filtros.search && !textoCompleto.includes(filtros.search)) return false;
         if (filtros.estatus && !filtros.estatus.includes('Todos') && t.estatus !== filtros.estatus) return false;
         if (filtros.prioridad && !filtros.prioridad.includes('Todas') && t.prioridad !== filtros.prioridad) return false;
         
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         return true;
     });
 
@@ -183,10 +127,7 @@ function loadTerminos() {
         let tooltipTexto = diasRestantes < 0 ? `Vencido hace ${Math.abs(diasRestantes)} días` : (diasRestantes === 0 ? "Vence HOY" : `Faltan ${diasRestantes} días`);
 
         const esBloqueado = t.estatus === 'Concluido' || t.estatus === 'Presentado';
-<<<<<<< HEAD
-=======
         
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         const botonEditar = esBloqueado
             ? `<button class="text-gray-300 cursor-not-allowed p-1" title="Bloqueado"><i class="fas fa-lock"></i></button>` 
             : `<button class="text-gray-400 hover:text-gob-oro action-edit p-1" title="Editar"><i class="fas fa-edit"></i></button>`;
@@ -200,19 +141,11 @@ function loadTerminos() {
                 </div>
             </td>
             <td class="px-4 py-3 text-sm text-gray-500 font-bold">${formatDate(t.fechaVencimiento)}</td>
-<<<<<<< HEAD
-            <td class="px-4 py-3 text-sm font-bold text-gob-guinda">${t.expediente}</td>
-            <td class="px-4 py-3 text-sm text-gray-700 max-w-[150px] truncate" title="${t.actor}">${t.actor}</td>
-            <td class="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title="${t.asunto}">${t.asunto}</td> 
-            <td class="px-4 py-3 text-sm text-gray-500">${t.prestacion || 'N/A'}</td> 
-            <td class="px-4 py-3 text-sm text-gray-500">${t.abogado}</td>
-=======
             <td class="px-4 py-3 text-sm font-bold text-gob-guinda">${t.expediente || 'S/N'}</td>
             <td class="px-4 py-3 text-sm text-gray-700 max-w-[150px] truncate" title="${t.actor}">${t.actor || ''}</td>
             <td class="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title="${t.asunto}">${t.asunto || ''}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.prestacion || 'N/A'}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
             <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">
                     ${t.estatus}
@@ -226,17 +159,11 @@ function loadTerminos() {
                     <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Más Acciones">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-<<<<<<< HEAD
-                    <div class="action-menu hidden bg-white rounded shadow-xl border border-gray-100 border-t-4 border-gob-oro w-56 font-headings z-50">
-                        ${generarAccionesRapidas(t, USER_ROLE)}
-                    </div>
-=======
                     
                     <div class="action-menu hidden bg-white rounded shadow-xl border border-gray-100 border-t-4 border-gob-oro w-56 font-headings z-50 absolute right-0 mt-8">
                         ${generarAccionesRapidas(t, USER_ROLE)}
                     </div>
                     
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
                     <input type="file" class="input-acuse-hidden hidden" data-id="${t.id}">
                 </div>
             </td>
@@ -244,11 +171,7 @@ function loadTerminos() {
         `;
     });
 
-<<<<<<< HEAD
-    tbody.innerHTML = html || '<tr><td colspan="9" class="text-center py-4 text-gray-500">No se encontraron resultados</td></tr>';
-=======
     tbody.innerHTML = html || '<tr><td colspan="9" class="text-center py-8 text-gray-500">No se encontraron resultados</td></tr>';
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 }
 
 function setupSearchAndFilters() {
@@ -272,10 +195,6 @@ function generarAccionesRapidas(termino, rol) {
 
     // Opciones Comunes
     html += `<button class="${itemClass} action-view-asunto"><i class="fas fa-briefcase text-gray-400"></i> Ver Asunto</button>`;
-<<<<<<< HEAD
-    html += `<button class="${itemClass} action-history"><i class="fas fa-eye text-gray-400"></i> Ver Historial</button>`;
-=======
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 
     // CASO FINAL: CONCLUIDO
     if (etapa === 'Concluido') {
@@ -320,7 +239,7 @@ function generarAccionesRapidas(termino, rol) {
 
     if (rol === 'Gerente' || rol === 'Direccion') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends text-gray-400"></i> Reasignar</button>`;
+       // html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends text-gray-400"></i> Reasignar</button>`;
         if (rol === 'Direccion') {
             html += `<button class="${itemClass} action-delete text-red-600 font-bold hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
         }
@@ -329,22 +248,16 @@ function generarAccionesRapidas(termino, rol) {
 }
 
 // ===============================================
-<<<<<<< HEAD
-// 5. LISTENER INTELIGENTE
-=======
 // 5. LISTENER INTELIGENTE (CORREGIDO)
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 // ===============================================
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-<<<<<<< HEAD
-    tbody.addEventListener('click', function(e) {
-=======
     // Remover listeners anteriores si los hubiera (cloneNode)
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
+    
     
     // Volver a referenciar la tabla renderizada
     loadTerminos(); 
@@ -352,22 +265,11 @@ function setupActionMenuListener() {
     
     // Agregar Listener Delegado
     document.getElementById('terminos-body').addEventListener('click', function(e) {
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         const target = e.target.closest('button');
         if (!target) return;
 
         const row = target.closest('tr');
         if (!row) return;
-<<<<<<< HEAD
-        const id = row.getAttribute('data-id');
-        const termino = TERMINOS.find(t => String(t.id) === String(id));
-
-        // MENÚ FLOTANTE
-        if (target.classList.contains('action-menu-toggle')) {
-            e.preventDefault(); e.stopPropagation();
-            const menu = target.nextElementSibling; 
-            
-=======
         
         const id = row.getAttribute('data-id');
         const termino = TERMINOS.find(t => String(t.id) === String(id));
@@ -391,23 +293,16 @@ function setupActionMenuListener() {
             if (!menu) return;
 
             // Toggle visibilidad
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
             if (!menu.classList.contains('hidden')) {
                 menu.classList.add('hidden');
                 menu.style.cssText = ''; 
                 return;
             }
-<<<<<<< HEAD
-            document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
-
-            menu.classList.remove('hidden');
-=======
 
             // Mostrar y Posicionar
             menu.classList.remove('hidden');
             
             // Lógica de posicionamiento fijo para evitar cortes por overflow:hidden de la tabla
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
             const rect = target.getBoundingClientRect(); 
             const menuWidth = 224; 
             const menuHeight = menu.offsetHeight || 220; 
@@ -419,19 +314,13 @@ function setupActionMenuListener() {
             menu.style.left = (rect.right - menuWidth) + 'px';
 
             if (spaceBelow < menuHeight) {
-<<<<<<< HEAD
-=======
                 // Mostrar hacia arriba
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
                 menu.style.top = 'auto';
                 menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
                 menu.classList.remove('border-t-4');
                 menu.classList.add('border-b-4');
             } else {
-<<<<<<< HEAD
-=======
                 // Mostrar hacia abajo
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
                 menu.style.bottom = 'auto';
                 menu.style.top = (rect.bottom + 5) + 'px';
                 menu.classList.add('border-t-4');
@@ -440,15 +329,10 @@ function setupActionMenuListener() {
             return;
         }
 
-<<<<<<< HEAD
-        // ACCIONES
-        if (target.classList.contains('action-edit')) openTerminoModalJS(termino);
-=======
         // 2. ACCIONES (Editar, Avanzar, etc)
         if (target.classList.contains('action-edit')) {
             openTerminoModalJS(termino);
         }
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
@@ -469,7 +353,7 @@ function setupActionMenuListener() {
             );
         }
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
-        else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
+        //else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
         else if (target.classList.contains('action-delete')) {
             mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => {
                 TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id));
@@ -478,23 +362,6 @@ function setupActionMenuListener() {
             });
         }
         
-<<<<<<< HEAD
-        document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-    });
-    
-    // Cierres Globales
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
-            document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
-        }
-    });
-    window.addEventListener('scroll', () => {
-        document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
-    }, true);
-    
-    // Listener Archivo
-    tbody.addEventListener('change', function(e) {
-=======
         // Cerrar menús después de acción
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
     });
@@ -519,7 +386,6 @@ function setupActionMenuListener() {
     
     // Listener Input Archivo
     document.getElementById('terminos-body').addEventListener('change', function(e) {
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         if (e.target.classList.contains('input-acuse-hidden') && e.target.files.length > 0) {
             const id = e.target.getAttribute('data-id');
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
@@ -577,20 +443,11 @@ function guardarYRecargar() {
 }
 
 // ===============================================
-<<<<<<< HEAD
-// 7. MODALES (MANUALES)
-=======
 // 7. MODALES (MANUALES) - ROBUSTO
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 // ===============================================
 function initModalTerminosJS() {
    const modal = document.getElementById('modal-termino');
    const btnSave = document.getElementById('save-termino');
-<<<<<<< HEAD
-   document.querySelectorAll('#close-modal-termino, #cancel-termino').forEach(btn => {
-       if(btn) btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); };
-   });
-=======
    
    if (!modal) {
        console.error("Error Crítico: No se encontró el modal #modal-termino");
@@ -604,7 +461,6 @@ function initModalTerminosJS() {
        };
    });
 
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
    if(btnSave) {
        const newBtn = btnSave.cloneNode(true);
        btnSave.parentNode.replaceChild(newBtn, btnSave);
@@ -614,29 +470,17 @@ function initModalTerminosJS() {
 
 function openTerminoModalJS(termino = null) {
     const modal = document.getElementById('modal-termino');
-<<<<<<< HEAD
-    const form = document.getElementById('form-termino');
-    const title = document.getElementById('modal-termino-title');
-    form.reset();
-=======
     if (!modal) return alert("Error: El modal no se cargó correctamente.");
 
     const form = document.getElementById('form-termino');
     const title = document.getElementById('modal-termino-title');
     
     if(form) form.reset();
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     cargarAsuntosEnSelectorJS();
     
     if (termino) {
         title.textContent = 'Editar Datos del Término';
         document.getElementById('termino-id').value = termino.id;
-<<<<<<< HEAD
-        if(document.getElementById('asunto-selector')) document.getElementById('asunto-selector').value = termino.asuntoId || '';
-        document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
-        document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
-        document.getElementById('actuacion').value = termino.asunto || '';
-=======
         
         // Llenar campos
         const selAsunto = document.getElementById('asunto-selector');
@@ -646,16 +490,12 @@ function openTerminoModalJS(termino = null) {
         if(document.getElementById('fecha-vencimiento')) document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
         if(document.getElementById('actuacion')) document.getElementById('actuacion').value = termino.asunto || '';
         
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
         if(termino.asuntoId) cargarDatosAsuntoEnModalJS(termino.asuntoId);
     } else {
         title.textContent = 'Nuevo Término';
         document.getElementById('termino-id').value = '';
     }
-<<<<<<< HEAD
-=======
     
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
@@ -663,20 +503,12 @@ function openTerminoModalJS(termino = null) {
 function guardarTermino() {
     const id = document.getElementById('termino-id').value;
     const data = {
-<<<<<<< HEAD
-        asuntoId: document.getElementById('asunto-selector').value,
-        fechaIngreso: document.getElementById('fecha-ingreso').value,
-        fechaVencimiento: document.getElementById('fecha-vencimiento').value,
-        asunto: document.getElementById('actuacion').value,
-    };
-=======
         asuntoId: document.getElementById('asunto-selector')?.value,
         fechaIngreso: document.getElementById('fecha-ingreso')?.value,
         fechaVencimiento: document.getElementById('fecha-vencimiento')?.value,
         asunto: document.getElementById('actuacion')?.value,
     };
 
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
 
     if(id) {
@@ -688,17 +520,6 @@ function guardarTermino() {
             estatus: 'Proyectista',
             ...data,
             acuseDocumento: '',
-<<<<<<< HEAD
-            expediente: document.getElementById('termino-expediente').value,
-            actor: document.getElementById('termino-partes').value,
-            abogado: document.getElementById('termino-abogado').value
-        });
-    }
-    guardarYRecargar();
-    const modal = document.getElementById('modal-termino');
-    modal.classList.remove('flex');
-    modal.classList.add('hidden');
-=======
             expediente: document.getElementById('termino-expediente')?.value || '',
             actor: document.getElementById('termino-partes')?.value || '',
             abogado: document.getElementById('termino-abogado')?.value || '',
@@ -712,16 +533,12 @@ function guardarTermino() {
     modal.classList.remove('flex');
     modal.classList.add('hidden');
     mostrarMensajeGlobal('Término guardado correctamente', 'success');
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 }
 
 // --- Helpers de Modales ---
 function initModalReasignar() {
     const modal = document.getElementById('modal-reasignar');
-<<<<<<< HEAD
-=======
     if (!modal) return;
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     const btnSave = document.getElementById('save-reasignar');
     document.querySelectorAll('#close-modal-reasignar, #cancel-reasignar').forEach(btn => btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); });
     if(btnSave) {
@@ -752,10 +569,7 @@ function abrirModalReasignar(id) {
 
 function initModalPresentar() {
     const modal = document.getElementById('modal-presentar-termino');
-<<<<<<< HEAD
-=======
     if (!modal) return;
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
     const btnConfirm = document.getElementById('confirmar-presentar');
     document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); });
     if(btnConfirm) {
@@ -881,30 +695,6 @@ function mostrarMensajeGlobal(msg, type) {
 function cargarAsuntosEnSelectorJS() {
     const sel = document.getElementById('asunto-selector');
     if(!sel) return;
-<<<<<<< HEAD
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || [];
-    sel.innerHTML = '<option value="">Seleccionar...</option>';
-    asuntos.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a.id;
-        opt.text = `${a.expediente} - ${a.descripcion || ''}`;
-        sel.appendChild(opt);
-    });
-    sel.onchange = () => {
-        const a = asuntos.find(x => String(x.id) === sel.value);
-        if(a) {
-            document.getElementById('termino-expediente').value = a.expediente || '';
-            document.getElementById('termino-materia').value = a.materia || '';
-            document.getElementById('termino-gerencia').value = a.gerencia || '';
-            document.getElementById('termino-abogado').value = a.abogadoResponsable || '';
-            document.getElementById('termino-partes').value = a.partesProcesales || '';
-            document.getElementById('termino-tipo-asunto').value = a.tipoAsunto || '';
-            document.getElementById('termino-prioridad').value = a.prioridadAsunto || '';
-            document.getElementById('termino-organo').value = a.organoJurisdiccional || '';
-        }
-    };
-}
-=======
     const expedientesData = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
     sel.innerHTML = '<option value="">Seleccionar...</option>';
@@ -927,19 +717,10 @@ function cargarAsuntosEnSelectorJS() {
     };
 }
 
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5
 function cargarDatosAsuntoEnModalJS(asuntoId) {
     const selector = document.getElementById('asunto-selector');
     if(selector) { selector.value = asuntoId; selector.dispatchEvent(new Event('change')); }
 }
-<<<<<<< HEAD
-function cargarAbogadosSelector() {
-    const sel = document.getElementById('select-nuevo-abogado');
-    if(!sel) return;
-    sel.innerHTML = '<option value="">Seleccionar...</option><option value="Lic. A">Lic. A</option>';
-}
-function formatDate(date) { return date; }
-=======
 
 function cargarAbogadosSelector() {
     const sel = document.getElementById('select-nuevo-abogado');
@@ -963,4 +744,3 @@ function exportarTablaExcel() {
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, 'Terminos.xlsx');
 }
->>>>>>> fc2d7cc95e60ae225a3b3576ef30f2ceafca58b5

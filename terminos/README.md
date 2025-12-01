@@ -39,7 +39,7 @@ El diseño sigue estrictamente la Guía Gráfica Base V3, implementada mediante 
 
 |Variable JS/CSS | Código Hex | Uso Principal|
 |-----|-----|------|
-| gob-guinda|#9D2449 | "Acciones Primarias, Botones, Títulos" |
+| gob-guinda| #9D2449 | "Acciones Primarias, Botones, Títulos" |
 | gob-guindaDark | #611232 | Hover de botones primarios |
 |gob-oro|#B38E5D | "Bordes decorativos, acentos, iconos secundarios" |
 |gob-gris | #545454 | "Texto principal, encabezados de tabla" |
@@ -47,9 +47,7 @@ El diseño sigue estrictamente la Guía Gráfica Base V3, implementada mediante 
 
 ### Componentes de UI
   * Tipografía: Montserrat (Títulos/Headings) y Noto Sans (Cuerpo/Lectura).
-
   * Modales: Ventanas emergentes con backdrop-blur-sm, bordes superiores de color semántico (Oro=Edición, Rojo=Alerta, Verde=Éxito) y scroll interno controlado (max-h-[90vh]).
-
   * Tablas: Diseño limpio con hover:bg-gray-50 en filas y columna de acciones "sticky" o ajustada con whitespace-nowrap.
 
 ## Uso del Módulo
@@ -164,11 +162,8 @@ Antes de desplegar a producción, verifica:
 
 ## Estándares de Código y Contribución
 * CSS: No escribir CSS personalizado a menos que sea para animaciones (@keyframes) o comportamientos del navegador (scrollbar). Usar siempre clases de utilidad de Tailwind.
-
 * JS: Usar const y let. Evitar var.
-
 * Modales: No usar alert() ni confirm() nativos. Usar siempre mostrarAlertaTermino(), mostrarConfirmacion() o mostrarPrompt().
-
 * Nomenclatura:
     * Variables JS: camelCase (ej. fechaVencimiento).
     * IDs HTML: kebab-case (ej. modal-nuevo-termino).

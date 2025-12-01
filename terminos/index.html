@@ -10,14 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="font-sans text-gob-gris antialiased bg-gray-50">
 
     <div data-include="../components/sidebar.html"></div>
 
-    <div class="p-4 sm:ml-64">
-        
+    <div class="p-4 sm:ml-64"> 
         <div data-include="../components/navbar.html"></div>
 
         <div class="mb-6">
@@ -95,25 +93,31 @@
     </div>
 
     <div data-include="./components/modals_terminos.html"></div>
+    <div data-include="./components/modals.html"></div>
 
     <script type="module">
         // Importar Loader Global y la Función Init de Terminos
         import { loadIncludes } from '../js/loader.js';
-        import { initTerminos } from './js/terminos.js';
         
         document.addEventListener("DOMContentLoaded", async function () {
             // 1. Cargar Navbar, Sidebar y Modales (ESPERAMOS A QUE TERMINE)
             await loadIncludes();
             
             // 2. Resaltar link activo en Sidebar
-            const navLink = document.getElementById('nav-terminos');
+            const navLink = document.querySelector('a[href*="terminos"]'); // Ajusta según tu href en sidebar
             if(navLink) {
                 navLink.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
                 navLink.classList.remove('text-gray-300');
             }
 
             // 3. Iniciar la lógica de términos (SOLO AHORA ES SEGURO)
-            initTerminos();
+           const script = document.createElement('script');
+            //script.type = "module"; // Importante si usas export/import en terminos.js, si no quítalo
+            script.src = 'js/terminos.js';
+            script.onload = () => {
+                if (typeof initTerminos === "function") initTerminos();
+            };
+            document.body.appendChild(script);
         });
     </script>
 </body>

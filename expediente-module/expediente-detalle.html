@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalle Expediente</title>
+  
+  <link href="../css/output.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-gray-50">
+  
+  <div data-include="../components/sidebar.html"></div>
+
+  <div class="p-4 sm:ml-64">
+    <div data-include="../components/navbar.html"></div>
+
+    <div data-include="./components/detalle-header.html"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      
+      <div class="lg:col-span-2">
+        <div data-include="./components/vista-360.html"></div>
+      </div>
+
+      <div class="space-y-6">
+        <div data-include="./components/detalle-timeline.html"></div>
+      </div>
+    </div>
+  </div>
+
+  <div data-include="./components/modal-edit.html"></div>
+
+  <div id="modal-cambio-estado" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+      <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+          <div class="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
+              <h3 class="text-lg font-bold text-gob-guinda font-headings flex items-center gap-2">
+                  <i class="fas fa-exchange-alt"></i> Cambiar Estado
+              </h3>
+              <button id="close-cambio-estado" class="text-gray-400 hover:text-gray-900 transition-colors rounded-lg p-1">
+                  <i class="fas fa-times fa-lg"></i>
+              </button>
+          </div>
+          
+          <div class="p-6 bg-white">
+              <form id="form-cambio-estado" class="space-y-4">
+                  <div>
+                      <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Estado Actual</label>
+                      <div class="p-2 bg-gray-100 rounded border border-gray-300 text-gray-700 font-bold text-sm inline-block" id="estado-actual-display">
+                          Cargando...
+                      </div>
+                  </div>
+                  <div>
+                      <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Nuevo Estado *</label>
+                      <select id="nuevo-estado-select" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                          <option value="">Seleccione...</option>
+                          <option value="Tramite">En Trámite</option>
+                          <option value="Sentencia">Sentencia</option>
+                          <option value="Concluido">Concluido</option>
+                          <option value="Suspendido">Suspendido</option>
+                      </select>
+                  </div>
+                  <div>
+                      <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Justificación *</label>
+                      <textarea id="razon-cambio" rows="3" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" placeholder="Motivo del cambio de etapa..."></textarea>
+                  </div>
+              </form>
+          </div>
+
+          <div class="flex items-center justify-end p-4 border-t gap-3 bg-gray-50 rounded-b-lg">
+              <button id="cancel-cambio-estado" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">Cancelar</button>
+              <button id="confirm-cambio-estado" class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded hover:bg-gob-guindaDark shadow-md transition-colors">Confirmar Cambio</button>
+          </div>
+      </div>
+  </div>
+
+  <script type="module">
+    import { loadIncludes } from '../js/loader.js';
+    import { ExpedienteDetalleModule } from './js/expediente-detalle.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadIncludes();
+      
+      // Inicializar lógica
+      const detalle = new ExpedienteDetalleModule();
+      detalle.init();
+    });
+  </script>
+</body>
+</html>

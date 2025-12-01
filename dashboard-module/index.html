@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Sistema Legal</title>
+  
+  <link href="../css/output.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  
+  <div data-include="../components/sidebar.html"></div>
+
+  <div class="p-4 sm:ml-64">
+    
+    <div data-include="../components/navbar.html"></div>
+
+    <div data-include="./components/stats-cards.html"></div>
+
+    <div class="grid grid-cols-1 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gob-guinda font-headings">
+            <i class="fas fa-building mr-2"></i>Distribución por Gerencia
+          </h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartGerencias"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-filter text-gob-guinda"></i>
+          <span class="text-sm font-semibold text-gob-gris">Filtrar por Gerencia:</span>
+        </div>
+        <select id="filterGerenciaUnificado" class="flex-1 sm:flex-none sm:min-w-[300px] text-sm border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro transition-all">
+          <option value="">📊 Todas las gerencias</option>
+        </select>
+        <div class="flex items-center gap-3 text-xs ml-auto">
+          <span class="text-gob-gris">Leyenda:</span>
+          <span class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+            <span class="text-gray-600">Audiencias</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+            <span class="text-gray-600">Términos</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gob-guinda font-headings">
+            <i class="fas fa-users mr-2"></i>Carga de Trabajo por Usuario
+          </h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartUsuarios"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gob-guinda font-headings">
+            <i class="fas fa-chart-line mr-2"></i>Trabajo Completado (Últimos 6 Meses)
+          </h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartTrabajoCompletado"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gob-guinda font-headings">
+            <i class="fas fa-chart-pie mr-2"></i>Estados de Expedientes
+          </h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartEstados"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // Importación Global del Loader
+    import { loadIncludes } from '../js/loader.js';
+    // Importación Local del Módulo
+    import { DashboardModule } from './js/dashboard-module.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadIncludes();
+      
+      // Resaltar el link activo en el sidebar global
+      const navDashboard = document.getElementById('nav-dashboard');
+      if(navDashboard) {
+         navDashboard.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+         navDashboard.classList.remove('text-gray-300', 'hover:bg-gob-verdeDark');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const dashboard = new DashboardModule();
+      dashboard.init();
+    });
+  </script>
+</body>
+</html>

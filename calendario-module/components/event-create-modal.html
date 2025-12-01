@@ -1,0 +1,277 @@
+<!-- Event Create/Edit Modal -->
+<div id="modalEventCreate" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-5 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-lg bg-white my-10">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-4 border-b rounded-t bg-gradient-to-r from-gob-guinda/10 to-gob-guinda/5">
+      <h3 id="createModalTitle" class="text-2xl font-bold text-gob-guinda font-headings">
+        <i class="fas fa-plus-circle mr-2"></i>Crear Nuevo Evento
+      </h3>
+      <button onclick="calendarioModule.closeEventCreateModal()" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <form id="formEvent" class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+      
+      <!-- Campos Comunes -->
+      <div class="border-b border-gray-200 pb-6">
+        <h4 class="text-lg font-bold text-gob-verde mb-4 font-headings">
+          <i class="fas fa-info-circle mr-2"></i>Información General
+        </h4>
+
+        <!-- Event Type -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-tag text-gob-oro mr-1"></i>Tipo de Evento *
+          </label>
+          <select id="inputTipo" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+            <option value="">Seleccionar tipo</option>
+            <option value="audiencia">🎯 Audiencia</option>
+            <option value="termino">⏰ Término</option>
+            <option value="recordatorio">📝 Recordatorio</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Los campos del formulario cambiarán según el tipo seleccionado</p>
+        </div>
+
+        <!-- Date and Time -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-calendar text-gob-oro mr-1"></i>Fecha *
+            </label>
+            <input type="date" id="inputFecha" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-clock text-gob-oro mr-1"></i>Hora *
+            </label>
+            <input type="time" id="inputHora" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+          </div>
+        </div>
+
+        <!-- Gerencia and Usuario -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-building text-gob-oro mr-1"></i>Gerencia *
+            </label>
+            <select id="inputGerencia" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+              <option value="">Seleccionar gerencia</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-user text-gob-oro mr-1"></i>Usuario Asignado *
+            </label>
+            <select id="inputUsuario" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+              <option value="">Seleccionar usuario</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: AUDIENCIA -->
+      <div id="seccionAudiencia" class="hidden border-b border-blue-200 pb-6">
+        <h4 class="text-lg font-bold text-blue-600 mb-4 font-headings">
+          <i class="fas fa-gavel mr-2"></i>Detalles de la Audiencia
+        </h4>
+
+        <!-- Asunto Selector -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-briefcase text-blue-500 mr-1"></i>Asunto *
+          </label>
+          <select id="inputAsuntoAudiencia" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Seleccionar asunto</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Los datos del expediente se llenarán automáticamente</p>
+        </div>
+
+        <!-- Datos Auto-llenados -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Datos del Asunto (Auto-llenados)</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Expediente</label>
+              <input type="text" id="inputExpedienteAud" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Materia</label>
+              <input type="text" id="inputMateriaAud" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Órgano Jurisdiccional</label>
+              <input type="text" id="inputOrganoAud" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Partes Procesales</label>
+              <input type="text" id="inputPartesAud" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Prioridad</label>
+              <input type="text" id="inputPrioridadAud" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tipo de Audiencia -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Tipo de Audiencia *
+          </label>
+          <select id="inputTipoAudiencia" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Seleccionar tipo</option>
+            <option value="Inicial">Inicial</option>
+            <option value="Intermedia">Intermedia</option>
+            <option value="Testimonial">Testimonial</option>
+            <option value="Desahogo de pruebas">Desahogo de pruebas</option>
+            <option value="Alegatos">Alegatos</option>
+          </select>
+        </div>
+
+        <!-- Sala/Lugar -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-door-open text-blue-500 mr-1"></i>Sala/Lugar de Audiencia
+          </label>
+          <input type="text" id="inputSala" placeholder="Ej: Sala 2, Planta Baja" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Abogado que Comparece -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-user-tie text-blue-500 mr-1"></i>Abogado que Comparece *
+          </label>
+          <select id="inputAbogadoComparece" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Seleccionar abogado</option>
+          </select>
+        </div>
+
+        <!-- Recordatorios -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Recordatorio (Días antes)
+            </label>
+            <input type="number" id="inputRecordatorioDias" value="1" min="1" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Recordatorio (Horas antes)
+            </label>
+            <input type="number" id="inputRecordatorioHoras" value="2" min="1" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: TÉRMINO -->
+      <div id="seccionTermino" class="hidden border-b border-green-200 pb-6">
+        <h4 class="text-lg font-bold text-green-600 mb-4 font-headings">
+          <i class="fas fa-hourglass-half mr-2"></i>Detalles del Término
+        </h4>
+
+        <!-- Asunto Selector -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-briefcase text-green-500 mr-1"></i>Asunto *
+          </label>
+          <select id="inputAsuntoTermino" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+            <option value="">Seleccionar asunto</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Los datos del expediente se llenarán automáticamente</p>
+        </div>
+
+        <!-- Datos Auto-llenados -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Datos del Asunto (Auto-llenados)</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Expediente</label>
+              <input type="text" id="inputExpedienteTerm" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Actor</label>
+              <input type="text" id="inputActorTerm" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Prestación</label>
+              <input type="text" id="inputPrestacionTerm" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">Materia</label>
+              <input type="text" id="inputMateriaTerm" readonly class="w-full border border-gray-200 bg-gray-100 rounded px-3 py-2 text-sm text-gray-700">
+            </div>
+          </div>
+        </div>
+
+        <!-- Actuación -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-file-alt text-green-500 mr-1"></i>Actuación (Etapa/Movimiento Procesal) *
+          </label>
+          <textarea id="inputActuacion" rows="3" required placeholder="Descripción de la etapa procesal o movimiento procesal específico..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+        </div>
+
+        <!-- Fecha de Ingreso -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-calendar-plus text-green-500 mr-1"></i>Fecha de Ingreso
+          </label>
+          <input type="date" id="inputFechaIngreso" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+        </div>
+
+        <!-- Estatus del Flujo -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-tasks text-green-500 mr-1"></i>Estatus del Flujo
+          </label>
+          <select id="inputEstatusTermino" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+            <option value="Proyectista">Proyectista</option>
+            <option value="Revisión">En Revisión</option>
+            <option value="Gerencia">Gerencia</option>
+            <option value="Dirección">Dirección</option>
+            <option value="Liberado">Liberado</option>
+            <option value="Presentado">Presentado</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: RECORDATORIO -->
+      <div id="seccionRecordatorio" class="hidden border-b border-yellow-200 pb-6">
+        <h4 class="text-lg font-bold text-gob-oro mb-4 font-headings">
+          <i class="fas fa-bell mr-2"></i>Detalles del Recordatorio
+        </h4>
+
+        <!-- Título -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-heading text-gob-oro mr-1"></i>Título del Recordatorio *
+          </label>
+          <input type="text" id="inputTituloRecordatorio" required placeholder="Ej: Junta de equipo, Revisión de expedientes..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro">
+        </div>
+
+        <!-- Detalles -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-align-left text-gob-oro mr-1"></i>Detalles (Opcional)
+          </label>
+          <textarea id="inputDetallesRecordatorio" rows="4" placeholder="Escribe detalles adicionales sobre el recordatorio..." class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro"></textarea>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="flex items-center justify-end gap-3 p-4 border-t bg-gray-50">
+      <button onclick="calendarioModule.closeEventCreateModal()" type="button" class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors">
+        <i class="fas fa-times mr-2"></i>Cancelar
+      </button>
+      <button onclick="calendarioModule.saveEvent()" type="button" class="px-6 py-2.5 bg-gob-guinda hover:bg-gob-guindaDark text-white rounded-lg font-medium transition-colors shadow-md">
+        <i class="fas fa-save mr-2"></i>Guardar Evento
+      </button>
+    </div>
+
+  </div>
+</div>

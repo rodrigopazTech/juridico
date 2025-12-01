@@ -5,35 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Términos - Agenda Legal</title>
     
+    <link href="../css/output.css" rel="stylesheet">
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { sans: ['"Noto Sans"', "sans-serif"], headings: ['"Montserrat"', "sans-serif"] },
-            colors: { gob: { guinda: "#9D2449", guindaDark: "#611232", oro: "#B38E5D", oroLight: "#DDC9A3", gris: "#545454", plata: "#98989A", verde: "#13322B", verdeDark: "#0C231E", fondo: "#F5F5F5" } }
-          }
-        }
-      };
-    </script>
-    <style>
-      .modal { display: none; } .modal.flex { display: flex; } .readonly-field { background-color: #f9fafb; color: #6b7280; }
-    </style>
 </head>
-<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
 
-    <div id="sidebar-container"></div>
+    <div data-include="../components/sidebar.html"></div>
 
     <div class="p-4 sm:ml-64">
         
-        <div id="navbar-container"></div>
+        <div data-include="../components/navbar.html"></div>
 
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-clock text-gob-oro mr-2"></i> Gestión de Términos</h1>
+            <h1 class="text-3xl font-bold text-gob-gris font-headings">
+                <i class="fas fa-hourglass-end text-gob-oro mr-2"></i> Gestión de Términos
+            </h1>
             <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4" />
         </div>
 
@@ -104,18 +94,26 @@
         </div>
     </div>
 
-    <div id="modals-container"></div>
+    <div data-include="./components/modals_terminos.html"></div>
 
-    <script src="js/loader.js"></script>
-    <script src="js/terminos.js"></script>
-    
-    <script>
+    <script type="module">
+        // Importar Loader Global y la Función Init de Terminos
+        import { loadIncludes } from '../js/loader.js';
+        import { initTerminos } from './js/terminos.js';
+        
         document.addEventListener("DOMContentLoaded", async function () {
-            // 1. Esperar a que se carguen los componentes HTML
-            await loadComponents();
+            // 1. Cargar Navbar, Sidebar y Modales (ESPERAMOS A QUE TERMINE)
+            await loadIncludes();
             
-            // 2. Iniciar la lógica de la página
-            if (typeof initTerminos === "function") initTerminos();
+            // 2. Resaltar link activo en Sidebar
+            const navLink = document.getElementById('nav-terminos');
+            if(navLink) {
+                navLink.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
+                navLink.classList.remove('text-gray-300');
+            }
+
+            // 3. Iniciar la lógica de términos (SOLO AHORA ES SEGURO)
+            initTerminos();
         });
     </script>
 </body>

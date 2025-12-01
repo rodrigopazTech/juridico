@@ -1,5 +1,7 @@
 async function loadComponents() {
     try {
+        // Nota: Asegúrate de tener los archivos sidebar.html y navbar.html
+        // en la carpeta components/ para que esto funcione sin errores 404.
         const sidebarRes = await fetch('components/sidebar.html');
         if(sidebarRes.ok) document.getElementById('sidebar-container').innerHTML = await sidebarRes.text();
 

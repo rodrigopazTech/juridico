@@ -1,0 +1,42 @@
+<!-- Barra de herramientas - Términos -->
+<div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="relative w-full md:w-96">
+        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+            <i class="fas fa-search text-gray-400"></i>
+        </div>
+        <input type="text" id="search-terminos" class="bg-white border border-gray-300 text-gob-gris text-sm rounded focus:ring-gob-oro focus:border-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar en términos...">
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+        <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-white bg-gob-guinda rounded border border-gob-guinda hover:bg-gob-guindaDark shadow-sm transition-all" data-period="hoy" data-module="terminos">
+            <i class="fas fa-calendar-day mr-2"></i> Hoy
+        </button>
+        <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="semana" data-module="terminos">
+            <i class="fas fa-calendar-week mr-2"></i> Esta Semana
+        </button>
+        <button class="time-filter-btn flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" data-period="mes" data-module="terminos">
+            <i class="fas fa-calendar mr-2"></i> Este Mes
+        </button>
+        
+        <!-- Botón Otro Mes con dropdown -->
+        <div class="meses-dropdown">
+            <button class="flex items-center justify-center py-2.5 px-4 text-sm font-medium text-gob-gris bg-white rounded border border-gray-300 hover:bg-gray-50 shadow-sm transition-all" id="btn-otro-mes-terminos">
+                <i class="fas fa-calendar-alt mr-2"></i> Otro Mes
+                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+            </button>
+            <div class="meses-dropdown-content" id="dropdown-meses-terminos">
+                <a href="#" onclick="seleccionarMesTerminos('01')">Enero</a>
+                <a href="#" onclick="seleccionarMesTerminos('02')">Febrero</a>
+                <a href="#" onclick="seleccionarMesTerminos('03')">Marzo</a>
+                <a href="#" onclick="seleccionarMesTerminos('04')">Abril</a>
+                <a href="#" onclick="seleccionarMesTerminos('05')">Mayo</a>
+                <a href="#" onclick="seleccionarMesTerminos('06')">Junio</a>
+                <a href="#" onclick="seleccionarMesTerminos('07')">Julio</a>
+                <a href="#" onclick="seleccionarMesTerminos('08')">Agosto</a>
+                <a href="#" onclick="seleccionarMesTerminos('09')">Septiembre</a>
+                <a href="#" onclick="seleccionarMesTerminos('10')">Octubre</a>
+                <a href="#" onclick="seleccionarMesTerminos('11')">Noviembre</a>
+                <a href="#" onclick="seleccionarMesTerminos('12')">Diciembre</a>
+            </div>
+        </div>
+    </div>
+</div>

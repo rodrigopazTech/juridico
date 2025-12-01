@@ -15,7 +15,7 @@ async function loadComponents() {
         }
 
         // 3. Cargar Modales
-        const modalsRes = await fetch('components/modals_terminos.html');
+        const modalsRes = await fetch('components/modals.html');
         if(modalsRes.ok) document.getElementById('modals-container').innerHTML = await modalsRes.text();
 
     } catch (error) {

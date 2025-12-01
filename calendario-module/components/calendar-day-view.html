@@ -1,0 +1,28 @@
+<div class="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    
+  <div class="bg-gradient-to-r from-gob-guinda to-gob-guindaDark text-white p-4 flex-none">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 id="dayViewDate" class="text-2xl font-bold font-headings">Cargando...</h3>
+        <p id="dayViewCount" class="text-sm text-white/80 mt-1">...</p>
+      </div>
+      <div class="text-right opacity-50">
+         <i class="fas fa-calendar-day text-3xl"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-1 p-4 overflow-y-auto">
+    <div id="dayViewTimeline" class="space-y-1">
+      </div>
+
+    <div id="dayViewEmpty" class="hidden h-full flex flex-col items-center justify-center text-center p-8">
+      <i class="fas fa-calendar-check text-6xl text-gray-200 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay eventos programados</h3>
+      <p class="text-gray-500 mb-6">Este día está libre de audiencias y términos.</p>
+      <button onclick="calendarioModule.openEventCreateModal()" class="px-6 py-2.5 bg-gob-guinda hover:bg-gob-guindaDark text-white rounded-lg font-medium transition-colors shadow-sm">
+        <i class="fas fa-plus mr-2"></i>Agendar Evento
+      </button>
+    </div>
+  </div>
+</div>

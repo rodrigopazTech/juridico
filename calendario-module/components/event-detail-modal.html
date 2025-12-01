@@ -1,0 +1,231 @@
+<!-- Event Detail Modal -->
+<div id="modalEventDetail" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-lg bg-white my-10">
+    
+    <!-- Modal Header -->
+    <div class="flex items-start justify-between p-4 border-b rounded-t bg-gradient-to-r from-gob-verde/10 to-gob-verde/5">
+      <div class="flex items-center gap-4">
+        <div id="detailEventIcon" class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center shadow-md">
+          <i class="fas fa-gavel text-blue-600 text-2xl"></i>
+        </div>
+        <div>
+          <h3 id="detailEventTitle" class="text-2xl font-bold text-gray-900 font-headings">
+            Detalle del Evento
+          </h3>
+          <span id="detailEventBadge" class="inline-block mt-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full uppercase">
+            Audiencia
+          </span>
+        </div>
+      </div>
+      <button onclick="calendarioModule.closeEventDetailModal()" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+      
+      <!-- Información General (Común para todos) -->
+      <div class="border-b border-gray-200 pb-4">
+        <h4 class="text-lg font-bold text-gob-verde mb-4 font-headings flex items-center gap-2">
+          <i class="fas fa-info-circle"></i>
+          <span>Información General</span>
+        </h4>
+        
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-calendar text-gob-oro mr-2"></i>Fecha
+            </h5>
+            <p id="detailEventDate" class="text-gray-900 font-medium text-lg">25 de Noviembre, 2025</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-clock text-gob-oro mr-2"></i>Hora
+            </h5>
+            <p id="detailEventTime" class="text-gray-900 font-medium text-lg">09:00 AM</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-building text-gob-oro mr-2"></i>Gerencia
+            </h5>
+            <p id="detailEventGerencia" class="text-gray-900 font-medium">Ciudad de México</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-user text-gob-oro mr-2"></i>Usuario Asignado
+            </h5>
+            <p id="detailEventUsuario" class="text-gray-900 font-medium">Lic. María González Ruiz</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: AUDIENCIA -->
+      <div id="detailAudienciaSection" class="hidden border-b border-blue-200 pb-4">
+        <h4 class="text-lg font-bold text-blue-600 mb-4 font-headings flex items-center gap-2">
+          <i class="fas fa-gavel"></i>
+          <span>Detalles de la Audiencia</span>
+        </h4>
+        
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-folder-open text-blue-500 mr-2"></i>Expediente
+            </h5>
+            <p id="detailAudExpediente" class="text-gray-900 font-medium">2354/2025</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-balance-scale text-blue-500 mr-2"></i>Materia
+            </h5>
+            <p id="detailAudMateria" class="text-gray-900 font-medium">Civil</p>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-1">
+          <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            <i class="fas fa-landmark text-blue-500 mr-2"></i>Órgano Jurisdiccional
+          </h5>
+          <p id="detailAudOrgano" class="text-gray-900 font-medium">Juzgado Primero de lo Civil</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-user text-blue-500 mr-2"></i>Actor
+            </h5>
+            <p id="detailAudActor" class="text-gray-900 font-medium">Gómez Rivera Laura</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-user text-blue-500 mr-2"></i>Demandado
+            </h5>
+            <p id="detailAudDemandado" class="text-gray-900 font-medium">Martínez Contreras Luis</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-door-open text-blue-500 mr-2"></i>Sala/Lugar
+            </h5>
+            <p id="detailAudSala" class="text-gray-900 font-medium">Sala 2, Planta Baja</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-user-tie text-blue-500 mr-2"></i>Abogado que Comparece
+            </h5>
+            <p id="detailAudAbogadoComparece" class="text-gray-900 font-medium">Lic. Ana Patricia Morales</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-exclamation-circle text-blue-500 mr-2"></i>Prioridad
+            </h5>
+            <span id="detailAudPrioridad" class="inline-block px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Alta</span>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-check-circle text-blue-500 mr-2"></i>Estatus
+            </h5>
+            <span id="detailAudEstatus" class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Pendiente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: TÉRMINO -->
+      <div id="detailTerminoSection" class="hidden border-b border-green-200 pb-4">
+        <h4 class="text-lg font-bold text-green-600 mb-4 font-headings flex items-center gap-2">
+          <i class="fas fa-hourglass-half"></i>
+          <span>Detalles del Término</span>
+        </h4>
+        
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-folder-open text-green-500 mr-2"></i>Expediente
+            </h5>
+            <p id="detailTermExpediente" class="text-gray-900 font-medium">2375/2025</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-user-circle text-green-500 mr-2"></i>Actor
+            </h5>
+            <p id="detailTermActor" class="text-gray-900 font-medium">Juan Pérez</p>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-1">
+          <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            <i class="fas fa-file-alt text-green-500 mr-2"></i>Actuación
+          </h5>
+          <p id="detailTermActuacion" class="text-gray-900 font-medium">Presentación de contestación de demanda</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-6">
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-briefcase text-green-500 mr-2"></i>Prestación
+            </h5>
+            <p id="detailTermPrestacion" class="text-gray-900 font-medium">Reinstalación</p>
+          </div>
+          <div class="space-y-1">
+            <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+              <i class="fas fa-calendar-plus text-green-500 mr-2"></i>Fecha de Ingreso
+            </h5>
+            <p id="detailTermFechaIngreso" class="text-gray-900 font-medium">01/11/2025</p>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-1">
+          <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            <i class="fas fa-tasks text-green-500 mr-2"></i>Estatus del Flujo
+          </h5>
+          <span id="detailTermEstatus" class="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-full">Proyectista</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: RECORDATORIO -->
+      <div id="detailRecordatorioSection" class="hidden border-b border-yellow-200 pb-4">
+        <h4 class="text-lg font-bold text-gob-oro mb-4 font-headings flex items-center gap-2">
+          <i class="fas fa-bell"></i>
+          <span>Detalles del Recordatorio</span>
+        </h4>
+        
+        <div class="mt-4 space-y-1">
+          <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            <i class="fas fa-heading text-gob-oro mr-2"></i>Título
+          </h5>
+          <p id="detailRecTitulo" class="text-gray-900 font-semibold text-xl">Junta de equipo</p>
+        </div>
+
+        <div class="mt-6 space-y-1">
+          <h5 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            <i class="fas fa-align-left text-gob-oro mr-2"></i>Detalles
+          </h5>
+          <p id="detailRecDetalles" class="text-gray-700 bg-gray-50 p-4 rounded-lg">Revisión semanal de casos activos y pendientes</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="flex items-center justify-end gap-2 p-4 border-t bg-gray-50">
+      <button onclick="calendarioModule.closeEventDetailModal()" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+        <i class="fas fa-times mr-2"></i>Cerrar
+      </button>
+      <button id="btnEditEvent" onclick="calendarioModule.editEvent()" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        <i class="fas fa-edit mr-2"></i>Editar
+      </button>
+      <button id="btnDeleteEvent" onclick="calendarioModule.deleteEvent()" class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+        <i class="fas fa-trash mr-2"></i>Eliminar
+      </button>
+    </div>
+
+  </div>
+</div>

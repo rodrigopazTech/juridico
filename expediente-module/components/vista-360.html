@@ -1,0 +1,61 @@
+<div id="vista-360-content" class="flex flex-col gap-6 animate-fade-in-down">
+    
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <span class="text-xs font-bold text-gob-oro uppercase tracking-wider block mb-1">No. Expediente</span>
+                <h2 id="v360-numero" class="text-2xl font-bold text-gob-guinda font-headings">Cargando...</h2>
+            </div>
+            <span id="v360-estado" class="px-3 py-1 rounded-full text-sm font-bold border bg-gray-100 text-gray-800 border-gray-200 uppercase tracking-wide font-headings">
+                ...
+            </span>
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Materia</label>
+                    <p id="v360-materia" class="text-sm font-semibold text-gob-gris font-sans">—</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Gerencia</label>
+                    <p id="v360-gerencia" class="text-sm font-semibold text-gob-gris font-sans truncate">—</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Sede / Estado</label>
+                    <p id="v360-sede" class="text-sm font-semibold text-gob-gris font-sans">—</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Partes Procesales</label>
+                    <p id="v360-partes" class="text-sm font-semibold text-gob-gris font-sans">—</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Abogado Resp.</label>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-user-tie text-gob-oro"></i>
+                        <p id="v360-abogado" class="text-sm font-semibold text-gob-gris font-sans">Sin asignar</p>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Órgano Jurisdiccional</label>
+                    <p id="v360-organo" class="text-sm font-semibold text-gob-gris font-sans">—</p>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prioridad</label>
+                    <p id="v360-prioridad" class="text-sm font-bold text-gray-600">Media</p>
+                </div>
+            </div>
+
+            <div id="v360-descripcion-container" class="mt-6 pt-6 border-t border-gray-100 hidden">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Descripción del Asunto</label>
+                <p id="v360-descripcion" class="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded border border-gray-100">
+                    </p>
+            </div>
+        </div>
+    </div>
+</div>

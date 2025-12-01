@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* =========================================
+     ESTILOS COMPARTIDOS / UI GENERAL
+     ========================================= */
+
+  /* Estilos de Tarjetas (Migrados de Expedientes) */
+  .card-asunto {
+    @apply bg-white border border-gray-200 rounded-lg p-5 shadow-sm transition-all duration-300 relative border-t-4 border-gob-guinda flex flex-col justify-between h-full;
+  }
+  .card-asunto:hover {
+    @apply shadow-xl -translate-y-1 border-gob-oro;
+  }
+  
+  /* Estilos de Checkbox (Migrados de Usuarios) */
+  .checkbox-container {
+    @apply border border-gray-300 rounded-md p-3 max-h-[180px] overflow-y-auto bg-gray-50;
+  }
+  .checkbox-container div { 
+    @apply mb-2 flex items-center; 
+  }
+  .checkbox-container input[type="checkbox"] { 
+    @apply mr-2 w-4 h-4 text-gob-oro focus:ring-gob-oro border-gray-300 rounded; 
+    accent-color: #B38E5D; 
+  }
+  .checkbox-container label { 
+    @apply mb-0 font-normal text-gray-700 select-none cursor-pointer; 
+  }
+
+  /* Modales y Utilidades (Migrados de Audiencias/General) */
+  .modal { display: none; }
+  .modal.flex { display: flex; }
+  
+  .readonly-field { 
+    @apply bg-gray-50 text-gray-500 border-gray-200 cursor-default; 
+  }
+  
+  .action-menu { 
+    transition: opacity 0.1s ease-out; 
+  }
+
+  /* =========================================
+     SISTEMA DE COLORES SEMÁNTICOS
+     (Azul=Audiencia, Verde=Término, Oro=Recordatorio)
+     ========================================= */
+  
+  /* AUDIENCIAS (Azul) */
+  .type-audiencia { @apply bg-blue-100 text-blue-700 border-blue-200; }
+  .border-type-audiencia { @apply border-l-blue-600; }
+  
+  /* TÉRMINOS (Verde) */
+  .type-termino { @apply bg-green-100 text-green-700 border-green-200; }
+  .border-type-termino { @apply border-l-green-600; }
+  
+  /* RECORDATORIOS (Oro / Amber) */
+  .type-recordatorio { @apply bg-amber-100 text-amber-700 border-amber-200; }
+  .border-type-recordatorio { @apply border-l-amber-500; }
+
+
+  /* =========================================
+     ESTILOS MÓDULO NOTIFICACIONES
+     ========================================= */
+
+  /* Tarjeta de Notificación Horizontal */
+  .horizontal-notification {
+    @apply flex items-start gap-5 p-5 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 mb-4 relative;
+  }
+  .horizontal-notification:hover {
+    @apply shadow-md -translate-y-px;
+  }
+
+  /* Bordes Laterales por Tipo (Notificaciones) */
+  .horizontal-notification.audiencia { @apply border-l-4 border-l-blue-600; }
+  .horizontal-notification.termino { @apply border-l-4 border-l-green-600; }
+  .horizontal-notification.recordatorio { @apply border-l-4 border-l-amber-500; }
+
+  /* Iconos Grandes (Notificaciones) */
+  .horizontal-icon {
+    @apply flex-shrink-0 w-14 h-14 rounded-lg flex items-center justify-center text-2xl;
+  }
+  .horizontal-icon.audiencia { @apply bg-blue-100 text-blue-700; }
+  .horizontal-icon.termino { @apply bg-green-100 text-green-700; }
+  .horizontal-icon.recordatorio { @apply bg-amber-100 text-amber-700; }
+
+  /* Badges/Etiquetas (Notificaciones) */
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-full border; }
+  .badge-audiencia { @apply bg-blue-50 text-blue-700 border-blue-200; }
+  .badge-termino { @apply bg-green-50 text-green-700 border-green-200; }
+  .badge-recordatorio { @apply bg-amber-50 text-amber-700 border-amber-200; }
+
+
+  /* =========================================
+     ESTILOS MÓDULO RECORDATORIOS
+     ========================================= */
+  
+  /* Tarjeta Base */
+  .reminder-card {
+    @apply flex items-start gap-4 p-5 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 relative mb-4;
+  }
+  .reminder-card:hover {
+    @apply shadow-md -translate-y-0.5;
+  }
+
+  /* Icono Específico Oro (Solicitado) */
+  .icon-recordatorio-gold,
+  .js-icon-box {
+    @apply bg-amber-100 text-amber-600; /* Siempre oro para mantener consistencia visual */
+  }
+
+  /* Bordes de Prioridad */
+  .reminder-urgent { @apply border-l-4 border-l-gob-guinda; } /* Guinda si es urgente */
+  .reminder-normal { @apply border-l-4 border-l-gob-oro; }    /* Oro si es normal */
+  .reminder-completed { @apply border-l-4 border-l-green-700 opacity-75 bg-gray-50; }
+
+  /* Contenedores de Iconos (Legacy) */
+  .icon-box {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center text-xl flex-shrink-0;
+  }
+  .icon-urgent { @apply bg-red-100 text-gob-guinda; }
+  .icon-normal { @apply bg-amber-100 text-amber-600; } /* Actualizado a Amber/Oro */
+  .icon-completed { @apply bg-green-100 text-green-700; }
+}
+
+/* =========================================
+   UTILIDADES Y ANIMACIONES
+   ========================================= */
+
+@layer utilities {
+  .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
+}
+
+@keyframes fadeInDown { 
+  from { opacity: 0; transform: translate3d(0, -20px, 0); } 
+  to { opacity: 1; transform: translate3d(0, 0, 0); } 
+}
+
+/* Personalización del Scrollbar (Global) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* Fuentes Base */
+body { font-family: 'Noto Sans', sans-serif; }
+.font-headings { font-family: 'Montserrat', sans-serif; }
+

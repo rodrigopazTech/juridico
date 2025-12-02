@@ -43,8 +43,6 @@ expediente-module/
 ## Extensión Próxima (Detalle)
 Añadir componentes opcionales: documentos, checklist, participantes, notas rápidas, adjuntos y control granular de estados. Integrar subida de archivos y API real.
 
-## Estilos
-Actualmente se apoya en Tailwind vía CDN y tokens definidos en `GUIA-ESTILOS-SISTEMA-JURIDICO.md`. Si se migra a build (PostCSS), estos fragmentos podrán integrarse en un pipeline.
 
 ## Adaptación desde Asuntos
 - Se renombra entidad principal a "Expediente".

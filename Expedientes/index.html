@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expedientes - Agenda Legal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Noto Sans"', "sans-serif"], headings: ['"Montserrat"', "sans-serif"] }, colors: { gob: { guinda: "#9D2449", guindaDark: "#611232", oro: "#B38E5D", oroLight: "#DDC9A3", gris: "#545454", plata: "#98989A", verde: "#13322B", verdeDark: "#0C231E", fondo: "#F5F5F5" } } } } };
+    </script>
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gob-fondo">
+
+    <div id="sidebar-container"></div>
+
+    <div class="p-4 sm:ml-64">
+        <div id="navbar-container"></div>
+
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gob-gris font-headings"><i class="fas fa-folder-open text-gob-oro mr-2"></i> Gestión de Expedientes</h1>
+            <hr class="h-1 w-20 bg-gob-guinda border-0 mt-2 mb-4" />
+        </div>
+
+        <div class="toolbar bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div class="search-global relative w-full md:w-96">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+                <input type="text" id="buscador-global" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full ps-10 p-2.5" placeholder="Buscar expedientes..." />
+            </div>
+            <button id="nuevo-asunto" class="w-full md:w-auto text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Nuevo Expediente</button>
+        </div>
+
+        <div class="filters bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div class="text-xs font-bold text-gob-oro uppercase tracking-wider font-headings mb-3 border-b border-gray-100 pb-2"><i class="fas fa-filter mr-1"></i> Filtros</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Gerencia</label><select id="filter-gerencia-asunto" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todas</option><option>Gerencia Civil</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Materia</label><select id="filter-materia-asunto" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todas</option><option>Civil</option><option>Penal</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Estado</label><select id="filter-estado-asunto" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todos</option><option value="Tramite">Activo</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Prioridad</label><select id="filter-prioridad-asunto" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todas</option><option>Alta</option></select></div>
+                <div><label class="block mb-1 text-xs font-bold text-gob-gris uppercase">Abogado</label><select id="filter-abogado-asunto" class="bg-gray-50 border border-gray-300 text-xs rounded block w-full p-2"><option value="">Todos</option></select></div>
+            </div>
+        </div>
+
+        <div class="asuntos-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="asuntos-grid"></div>
+        
+        <div class="no-resultados hidden" id="no-resultados">
+            <div class="flex flex-col items-center justify-center p-12 bg-white border border-dashed border-gray-300 rounded-lg">
+                <i class="fas fa-folder-open fa-3x text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-bold text-gob-gris">No se encontraron expedientes</h3>
+            </div>
+        </div>
+    </div>
+
+    <div id="modals-container"></div>
+
+    <script src="js/loader.js"></script>
+    <script src="js/expedientes.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            await loadComponents();
+            if (typeof initExpedientes === "function") initExpedientes();
+        });
+    </script>
+</body>
+</html>

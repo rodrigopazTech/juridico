@@ -29,7 +29,7 @@ let TERMINOS = [];
 // ===============================================
 // 2. INICIALIZACIÓN (Exportada)
 // ===============================================
-export function initTerminos() {
+function initTerminos() {
     console.log("Iniciando módulo Términos V3...");
     
     cargarDatosIniciales();
@@ -239,7 +239,7 @@ function generarAccionesRapidas(termino, rol) {
 
     if (rol === 'Gerente' || rol === 'Direccion') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends text-gray-400"></i> Reasignar</button>`;
+       // html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends text-gray-400"></i> Reasignar</button>`;
         if (rol === 'Direccion') {
             html += `<button class="${itemClass} action-delete text-red-600 font-bold hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
         }
@@ -257,6 +257,7 @@ function setupActionMenuListener() {
     // Remover listeners anteriores si los hubiera (cloneNode)
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
+    
     
     // Volver a referenciar la tabla renderizada
     loadTerminos(); 
@@ -352,7 +353,7 @@ function setupActionMenuListener() {
             );
         }
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
-        else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
+        //else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
         else if (target.classList.contains('action-delete')) {
             mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => {
                 TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id));

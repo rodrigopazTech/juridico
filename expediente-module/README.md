@@ -4,26 +4,26 @@ Este módulo encapsula la funcionalidad relacionada con la gestión de Expedient
 
 ## Estructura
 ```
-expediente-module/
-  index.html                    # Página de listado de expedientes
-  expediente-detalle.html       # Página de detalle de un expediente
-  README.md                     # Documentación del módulo
-  components/                   # Fragmentos HTML reutilizables (lista y detalle)
-    toolbar.html
-    filters.html
-    expediente-card.html
-    empty-state.html
-    modal-create.html
-    detalle-header.html
-    detalle-metadata.html
-    detalle-timeline.html
-    detalle-actividad.html
-  data/
-    expedientes-data.js         # Seed, CRUD y filtrado de expedientes vía localStorage
-    expediente-timeline-data.js # Persistencia timeline + actividad por expediente
-  js/
-    expedientes.js              # Clase principal (ExpedientesModule) para gestión de UI listado
-    expediente-detalle.js       # Lógica de página detalle (ExpedienteDetalleModule)
+expediente-module/ 
+├── components/                             # Fragmentos HTML reutilizables (lista y detalle)
+│     ├──   toolbar.html
+│     ├──   filters.html
+│     ├──   expediente-card.html
+│     ├──   empty-state.html
+│     ├──   modal-create.html
+│     ├──   detalle-header.html
+│     ├──   detalle-metadata.html
+│     ├──   detalle-timeline.html
+│     └──   detalle-actividad.html
+├── data/
+│     ├──   expedientes-data.js             # Seed, CRUD y filtrado de expedientes vía localStorage
+│     └──   expediente-timeline-data.js     # Persistencia timeline + actividad por expediente
+├── js/
+│     ├──   expedientes.js                  # Clase principal (ExpedientesModule) para gestión de UI listado
+│     └──   expediente-detalle.js           # Lógica de página detalle (ExpedienteDetalleModule)
+├──  index.html                             # Página de listado de expedientes
+├──  expediente-detalle.html                # Página de detalle de un expediente
+└──  README.md                              # Documentación del módulo
 ```
 
 ## Flujo Listado

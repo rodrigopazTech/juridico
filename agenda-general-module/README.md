@@ -3,19 +3,19 @@
 ## 📁 Estructura del Módulo
 
 ```
-JURIDICO/
-├── agenda-general-module/                   #(Módulo Principal)
-│   ├── components/                          #(Contenedor de Componentes/Pequeños Módulos)
-│   │   ├── modal-observaciones.html         #(Componente/Módulo)
-│   │   ├── table-audiencias.html            #(Componente/Módulo)
-│   │   ├── table-terminos.html              #(Componente/Módulo)
-│   │   ├── toolbar-audiencias.html          #(Componente/Módulo)
-│   │   └── toolbar-terminos.html            #(Componente/Módulo)
-│   ├── CSS/                                 #(Estilos)
-│   │   └── agenda-general.css
-│   ├── js/                                  #(Lógica de Negocio/Scripts)
-│   ├── index.html                           #(Punto de Entrada)
-│   └── README.md                            #(Documentación)
+agenda-general-module/
+├── components/
+│   ├── modal-observaciones.html
+│   ├── table-audiencias.html
+│   ├── table-terminos.html
+│   ├── toolbar-audiencias.html
+│   └── toolbar-terminos.html
+├── CSS/
+│   └── agenda-general.css
+├── js/
+│   └── agenda-general-module.js
+├── index.html
+└── README.md
 ```
 
 ## 🎯 Características del Módulo
@@ -263,13 +263,13 @@ async cargarDatos() {
 ## 🚀 Deployment
 
 ### **Archivos Necesarios**
-**index.html
-**agenda-general-module.js
-**agenda-general.css
-**table-audiencias.html, table-terminos.html
-**toolbar-audiencias.html, toolbar-terminos.html
-**modal-observaciones.html
-**Dependencias: loader.js, output.css (Tailwind), y enlaces a fuentes (Montserrat, Noto Sans) y Font Awesome 6.
+-index.html
+-agenda-general-module.js
+-agenda-general.css
+-table-audiencias.html, table-terminos.html
+-toolbar-audiencias.html, toolbar-terminos.html
+-modal-observaciones.html
+-Dependencias: loader.js, output.css (Tailwind), y enlaces a fuentes (Montserrat, Noto Sans) y Font Awesome 6.
 
 ### **Optimizaciones**
 - Minificar agenda-general-module.js para producción

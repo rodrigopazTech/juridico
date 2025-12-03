@@ -4,8 +4,8 @@
 
 ```
 JURIDICO/
-├── **agenda-general-module/**               #(Módulo Principal)
-│   ├── **components/**                      #(Contenedor de Componentes/Pequeños Módulos)
+├── agenda-general-module/                   #(Módulo Principal)
+│   ├── components/                          #(Contenedor de Componentes/Pequeños Módulos)
 │   │   ├── modal-observaciones.html         #(Componente/Módulo)
 │   │   ├── table-audiencias.html            #(Componente/Módulo)
 │   │   ├── table-terminos.html              #(Componente/Módulo)
@@ -56,7 +56,7 @@ JURIDICO/
 7. **Sistema de Actas y Documentos**
    - Descargar acuse
 
-8 **Sistema de Comentarios**
+8. **Sistema de Comentarios**
    - Ver observaciones
 
 9. **Interfaz Responsive**
@@ -79,7 +79,7 @@ JURIDICO/
 
 ### **Componentes de UI**
 - **Tabla**: Tabla responsive con expansión de filas
-- **Pestaña Activa*: Indica la pestaña actualmente seleccionada.
+- **Pestaña Activa**: Indica la pestaña actualmente seleccionada.
 - **Contenido del Módulo**: Contenedores para la vista de Audiencias o Términos.
 - **Contenido Activo**: Hace visible el contenido de la pestaña seleccionada.
 - **Modal**: Contenedor principal para la ventana emergente de Observaciones.
@@ -121,11 +121,12 @@ JURIDICO/
     </script>
 </body>
 </html>
+
 ```
 
 ### **2. Inicialización JavaScript**
 
-```javascript (checar xk se repite arriba)
+```javascript 
 // El módulo se inicializa automáticamente
  document.addEventListener('DOMContentLoaded', async () => {
             await loadIncludes();
@@ -157,7 +158,7 @@ seleccionarMesAudiencias(mes)                      // Se llama al seleccionar un
 seleccionarMesTerminos(mes)            // Se llama al seleccionar un mes en el dropdown de Términos
 descargarDocumento(doc)                //Placeholder que simula la descarga de documentos
 verObservaciones(id, tipo)             //Abre el modal de observaciones. Busca el elemento por id y tipo (audiencia o termino) e inyecta su campo observaciones en el modal.
-
+```
 
 ### **Datos y Configuración**
 

@@ -135,7 +135,7 @@ agenda-general-module/
 ```
 
 
-## 🔧 API del Módulo (?)
+## 🔧 API del Módulo 
 
 ### **Funciones Principales**
 
@@ -202,14 +202,14 @@ verObservaciones(id, tipo)             //Abre el modal de observaciones. Busca e
 - **Tablet**: `max-width: 768px`
 - **Desktop**: `> 768px`
 
-### **Adaptaciones** (?)
+### **Adaptaciones** 
 - Tabla: Scroll horizontal en móvil
 - Filtros: Grid responsive, stack en móvil
 - Modales: Ancho completo en móvil
 - Menús: Posicionamiento inteligente
 - Texto: Truncado en columnas estrechas
 
-## 🎛️ Configuración Avanzada (?)
+## 🎛️ Configuración Avanzada 
 
 ### **Cargar datos**
 
@@ -264,11 +264,17 @@ async cargarDatos() {
 
 ### **Archivos Necesarios**
 -index.html
+
 -agenda-general-module.js
+
 -agenda-general.css
+
 -table-audiencias.html, table-terminos.html
+
 -toolbar-audiencias.html, toolbar-terminos.html
+
 -modal-observaciones.html
+
 -Dependencias: loader.js, output.css (Tailwind), y enlaces a fuentes (Montserrat, Noto Sans) y Font Awesome 6.
 
 ### **Optimizaciones**

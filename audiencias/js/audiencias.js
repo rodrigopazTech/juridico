@@ -53,11 +53,16 @@ function initAudiencias() {
     // 2. Inicializar Modales
     initModalAudiencias();
     initModalFinalizarAudiencia();
+    initModalReasignarAudiencia(); 
     
     // 3. Configurar Listeners
     setupActionMenuListenerAudiencia();
     setupFilters();
     
+    // Cargar selectores
+    cargarAsuntosEnSelectorAudiencia();
+    cargarAbogadosSelects();
+
     // 4. Configurar Buscador
     const searchInput = document.getElementById('search-audiencias');
     if(searchInput) searchInput.addEventListener('input', loadAudiencias);
@@ -222,9 +227,13 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
 
     // Opciones Extras
     html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
-
-    if (rol === 'Direccion' || rol === 'Gerente') {
-        html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
+if (rol === 'Direccion' || rol === 'Gerente') {
+        html += `<div class="border-t border-gray-100 my-1"></div>`;
+        html += `<button class="${itemClass} action-reasignar-audiencia"><i class="fas fa-user-friends text-gob-oro"></i> Reasignar Abogado</button>`;
+        
+        if (rol === 'Direccion') {
+            html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
+        }
     }
 
     return html;
@@ -346,6 +355,9 @@ function setupActionMenuListenerAudiencia() {
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
             else if (target.classList.contains('action-view-acta')) {
                 mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
+            }
+            else if (target.classList.contains('action-reasignar-audiencia')) {
+                abrirModalReasignarAudiencia(id);
             }
             else if (target.classList.contains('action-comment-audiencia')) openComentariosModal(id);
             else if (target.classList.contains('action-delete-audiencia')) {
@@ -680,9 +692,20 @@ function renderTipoOptions(){
     const sel = document.getElementById('tipo-audiencia');
     if(sel) sel.innerHTML += '<option>Inicial</option><option>Intermedia</option>'; 
 }
-function cargarAbogadosSelects(){
-    const sel = document.getElementById('abogado-comparece');
-    if(sel) sel.innerHTML += '<option>Lic. Demo</option>';
+function cargarAbogadosSelects(selectId = 'abogado-comparece') {
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    
+    // Lista simulada o traer de localStorage('usuarios')
+    const abogados = ['Lic. María González', 'Lic. Carlos Hernández', 'Lic. Ana Patricia', 'Lic. Roberto Silva'];
+    
+    sel.innerHTML = '<option value="">Seleccionar...</option>';
+    abogados.forEach(nombre => {
+        const opt = document.createElement('option');
+        opt.value = nombre; // O el ID si tienes
+        opt.text = nombre;
+        sel.appendChild(opt);
+    });
 }
 
 // ===============================================
@@ -752,4 +775,67 @@ function cerrarAlertaAudiencia() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+}
+
+// ===============================================
+// LÓGICA DE REASIGNACIÓN 
+// ===============================================
+
+function initModalReasignarAudiencia() {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    const btnSave = document.getElementById('save-reasignar-audiencia');
+    
+    if(!modal) return;
+
+    // Cerrar
+    document.querySelectorAll('#close-modal-reasignar-audiencia, #cancel-reasignar-audiencia').forEach(btn => {
+        btn.onclick = () => { 
+            modal.classList.remove('flex'); 
+            modal.classList.add('hidden'); 
+        };
+    });
+
+    // Guardar
+    if(btnSave) {
+        // Clonar para limpiar eventos previos
+        const newBtn = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtn, btnSave);
+        
+        newBtn.onclick = () => {
+            const id = document.getElementById('reasignar-audiencia-id').value;
+            const sel = document.getElementById('select-nuevo-abogado-audiencia');
+            const idx = AUDIENCIAS.findIndex(t => String(t.id) === String(id));
+            
+            if(idx !== -1 && sel.value) {
+                // Actualizamos el abogado que comparece
+                AUDIENCIAS[idx].abogadoComparece = sel.options[sel.selectedIndex].text;
+                localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
+                loadAudiencias();
+                
+                modal.classList.remove('flex'); 
+                modal.classList.add('hidden');
+                mostrarMensajeGlobal('Abogado reasignado correctamente', 'success');
+            } else {
+                alert("Selecciona un abogado");
+            }
+        };
+    }
+}
+
+function abrirModalReasignarAudiencia(id) {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    const audiencia = AUDIENCIAS.find(t => String(t.id) === String(id));
+    if(!audiencia) return;
+
+    document.getElementById('reasignar-audiencia-id').value = id;
+    
+    // Mostrar datos actuales
+    document.getElementById('reasignar-tipo-audiencia').value = audiencia.tipo; 
+    document.getElementById('reasignar-abogado-actual-audiencia').value = audiencia.abogadoComparece || 'Sin asignar';
+    
+    // Cargar lista de abogados (Simulada o de localStorage)
+    cargarAbogadosSelects('select-nuevo-abogado-audiencia');
+    
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex');
 }

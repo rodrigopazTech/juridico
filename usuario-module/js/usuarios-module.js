@@ -161,7 +161,7 @@ export class UsuarioModule {
 
     if (usuarios.length === 0) {
       usuarios = [
-        { id: 1, nombre: 'Lic. María González Ruiz', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECTOR', activo: true, fechaCreacion: '2025-01-15', gerenciaId: 1, materias: [1, 4] },
+        { id: 1, nombre: 'Lic. María González Ruiz', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECCION', activo: true, fechaCreacion: '2025-01-15', gerenciaId: 1, materias: [1, 4] },
         { id: 2, nombre: 'Lic. Carlos Hernández López', correo: 'carlos.hernandez@juridico.com', rol: 'GERENTE', activo: true, fechaCreacion: '2025-02-10', gerenciaId: 1, materias: [1, 4, 5, 7] },
         { id: 3, nombre: 'Lic. Ana Patricia Morales', correo: 'ana.morales@juridico.com', rol: 'ABOGADO', activo: true, fechaCreacion: '2025-03-05', gerenciaId: 2, materias: [3] },
         { id: 4, nombre: 'Lic. Roberto Silva Martínez', correo: 'roberto.silva@juridico.com', rol: 'ABOGADO', activo: true, fechaCreacion: '2025-03-20', gerenciaId: 2, materias: [2, 3] },
@@ -205,8 +205,10 @@ export class UsuarioModule {
 
   getRolBadge(rol) {
     const badges = {
-      'SUBDIRECTOR': '<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Subdirector</span>',
+      'DIRECCION': '<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Dirección</span>',
+      'SUBDIRECCION': '<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Subdirección</span>',
       'GERENTE': '<span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Gerente</span>',
+      'JEFE_DEPTO': '<span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">Jefe de Depto</span>',
       'ABOGADO': '<span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Abogado</span>'
     };
     return badges[rol] || '<span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Sin rol</span>';

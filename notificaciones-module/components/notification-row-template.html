@@ -1,0 +1,39 @@
+<template id="template-notification-row">
+    <tr class="bg-white hover:bg-gray-50 transition-colors group border-b last:border-b-0">
+        
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="js-date text-sm font-bold text-gray-900"></div>
+            <div class="js-time text-xs text-gray-500"></div>
+        </td>
+        
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="js-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border">
+                <i class="js-type-icon fas"></i> 
+                <span class="js-type-text"></span>
+            </span>
+        </td>
+
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="js-status-badge inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-bold bg-gray-100 text-gray-600 border-gray-200">
+                </span>
+        </td>
+        
+        <td class="px-6 py-4">
+            <div class="js-title text-sm font-semibold text-gray-900"></div>
+        </td>
+        
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="js-expediente text-sm text-gob-guinda font-mono"></div>
+        </td>
+        
+        <td class="px-6 py-4">
+            <div class="js-details text-sm text-gray-500 truncate max-w-xs"></div>
+        </td>
+        
+        <td class="px-6 py-4 whitespace-nowrap text-right">
+            <button class="js-delete-btn text-gray-400 hover:text-red-600 transition-colors p-1" title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>

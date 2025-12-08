@@ -6,11 +6,8 @@
     <title>Notificaciones | Sistema Legal</title>
     
     <link href="../css/output.css" rel="stylesheet">
-    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="./css/notificaciones.css">
 </head>
 <body class="font-sans text-gob-gris antialiased bg-gray-50">
 
@@ -20,22 +17,44 @@
 
         <div class="mb-6">
             <h1 class="text-3xl font-bold text-gob-gris font-headings">
-                <i class="fas fa-bell text-gob-oro mr-2"></i> Panel de Notificaciones
+                <i class="fas fa-bell text-gob-oro mr-2"></i> Centro de Notificaciones
             </h1>
             <hr class="h-1 w-20 bg-gob-guinda border-0 mt-4 mb-4">
         </div>
 
         <div data-include="./components/toolbar.html"></div>
 
-        <div id="notifications-content" class="space-y-6 min-h-[300px]">
-            <div class="flex justify-center items-center h-40">
-                <i class="fas fa-circle-notch fa-spin text-gob-guinda text-3xl"></i>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 w-32">Fecha</th>
+                            <th scope="col" class="px-6 py-3 w-32">Tipo</th>
+                            <th scope="col" class="px-6 py-3 w-32">Estado</th> 
+                            <th scope="col" class="px-6 py-3">Título / Asunto</th>
+                            <th scope="col" class="px-6 py-3 w-40">Expediente</th>
+                            <th scope="col" class="px-6 py-3">Detalles</th>
+                            <th scope="col" class="px-6 py-3 text-right w-24">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notifications-body" class="divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12 text-center">
+                <div class="bg-gray-100 p-4 rounded-full mb-3">
+                    <i class="fas fa-bell-slash text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">No hay notificaciones</h3>
+                <p class="text-gray-500 text-sm mt-1">No tienes alertas pendientes con los filtros actuales.</p>
             </div>
         </div>
-
     </div>
 
     <div data-include="./components/modal-create.html"></div>
+    <div data-include="./components/notification-row-template.html"></div>
 
     <script type="module">
         import { loadIncludes } from '../js/loader.js';
@@ -43,8 +62,6 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadIncludes();
-            
-            // Inicializar módulo
             const notificaciones = new NotificacionesModule();
             notificaciones.init();
         });

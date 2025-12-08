@@ -12,70 +12,71 @@
         <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Principal</div>
         <ul class="space-y-1 font-medium mb-6">
             <li>
-                <a href="../dashboard-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" id="nav-dashboard">
+                <a href="../dashboard-module/index.html" data-page="dashboard" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-chart-line w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="../agenda-general-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                <a href="../agenda-general-module/index.html" data-page="agenda" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-calendar-check w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Agenda General</span>
                 </a>
             </li>
             <li>
-                <a href="../recordatorios-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="recordatorios-panel">
-                    <i class="fas fa-sticky-note w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
-                    <span class="ms-3">Recordatorios</span>
-                </a>
-            </li>
-            <li>
-                <a href="../notificaciones-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" id="nav-notificaciones">
+                <a href="../notificaciones-module/index.html" data-page="notificaciones" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-bell w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Notificaciones</span>
-                    </a>
+                </a>
             </li>
         </ul>
   
         <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Gestión Jurídica</div>
         <ul class="space-y-1 font-medium mb-6">
             <li>
-                <a href="../expediente-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                <a href="../expediente-module/index.html" data-page="expedientes" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-folder-open w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Expedientes</span>
                 </a>
             </li>
             <li>
-                <a href="../audiencias/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                <a href="../audiencias/index.html" data-page="audiencias" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-gavel w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Audiencias</span>
                 </a>
             </li>
             <li>
-                <a href="../terminos/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" id="nav-terminos">
+                <a href="../terminos/index.html" data-page="terminos" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-hourglass-end w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Términos</span>
                 </a>
             </li>
+            <li>
+                <a href="../recordatorios-module/index.html" data-page="recordatorios" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                    <i class="fas fa-sticky-note w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                    <span class="ms-3">Recordatorios</span>
+                </a>
+            </li>
+
         </ul>
   
         <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Admin</div>
         <ul class="space-y-1 font-medium">
             <li>
-                <a href="../usuario-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" id="nav-usuarios">
+                <a href="../usuario-module/index.html" data-page="usuarios" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-users-cog w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Usuarios y Gerencias</span>
                 </a>
             </li>
             <li>
-                <a href="../calendario-module/index.html" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200" data-page="calendario">
+                <a href="../calendario-module/index.html" data-page="calendario" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
                     <i class="fas fa-calendar-alt w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
                     <span class="ms-3">Calendario</span>
                 </a>
             </li>
         </ul>
     </div>
-  
+    
     <div class="p-4 border-t border-gob-verdeDark/50 bg-gob-verdeDark/20">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-gob-oro flex items-center justify-center text-gob-verdeDark font-bold">

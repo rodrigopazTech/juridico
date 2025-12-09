@@ -3,7 +3,7 @@
 // ===============================================
 // 1. CONFIGURACIÓN Y DATOS
 // ===============================================
-const USER_ROLE = 'Subdireccion'; 
+const USER_ROLE = 'Direccion'; 
 
 const FLUJO_ETAPAS = {
     'Proyectista': { siguiente: 'Revisión', accion: 'enviarRevision', label: 'Enviar a Revisión' },
@@ -82,6 +82,9 @@ function cargarDatosIniciales() {
                 { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
                 { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
                 { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
+                { id: 4, expediente: '2376/2125', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Dirección', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
+                { id: 5, expediente: '1290/2124', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' }
+            
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
@@ -131,7 +134,9 @@ function loadTerminos() {
         const botonEditar = esBloqueado
             ? `<button class="text-gray-300 cursor-not-allowed p-1" title="Bloqueado"><i class="fas fa-lock"></i></button>` 
             : `<button class="text-gray-400 hover:text-gob-oro action-edit p-1" title="Editar"><i class="fas fa-edit"></i></button>`;
-
+        const iconoObservacion = t.observaciones 
+            ? `<i class="fas fa-comment-alt text-blue-500 ml-2" title="Observación: ${t.observaciones}"></i>` 
+            : '';
         html += `
         <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
             <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -160,7 +165,7 @@ function loadTerminos() {
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     
-                    <div class="action-menu hidden bg-white rounded shadow-xl border border-gray-100 border-t-4 border-gob-oro w-56 font-headings z-50 absolute right-0 mt-8">
+                     <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
                         ${generarAccionesRapidas(t, USER_ROLE)}
                     </div>
                     
@@ -570,33 +575,90 @@ function abrirModalReasignar(id) {
 function initModalPresentar() {
     const modal = document.getElementById('modal-presentar-termino');
     if (!modal) return;
+    
     const btnConfirm = document.getElementById('confirmar-presentar');
-    document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); });
+    
+    // Configurar botones de cancelar/cerrar
+    document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => {
+        if(btn) btn.onclick = () => { 
+            modal.classList.remove('flex'); 
+            modal.classList.add('hidden'); 
+        };
+    });
+
+    // Configurar botón Confirmar
     if(btnConfirm) {
+        // Clonar para limpiar eventos previos
         const newBtn = btnConfirm.cloneNode(true);
         btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+        
         newBtn.onclick = () => {
             const id = document.getElementById('presentar-termino-id').value;
+            const observaciones = document.getElementById('observaciones-cambio-estatus').value.trim();
+            
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
+            
             if(idx !== -1) {
+                // Determinar el cambio de estatus
+                let nuevoEstatus = '';
                 if (TERMINOS[idx].estatus === 'Presentado') {
-                    TERMINOS[idx].estatus = 'Concluido';
+                    nuevoEstatus = 'Concluido';
+                } else if (TERMINOS[idx].estatus === 'Dirección') {
+                    // Caso especial cuando Dirección libera
+                    nuevoEstatus = 'Liberado';
                 } else {
+                    // Flujo normal usando tu objeto FLUJO_ETAPAS
                     const siguiente = FLUJO_ETAPAS[TERMINOS[idx].estatus]?.siguiente;
-                    if(siguiente) TERMINOS[idx].estatus = siguiente;
+                    if(siguiente) nuevoEstatus = siguiente;
                 }
-                guardarYRecargar();
-                modal.classList.remove('flex'); modal.classList.add('hidden');
+                if(nuevoEstatus) {
+                    TERMINOS[idx].estatus = nuevoEstatus;
+                    if(observaciones) {
+                        TERMINOS[idx].observaciones = observaciones;
+                        // Opcional: Si quieres un historial tipo chat como en audiencias:
+                        /* if(!TERMINOS[idx].comentarios) TERMINOS[idx].comentarios = [];
+                        TERMINOS[idx].comentarios.push({
+                            fecha: new Date().toLocaleDateString(),
+                            usuario: USER_ROLE,
+                            texto: `Cambio a ${nuevoEstatus}: ${observaciones}`
+                        }); 
+                        */
+                    }
+
+                    guardarYRecargar();
+                    mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
+                }
+                
+                modal.classList.remove('flex'); 
+                modal.classList.add('hidden');
             }
         };
     }
 }
 function abrirModalPresentar(id, titulo, mensaje) {
     const modal = document.getElementById('modal-presentar-termino');
-    document.getElementById('presentar-termino-id').value = id;
-    modal.classList.remove('hidden'); modal.classList.add('flex');
-}
+    if(!modal) return;
 
+    // Llenar datos ocultos y textos
+    document.getElementById('presentar-termino-id').value = id;
+    
+    const tituloEl = document.getElementById('modal-presentar-titulo');
+    const mensajeEl = document.getElementById('modal-presentar-mensaje');
+    
+    if(tituloEl) tituloEl.textContent = titulo;
+    if(mensajeEl) mensajeEl.textContent = mensaje;
+
+    // NUEVO: Limpiar el textarea siempre que se abre
+    const txtArea = document.getElementById('observaciones-cambio-estatus');
+    if(txtArea) {
+        txtArea.value = ''; 
+        // Focus automático para mejor UX
+        setTimeout(() => txtArea.focus(), 100); 
+    }
+
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex');
+}
 // ===============================================
 // 8. HELPERS & MODALES GLOBALES
 // ===============================================

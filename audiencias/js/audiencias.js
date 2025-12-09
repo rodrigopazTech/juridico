@@ -162,7 +162,6 @@ function loadAudiencias() {
                     </button>
                     
                      <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
-
                         ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
                     </div>
                 </div>   
@@ -318,9 +317,7 @@ function setupActionMenuListenerAudiencia() {
             // Aplicar estilos fijos
             menu.style.position = 'fixed';
             menu.style.zIndex = '99999';
-            menu.style.width = menuWidth + 'px';
-            
-            // Alinear a la derecha del botón
+            menu.style.width = menuWidth + 'px';           
             menu.style.left = (rect.right - menuWidth) + 'px'; 
 
             // Decidir Arriba/Abajo

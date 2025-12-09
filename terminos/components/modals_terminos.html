@@ -99,17 +99,28 @@
 </div>
 
 <div id="modal-presentar-termino" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-sm bg-white rounded-lg shadow-xl border-t-4 border-green-600 animate-fade-in-down">
-       <div class="p-6 text-center">
-           <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-               <i class="fas fa-check text-green-600 text-2xl"></i>
+   <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl border-t-4 border-green-600 animate-fade-in-down">
+       <div class="p-6">
+           <div class="text-center mb-4">
+               <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+                   <i class="fas fa-check text-green-600 text-2xl"></i>
+               </div>
+               <h3 id="modal-presentar-titulo" class="mb-2 text-xl font-bold text-gob-gris">Confirmar Acción</h3>
+               <p id="modal-presentar-mensaje" class="text-sm text-gray-500">¿Estás seguro de realizar esta acción?</p>
            </div>
-           <h3 class="mb-2 text-xl font-bold text-gob-gris">Confirmar Acción</h3>
-           <p class="text-sm text-gray-500 mb-6">¿Estás seguro de avanzar el estatus de este término?</p>
+
+           <div class="mb-4 text-left">
+               <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observaciones / Comentarios (Opcional)</label>
+               <textarea id="observaciones-cambio-estatus" rows="3" 
+                   class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 p-2.5 resize-none"
+                   placeholder="Escribe aquí algún detalle sobre la conclusión o el acuse..."></textarea>
+           </div>
+
            <input type="hidden" id="presentar-termino-id">
-           <div class="flex justify-center gap-3">
-               <button id="cancel-presentar" class="px-4 py-2 bg-white border rounded text-gray-600">Cancelar</button>
-               <button id="confirmar-presentar" class="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700">Confirmar</button>
+           
+           <div class="flex justify-center gap-3 border-t pt-4">
+               <button id="cancel-presentar" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-sm">Cancelar</button>
+               <button id="confirmar-presentar" class="px-4 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 shadow-md text-sm">Confirmar</button>
            </div>
        </div>
    </div>

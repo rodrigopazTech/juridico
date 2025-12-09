@@ -284,18 +284,18 @@ CREATE TABLE recordatorios (
 
 | Tabla Origen | Campo | Tabla Destino | Descripción |
 |--------------|-------|---------------|-------------|
-| `usuarios` | `gerencia_id` | `gerencias` | Un usuario pertenece a una gerencia |
-| `expedientes` | `materia_id` | `materias` | Un expediente tiene una materia jurídica |   ----a revisar----
-| `expedientes` | `abogado_id` | `usuarios` | Un expediente es asignado a un abogado |
-| `expedientes` | `gerencia_id` | `gerencias` | Un expediente pertenece a una gerencia |
-| `audiencias` | `expediente_id` | `expedientes` | Una audiencia pertenece a un expediente |
-| `audiencias` | `abogado_id` | `usuarios` | Una audiencia es asignada a un abogado |   -----pierde acceso total el abogado si comparece----
-| `expediente_timeline` | `expediente_id` | `expedientes` | Un evento del timeline pertenece a un expediente |
-| `expediente_timeline` | `usuario_id` | `usuarios` | Un evento del timeline es creado por un usuario |
-| `actividades` | `expediente_id` | `expedientes` | Una actividad pertenece a un expediente |
-| `actividades` | `usuario_asignado_id` | `usuarios` | Una actividad es asignada a un usuario |  ----revisar a que se refiere con actividad---
-| `actividades` | `usuario_creador_id` | `usuarios` | Una actividad es creada por un usuario |
-| `notificaciones` | `usuario_id` | `usuarios` | Una notificación pertenece a un usuario |  ---consultar a mayra si se quiere enterar de todos los eventos del termino o solo del suyo----
+| `usuarios` | `gerencia_id` | `gerencias` | Un usuario pertenece a una gerencia | {mantener}
+| `expedientes` | `materia_id` | `materias` | Un expediente tiene una materia jurídica |   {mantener}
+| `expedientes` | `abogado_id` | `usuarios` | Un expediente es asignado a un abogado | {mantener}
+| `expedientes` | `gerencia_id` | `gerencias` | Un expediente pertenece a una gerencia | {mantener}
+| `audiencias` | `expediente_id` | `expedientes` | Una audiencia pertenece a un expediente | {mantener}
+| `audiencias` | `abogado_id` | `usuarios` | Una audiencia es asignada a un abogado |   {aclaracion: una audiencia si esa asignada a un abogado pero se puede reasignar y ambos abpgados deben tener el mismo privilegio para las acciones permitidas de esta audiencia}
+| `expediente_timeline` | `expediente_id` | `expedientes` | Un evento del timeline pertenece a un expediente | {mantener}
+| `expediente_timeline` | `usuario_id` | `usuarios` | Un evento del timeline es creado por un usuario | {mantener}
+| `actividades` | `expediente_id` | `expedientes` | Una actividad pertenece a un expediente | {eliminar}
+| `actividades` | `usuario_asignado_id` | `usuarios` | Una actividad es asignada a un usuario | {eliminar}
+| `actividades` | `usuario_creador_id` | `usuarios` | Una actividad es creada por un usuario | {eliminar}
+| `notificaciones` | `usuario_id` | `usuarios` | Una notificación pertenece a un usuario | {aclaracion: el usuario tipo direccion debera enterarse cuando se de alta una nueva audiencia o un nuevo termino}
 | `eventos_calendario` | `usuario_id` | `usuarios` | Un evento del calendario pertenece a un usuario |
 | `eventos_calendario` | `expediente_id` | `expedientes` | Un evento puede estar relacionado con un expediente (opcional) |
 | `eventos_calendario` | `audiencia_id` | `audiencias` | Un evento puede estar relacionado con una audiencia (opcional) |

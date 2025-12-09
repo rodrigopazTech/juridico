@@ -11,7 +11,6 @@ export class CalendarioModule {
     this.gerencias = [];
     this.filters = { tipo: '', gerenciaId: '', usuarioId: '' };
     this.currentEventId = null;
-    this.editingEvent = null;
     
     this.gobColors = {
       audiencia: { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-800', solid: 'bg-blue-500' },
@@ -68,11 +67,7 @@ export class CalendarioModule {
     document.getElementById('filterGerencia')?.addEventListener('change', (e) => { this.filters.gerenciaId = e.target.value; this.renderCalendar(); });
     document.getElementById('filterUsuario')?.addEventListener('change', (e) => { this.filters.usuarioId = e.target.value; this.renderCalendar(); });
 
-    // Crear Evento
-    document.getElementById('btnCreateEvent')?.addEventListener('click', () => this.openEventCreateModal());
-    
-    // Cambio de Tipo en Formulario
-    document.getElementById('inputTipo')?.addEventListener('change', (e) => this.handleTipoChange(e.target.value));
+
   }
 
   // ==================== FILTERS & POPULATION ====================

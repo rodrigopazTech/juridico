@@ -310,3 +310,6 @@ class RecordatoriosAPI {
 
 **📞 Soporte**  
 Para dudas sobre este módulo, consultar la documentación principal del proyecto o contactar al equipo de desarrollo.
+
+
+cuando hacer un recordatorio en audiencia y terminos se guarda aqui en recordatorio-module y en el calendario 

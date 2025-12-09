@@ -3,7 +3,7 @@
 // ===============================================
 // 1. CONFIGURACIÓN Y DATOS
 // ===============================================
-const USER_ROLE = 'Direccion'; 
+const USER_ROLE = 'Direccion'; // Puedes cambiar esto para probar permisos
 
 const FLUJO_ETAPAS = {
     'Proyectista': { siguiente: 'Revisión', accion: 'enviarRevision', label: 'Enviar a Revisión' },
@@ -13,7 +13,7 @@ const FLUJO_ETAPAS = {
     'Liberado':    { siguiente: 'Presentado', accion: 'subirAcuse', label: 'Subir Acuse' },
     'Presentado':  { siguiente: 'Concluido', accion: 'concluir', label: 'Concluir' }
 };
-// ROLES : Abogado, Gerente, Subdireccion, JefeDepto, Direccion
+
 const PERMISOS_ETAPAS = {
     'Proyectista': ['Abogado', 'Gerente','JefeDepto','Direccion'],
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion'],
@@ -27,36 +27,31 @@ const PERMISOS_ETAPAS = {
 let TERMINOS = [];
 
 // ===============================================
-// 2. INICIALIZACIÓN (Exportada)
+// 2. INICIALIZACIÓN
 // ===============================================
 function initTerminos() {
-    console.log("Iniciando módulo Términos V3...");
+    console.log("Iniciando módulo Términos (Clean)...");
     
     cargarDatosIniciales();
     loadTerminos(); 
     setupSearchAndFilters();
     
-    // Inicializar Modales (Con validación)
+    // Inicializar Modales (Solo una vez)
     initModalTerminosJS();      
     initModalPresentar();       
     initModalReasignar();       
     
-    // Listeners de Tabla
+    // Listeners y Cargas
     setupActionMenuListener(); 
-    
-    // Cargas de datos
     cargarAsuntosEnSelectorJS();
     cargarAbogadosSelector();
 
-    // Configurar Botón Nuevo (Con espera del DOM)
+    // Configurar Botón Nuevo
     const btnNuevo = document.getElementById('add-termino');
     if (btnNuevo) {
-        // Clonar para limpiar listeners previos
         const newBtn = btnNuevo.cloneNode(true);
         btnNuevo.parentNode.replaceChild(newBtn, btnNuevo);
         newBtn.addEventListener('click', () => openTerminoModalJS());
-    } else {
-        console.error("Error: No se encontró el botón 'add-termino'");
     }
 
     // Configurar Botón Exportar
@@ -69,6 +64,11 @@ function initTerminos() {
              else alert('Librería de exportación no cargada.');
         });
     }
+
+    document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    });
 }
 
 function cargarDatosIniciales() {
@@ -77,14 +77,13 @@ function cargarDatosIniciales() {
         if (localData && Array.isArray(localData) && localData.length > 0) {
             TERMINOS = localData;
         } else {
-            // Datos de Ejemplo
+            // Datos de prueba si está vacío
             TERMINOS = [
                 { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
                 { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
                 { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
                 { id: 4, expediente: '2376/2125', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Dirección', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
                 { id: 5, expediente: '1290/2124', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' }
-            
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
@@ -101,7 +100,7 @@ function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-    // Obtener valores de filtros de forma segura (?. evita error si el elemento no existe)
+    // Obtener filtros de forma segura
     const filtros = {
         tribunal: document.getElementById('filter-tribunal-termino')?.value.toLowerCase() || '',
         estado: document.getElementById('filter-estado-termino')?.value.toLowerCase() || '',
@@ -130,13 +129,14 @@ function loadTerminos() {
         let tooltipTexto = diasRestantes < 0 ? `Vencido hace ${Math.abs(diasRestantes)} días` : (diasRestantes === 0 ? "Vence HOY" : `Faltan ${diasRestantes} días`);
 
         const esBloqueado = t.estatus === 'Concluido' || t.estatus === 'Presentado';
-        
         const botonEditar = esBloqueado
             ? `<button class="text-gray-300 cursor-not-allowed p-1" title="Bloqueado"><i class="fas fa-lock"></i></button>` 
             : `<button class="text-gray-400 hover:text-gob-oro action-edit p-1" title="Editar"><i class="fas fa-edit"></i></button>`;
+        
         const iconoObservacion = t.observaciones 
             ? `<i class="fas fa-comment-alt text-blue-500 ml-2" title="Observación: ${t.observaciones}"></i>` 
             : '';
+
         html += `
         <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
             <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -152,15 +152,12 @@ function loadTerminos() {
             <td class="px-4 py-3 text-sm text-gray-500">${t.prestacion || 'N/A'}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
             <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">
-                    ${t.estatus}
-                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>
+                ${iconoObservacion}
             </td>
-            
             <td class="px-4 py-3 text-right whitespace-nowrap relative">
                 <div class="flex items-center justify-end gap-2">
                     ${botonEditar}
-                    
                     <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Más Acciones">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
@@ -168,12 +165,10 @@ function loadTerminos() {
                      <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
                         ${generarAccionesRapidas(t, USER_ROLE)}
                     </div>
-                    
                     <input type="file" class="input-acuse-hidden hidden" data-id="${t.id}">
                 </div>
             </td>
-        </tr>
-        `;
+        </tr>`;
     });
 
     tbody.innerHTML = html || '<tr><td colspan="9" class="text-center py-8 text-gray-500">No se encontraron resultados</td></tr>';
@@ -188,20 +183,17 @@ function setupSearchAndFilters() {
 }
 
 // ===============================================
-// 4. GENERACIÓN DE MENÚ
+// 4. ACCIONES Y MENÚ
 // ===============================================
 function generarAccionesRapidas(termino, rol) {
     let html = '';
     const etapa = termino.estatus;
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
-
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
-    // Opciones Comunes
     html += `<button class="${itemClass} action-view-asunto"><i class="fas fa-briefcase text-gray-400"></i> Ver Asunto</button>`;
 
-    // CASO FINAL: CONCLUIDO
     if (etapa === 'Concluido') {
         if (termino.acuseDocumento) {
             html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
@@ -213,7 +205,6 @@ function generarAccionesRapidas(termino, rol) {
         return html; 
     }
 
-    // CASO ESPECIAL: PRESENTADO
     if (etapa === 'Presentado') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
         html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
@@ -225,7 +216,6 @@ function generarAccionesRapidas(termino, rol) {
         return html;
     }
 
-    // RESTO DE ETAPAS
     if (puedeActuar) {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
         const config = FLUJO_ETAPAS[etapa];
@@ -244,7 +234,6 @@ function generarAccionesRapidas(termino, rol) {
 
     if (rol === 'Gerente' || rol === 'Direccion') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-       // html += `<button class="${itemClass} action-reasignar"><i class="fas fa-user-friends text-gray-400"></i> Reasignar</button>`;
         if (rol === 'Direccion') {
             html += `<button class="${itemClass} action-delete text-red-600 font-bold hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
         }
@@ -252,23 +241,17 @@ function generarAccionesRapidas(termino, rol) {
     return html;
 }
 
-// ===============================================
-// 5. LISTENER INTELIGENTE (CORREGIDO)
-// ===============================================
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-    // Remover listeners anteriores si los hubiera (cloneNode)
+    // Clonar para limpiar eventos previos
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
     
-    
-    // Volver a referenciar la tabla renderizada
+    // Recargar eventos sobre el nuevo elemento
     loadTerminos(); 
-    // Nota: loadTerminos usa getElementById, así que encontrará el nuevo tbody
     
-    // Agregar Listener Delegado
     document.getElementById('terminos-body').addEventListener('click', function(e) {
         const target = e.target.closest('button');
         if (!target) return;
@@ -279,72 +262,49 @@ function setupActionMenuListener() {
         const id = row.getAttribute('data-id');
         const termino = TERMINOS.find(t => String(t.id) === String(id));
 
-        // 1. MENÚ FLOTANTE
+        // MENU TOGGLE
         if (target.classList.contains('action-menu-toggle')) {
-            e.preventDefault(); 
-            e.stopPropagation();
-            
-            // Buscar el menú dentro de la misma celda
+            e.preventDefault(); e.stopPropagation();
             const menu = target.nextElementSibling; 
             
-            // Cerrar todos los demás menús primero
+            // Cerrar otros
             document.querySelectorAll('.action-menu').forEach(m => {
-                if(m !== menu) {
-                    m.classList.add('hidden');
-                    m.style.cssText = '';
-                }
+                if(m !== menu) { m.classList.add('hidden'); m.style.cssText = ''; }
             });
-
+            
             if (!menu) return;
-
-            // Toggle visibilidad
             if (!menu.classList.contains('hidden')) {
-                menu.classList.add('hidden');
-                menu.style.cssText = ''; 
+                menu.classList.add('hidden'); menu.style.cssText = ''; 
                 return;
             }
-
-            // Mostrar y Posicionar
             menu.classList.remove('hidden');
             
-            // Lógica de posicionamiento fijo para evitar cortes por overflow:hidden de la tabla
+            // Posicionamiento
             const rect = target.getBoundingClientRect(); 
             const menuWidth = 224; 
             const menuHeight = menu.offsetHeight || 220; 
             const spaceBelow = window.innerHeight - rect.bottom;
-
             menu.style.position = 'fixed';
             menu.style.zIndex = '99999';
             menu.style.width = menuWidth + 'px';
             menu.style.left = (rect.right - menuWidth) + 'px';
-
+            
             if (spaceBelow < menuHeight) {
-                // Mostrar hacia arriba
-                menu.style.top = 'auto';
-                menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
-                menu.classList.remove('border-t-4');
-                menu.classList.add('border-b-4');
+                menu.style.top = 'auto'; menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+                menu.classList.remove('border-t-4'); menu.classList.add('border-b-4');
             } else {
-                // Mostrar hacia abajo
-                menu.style.bottom = 'auto';
-                menu.style.top = (rect.bottom + 5) + 'px';
-                menu.classList.add('border-t-4');
-                menu.classList.remove('border-b-4');
+                menu.style.bottom = 'auto'; menu.style.top = (rect.bottom + 5) + 'px';
+                menu.classList.add('border-t-4'); menu.classList.remove('border-b-4');
             }
             return;
         }
 
-        // 2. ACCIONES (Editar, Avanzar, etc)
-        if (target.classList.contains('action-edit')) {
-            openTerminoModalJS(termino);
-        }
+        // ACCIONES
+        if (target.classList.contains('action-edit')) openTerminoModalJS(termino);
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
-        
-        else if (target.classList.contains('action-download-acuse')) {
-            mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
-        }
+        else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion(
                 'Quitar Acuse',
@@ -358,7 +318,6 @@ function setupActionMenuListener() {
             );
         }
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
-        //else if (target.classList.contains('action-reasignar')) abrirModalReasignar(id);
         else if (target.classList.contains('action-delete')) {
             mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => {
                 TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id));
@@ -367,29 +326,21 @@ function setupActionMenuListener() {
             });
         }
         
-        // Cerrar menús después de acción
+        // Cerrar menú tras acción
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
     });
     
-    // Cierres Globales (Clic fuera)
+    // Listeners globales para cerrar menú
     document.addEventListener('click', e => {
         if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
-            document.querySelectorAll('.action-menu').forEach(m => { 
-                m.classList.add('hidden'); 
-                m.style.cssText = ''; 
-            });
+            document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
         }
     });
-    
-    // Cierre al hacer scroll
     window.addEventListener('scroll', () => {
-        document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { 
-            m.classList.add('hidden'); 
-            m.style.cssText = ''; 
-        });
+        document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
     }, true);
     
-    // Listener Input Archivo
+    // Listener archivo
     document.getElementById('terminos-body').addEventListener('change', function(e) {
         if (e.target.classList.contains('input-acuse-hidden') && e.target.files.length > 0) {
             const id = e.target.getAttribute('data-id');
@@ -405,7 +356,7 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// 6. TRANSICIONES
+// 5. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
 // ===============================================
 function avanzarEtapa(id) {
     const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
@@ -447,64 +398,6 @@ function guardarYRecargar() {
     loadTerminos();
 }
 
-// ===============================================
-// 7. MODALES (MANUALES) - ROBUSTO
-// ===============================================
-function initModalTerminosJS() {
-   const modal = document.getElementById('modal-termino');
-   const btnSave = document.getElementById('save-termino');
-   
-   if (!modal) {
-       console.error("Error Crítico: No se encontró el modal #modal-termino");
-       return;
-   }
-
-   document.querySelectorAll('#close-modal-termino, #cancel-termino').forEach(btn => {
-       if(btn) btn.onclick = () => { 
-           modal.classList.remove('flex'); 
-           modal.classList.add('hidden'); 
-       };
-   });
-
-   if(btnSave) {
-       const newBtn = btnSave.cloneNode(true);
-       btnSave.parentNode.replaceChild(newBtn, btnSave);
-       newBtn.onclick = (e) => { e.preventDefault(); guardarTermino(); };
-   }
-}
-
-function openTerminoModalJS(termino = null) {
-    const modal = document.getElementById('modal-termino');
-    if (!modal) return alert("Error: El modal no se cargó correctamente.");
-
-    const form = document.getElementById('form-termino');
-    const title = document.getElementById('modal-termino-title');
-    
-    if(form) form.reset();
-    cargarAsuntosEnSelectorJS();
-    
-    if (termino) {
-        title.textContent = 'Editar Datos del Término';
-        document.getElementById('termino-id').value = termino.id;
-        
-        // Llenar campos
-        const selAsunto = document.getElementById('asunto-selector');
-        if(selAsunto) selAsunto.value = termino.asuntoId || '';
-        
-        if(document.getElementById('fecha-ingreso')) document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
-        if(document.getElementById('fecha-vencimiento')) document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
-        if(document.getElementById('actuacion')) document.getElementById('actuacion').value = termino.asunto || '';
-        
-        if(termino.asuntoId) cargarDatosAsuntoEnModalJS(termino.asuntoId);
-    } else {
-        title.textContent = 'Nuevo Término';
-        document.getElementById('termino-id').value = '';
-    }
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
 function guardarTermino() {
     const id = document.getElementById('termino-id').value;
     const data = {
@@ -515,6 +408,29 @@ function guardarTermino() {
     };
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
+
+    // Guardar Recordatorio (Opcional)
+    const checkRecordatorio = document.getElementById('check-crear-recordatorio');
+    if (checkRecordatorio && checkRecordatorio.checked) {
+        const fechaRec = document.getElementById('fecha-recordatorio').value;
+        const horaRec = document.getElementById('hora-recordatorio').value;
+        const notaRec = document.getElementById('nota-recordatorio').value;
+
+        if (!fechaRec || !horaRec) return mostrarMensajeGlobal('Fecha y hora son obligatorias para el recordatorio', 'danger');
+
+        const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
+        const nuevoRecordatorio = {
+            id: Date.now() + 1,
+            titulo: `Vencimiento: ${data.asunto}`,
+            detalles: notaRec || `Recordatorio asociado al término del expediente ${document.getElementById('termino-expediente')?.value}`,
+            fecha: fechaRec,
+            hora: horaRec,
+            prioridad: 'urgent',
+            completado: false
+        };
+        recordatorios.unshift(nuevoRecordatorio);
+        localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+    }
 
     if(id) {
         const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
@@ -537,10 +453,157 @@ function guardarTermino() {
     const modal = document.getElementById('modal-termino');
     modal.classList.remove('flex');
     modal.classList.add('hidden');
-    mostrarMensajeGlobal('Término guardado correctamente', 'success');
+    
+    const msg = checkRecordatorio && checkRecordatorio.checked 
+        ? 'Término y recordatorio guardados correctamente' 
+        : 'Término guardado correctamente';
+    mostrarMensajeGlobal(msg, 'success');
 }
 
-// --- Helpers de Modales ---
+// ===============================================
+// 6. MANEJO DE MODALES
+// ===============================================
+
+// --- Modal Principal de Términos (Crear/Editar) ---
+function initModalTerminosJS() {
+   const modal = document.getElementById('modal-termino');
+   const btnSave = document.getElementById('save-termino');
+   
+   if (!modal) return console.error("Error: No se encontró el modal #modal-termino");
+
+   document.querySelectorAll('#close-modal-termino, #cancel-termino').forEach(btn => {
+       if(btn) btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); };
+   });
+
+   // Toggle de Recordatorio
+   const checkRecordatorio = document.getElementById('check-crear-recordatorio');
+   const containerRecordatorio = document.getElementById('container-recordatorio');
+   if(checkRecordatorio && containerRecordatorio) {
+       checkRecordatorio.addEventListener('change', (e) => {
+           if(e.target.checked) containerRecordatorio.classList.remove('hidden');
+           else containerRecordatorio.classList.add('hidden');
+       });
+   }
+
+   if(btnSave) {
+       const newBtn = btnSave.cloneNode(true);
+       btnSave.parentNode.replaceChild(newBtn, btnSave);
+       newBtn.onclick = (e) => { e.preventDefault(); guardarTermino(); };
+   }
+}
+
+function openTerminoModalJS(termino = null) {
+    const modal = document.getElementById('modal-termino');
+    if (!modal) return alert("Error: El modal no se cargó correctamente.");
+
+    const form = document.getElementById('form-termino');
+    const title = document.getElementById('modal-termino-title');
+    
+    if(form) form.reset();
+    
+    // Reset recordatorio visual
+    const checkRec = document.getElementById('check-crear-recordatorio');
+    const contRec = document.getElementById('container-recordatorio');
+    if(checkRec) checkRec.checked = false;
+    if(contRec) contRec.classList.add('hidden');
+
+    cargarAsuntosEnSelectorJS();
+    
+    if (termino) {
+        title.textContent = 'Editar Datos del Término';
+        document.getElementById('termino-id').value = termino.id;
+        
+        const selAsunto = document.getElementById('asunto-selector');
+        if(selAsunto) selAsunto.value = termino.asuntoId || '';
+        
+        if(document.getElementById('fecha-ingreso')) document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
+        if(document.getElementById('fecha-vencimiento')) document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
+        if(document.getElementById('actuacion')) document.getElementById('actuacion').value = termino.asunto || '';
+        
+        if(termino.asuntoId) cargarDatosAsuntoEnModalJS(termino.asuntoId);
+    } else {
+        title.textContent = 'Nuevo Término';
+        document.getElementById('termino-id').value = '';
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// --- Modal Presentar/Concluir ---
+function initModalPresentar() {
+    const modal = document.getElementById('modal-presentar-termino');
+    if (!modal) return;
+    
+    const btnConfirm = document.getElementById('confirmar-presentar');
+    
+    document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => {
+        if(btn) btn.onclick = () => { 
+            modal.classList.remove('flex'); 
+            modal.classList.add('hidden'); 
+        };
+    });
+
+    if(btnConfirm) {
+        const newBtn = btnConfirm.cloneNode(true);
+        btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+        
+        newBtn.onclick = () => {
+            const id = document.getElementById('presentar-termino-id').value;
+            const observaciones = document.getElementById('observaciones-cambio-estatus').value.trim();
+            
+            const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
+            
+            if(idx !== -1) {
+                let nuevoEstatus = '';
+                if (TERMINOS[idx].estatus === 'Presentado') {
+                    nuevoEstatus = 'Concluido';
+                } else if (TERMINOS[idx].estatus === 'Dirección') {
+                    nuevoEstatus = 'Liberado';
+                } else {
+                    const siguiente = FLUJO_ETAPAS[TERMINOS[idx].estatus]?.siguiente;
+                    if(siguiente) nuevoEstatus = siguiente;
+                }
+                
+                if(nuevoEstatus) {
+                    TERMINOS[idx].estatus = nuevoEstatus;
+                    if(observaciones) {
+                        TERMINOS[idx].observaciones = observaciones;
+                    }
+                    guardarYRecargar();
+                    mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
+                }
+                
+                modal.classList.remove('flex'); 
+                modal.classList.add('hidden');
+            }
+        };
+    }
+}
+
+function abrirModalPresentar(id, titulo, mensaje) {
+    const modal = document.getElementById('modal-presentar-termino');
+    if(!modal) return;
+
+    document.getElementById('presentar-termino-id').value = id;
+    
+    const tituloEl = document.getElementById('modal-presentar-titulo');
+    const mensajeEl = document.getElementById('modal-presentar-mensaje');
+    
+    if(tituloEl) tituloEl.textContent = titulo;
+    if(mensajeEl) mensajeEl.textContent = mensaje;
+
+    const txtArea = document.getElementById('observaciones-cambio-estatus');
+    if(txtArea) {
+        txtArea.value = ''; 
+        setTimeout(() => txtArea.focus(), 100); 
+    }
+
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex');
+}
+
+// --- Modal Reasignar ---
 function initModalReasignar() {
     const modal = document.getElementById('modal-reasignar');
     if (!modal) return;
@@ -561,6 +624,7 @@ function initModalReasignar() {
         };
     }
 }
+
 function abrirModalReasignar(id) {
     const modal = document.getElementById('modal-reasignar');
     const termino = TERMINOS.find(t => String(t.id) === String(id));
@@ -572,95 +636,8 @@ function abrirModalReasignar(id) {
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
-function initModalPresentar() {
-    const modal = document.getElementById('modal-presentar-termino');
-    if (!modal) return;
-    
-    const btnConfirm = document.getElementById('confirmar-presentar');
-    
-    // Configurar botones de cancelar/cerrar
-    document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => {
-        if(btn) btn.onclick = () => { 
-            modal.classList.remove('flex'); 
-            modal.classList.add('hidden'); 
-        };
-    });
-
-    // Configurar botón Confirmar
-    if(btnConfirm) {
-        // Clonar para limpiar eventos previos
-        const newBtn = btnConfirm.cloneNode(true);
-        btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
-        
-        newBtn.onclick = () => {
-            const id = document.getElementById('presentar-termino-id').value;
-            const observaciones = document.getElementById('observaciones-cambio-estatus').value.trim();
-            
-            const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
-            
-            if(idx !== -1) {
-                // Determinar el cambio de estatus
-                let nuevoEstatus = '';
-                if (TERMINOS[idx].estatus === 'Presentado') {
-                    nuevoEstatus = 'Concluido';
-                } else if (TERMINOS[idx].estatus === 'Dirección') {
-                    // Caso especial cuando Dirección libera
-                    nuevoEstatus = 'Liberado';
-                } else {
-                    // Flujo normal usando tu objeto FLUJO_ETAPAS
-                    const siguiente = FLUJO_ETAPAS[TERMINOS[idx].estatus]?.siguiente;
-                    if(siguiente) nuevoEstatus = siguiente;
-                }
-                if(nuevoEstatus) {
-                    TERMINOS[idx].estatus = nuevoEstatus;
-                    if(observaciones) {
-                        TERMINOS[idx].observaciones = observaciones;
-                        // Opcional: Si quieres un historial tipo chat como en audiencias:
-                        /* if(!TERMINOS[idx].comentarios) TERMINOS[idx].comentarios = [];
-                        TERMINOS[idx].comentarios.push({
-                            fecha: new Date().toLocaleDateString(),
-                            usuario: USER_ROLE,
-                            texto: `Cambio a ${nuevoEstatus}: ${observaciones}`
-                        }); 
-                        */
-                    }
-
-                    guardarYRecargar();
-                    mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
-                }
-                
-                modal.classList.remove('flex'); 
-                modal.classList.add('hidden');
-            }
-        };
-    }
-}
-function abrirModalPresentar(id, titulo, mensaje) {
-    const modal = document.getElementById('modal-presentar-termino');
-    if(!modal) return;
-
-    // Llenar datos ocultos y textos
-    document.getElementById('presentar-termino-id').value = id;
-    
-    const tituloEl = document.getElementById('modal-presentar-titulo');
-    const mensajeEl = document.getElementById('modal-presentar-mensaje');
-    
-    if(tituloEl) tituloEl.textContent = titulo;
-    if(mensajeEl) mensajeEl.textContent = mensaje;
-
-    // NUEVO: Limpiar el textarea siempre que se abre
-    const txtArea = document.getElementById('observaciones-cambio-estatus');
-    if(txtArea) {
-        txtArea.value = ''; 
-        // Focus automático para mejor UX
-        setTimeout(() => txtArea.focus(), 100); 
-    }
-
-    modal.classList.remove('hidden'); 
-    modal.classList.add('flex');
-}
 // ===============================================
-// 8. HELPERS & MODALES GLOBALES
+// 7. HELPERS Y UTILIDADES
 // ===============================================
 function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;
@@ -691,7 +668,6 @@ function getBadgeClass(estatus) {
     }
 }
 
-// --- MODAL CONFIRMACION ---
 let onConfirmAction = null;
 function mostrarConfirmacion(titulo, mensaje, callback) {
     const modal = document.getElementById('modal-confirmacion-global');
@@ -706,13 +682,13 @@ function mostrarConfirmacion(titulo, mensaje, callback) {
     document.getElementById('btn-confirm-cancel').onclick = cerrarConfirmacion;
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
+
 function cerrarConfirmacion() {
     const modal = document.getElementById('modal-confirmacion-global');
     if (modal) { modal.classList.remove('flex'); modal.classList.add('hidden'); }
     onConfirmAction = null;
 }
 
-// --- MODAL PROMPT ---
 let onPromptAction = null; 
 function mostrarPrompt(titulo, mensaje, placeholder, callback) {
     const modal = document.getElementById('modal-prompt-global');
@@ -729,13 +705,13 @@ function mostrarPrompt(titulo, mensaje, placeholder, callback) {
     document.getElementById('btn-prompt-cancel').onclick = cerrarPrompt;
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
+
 function cerrarPrompt() {
     const modal = document.getElementById('modal-prompt-global');
     if (modal) { modal.classList.remove('flex'); modal.classList.add('hidden'); }
     onPromptAction = null;
 }
 
-// --- MODAL ALERTA ---
 function mostrarAlertaTermino(mensaje) {
     const modal = document.getElementById('modal-alerta-termino');
     if(!modal) return;
@@ -744,7 +720,6 @@ function mostrarAlertaTermino(mensaje) {
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
-// --- Helpers ---
 function mostrarMensajeGlobal(msg, type) {
     const div = document.createElement('div');
     const color = type === 'success' ? 'bg-green-500' : 'bg-red-500';

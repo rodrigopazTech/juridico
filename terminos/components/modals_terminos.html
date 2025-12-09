@@ -1,104 +1,129 @@
 <div id="modal-termino" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
-       <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
-           <h2 class="text-xl font-bold text-gob-guinda font-headings" id="modal-termino-title">Nuevo Término</h2>
-           <button id="close-modal-termino" class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
-               <i class="fas fa-times fa-lg"></i>
-           </button>
-       </div>
-       
-       <div class="flex-1 overflow-y-auto p-6">
-           <form id="form-termino">
-               <input type="hidden" id="termino-id">
-               
-               <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                   <label class="block text-sm font-bold text-gob-guinda mb-2">Vincular Asunto (Expediente) *</label>
-                   <select id="asunto-selector" class="bg-white border border-blue-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-gob-oro focus:border-gob-oro">
-                       <option value="">Cargando asuntos...</option>
-                   </select>
-               </div>
-
-               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                   <div>
-                       <label class="block text-xs font-bold text-gob-gris mb-1">Expediente</label>
-                       <input type="text" id="termino-expediente" readonly class="readonly-field block w-full p-2 text-sm rounded border">
-                   </div>
-                   <div>
-                       <label class="block text-xs font-bold text-gob-gris mb-1">Materia</label>
-                       <input type="text" id="termino-materia" readonly class="readonly-field block w-full p-2 text-sm rounded border">
-                   </div>
-                   <div>
-                       <label class="block text-xs font-bold text-gob-gris mb-1">Gerencia</label>
-                       <input type="text" id="termino-gerencia" readonly class="readonly-field block w-full p-2 text-sm rounded border">
-                   </div>
-                   <div>
-                       <label class="block text-xs font-bold text-gob-gris mb-1">Abogado Resp.</label>
-                       <input type="text" id="termino-abogado" readonly class="readonly-field block w-full p-2 text-sm rounded border">
-                   </div>
-                   <div class="md:col-span-2">
-                       <label class="block text-xs font-bold text-gob-gris mb-1">Partes Procesales</label>
-                       <input type="text" id="termino-partes" readonly class="readonly-field block w-full p-2 text-sm rounded border">
-                   </div>
-                   <input type="hidden" id="termino-tipo-asunto">
-                   <input type="hidden" id="termino-prioridad">
-                   <input type="hidden" id="termino-organo">
-               </div>
-
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div class="md:col-span-2">
-                       <label class="block text-sm font-bold text-gob-gris mb-1">Actuación / Asunto del Término *</label>
-                       <input type="text" id="actuacion" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5" placeholder="Ej. Contestación de demanda">
-                   </div>
-                   <div>
-                       <label class="block text-sm font-bold text-gob-gris mb-1">Fecha de Ingreso</label>
-                       <input type="date" id="fecha-ingreso" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
-                   </div>
-                   <div>
-                       <label class="block text-sm font-bold text-gob-gris mb-1">Fecha de Vencimiento *</label>
-                       <input type="date" id="fecha-vencimiento" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
-                   </div>
-               </div>
-           </form>
-       </div>
-       
-       <div class="flex-none flex items-center justify-end p-4 border-t bg-gray-50 rounded-b-lg gap-3">
-           <button id="cancel-termino" class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancelar</button>
-           <button id="save-termino" class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md">
-               <i class="fas fa-save mr-2"></i> Guardar Término
-           </button>
-       </div>
-   </div>
-</div>
-
-<div id="modal-reasignar" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl border-t-4 border-orange-500 animate-fade-in-down">
-       <div class="p-4 border-b bg-gray-50 rounded-t flex justify-between">
-           <h3 class="font-bold text-gob-gris">Reasignar Término</h3>
-           <button id="close-modal-reasignar"><i class="fas fa-times"></i></button>
-       </div>
-       <div class="p-6">
-           <input type="hidden" id="reasignar-termino-id">
-           <div class="mb-4">
-               <label class="block text-xs font-bold text-gray-500">Actuación</label>
-               <input type="text" id="reasignar-actuacion" readonly class="w-full bg-gray-100 border p-2 rounded text-sm">
-           </div>
-           <div class="mb-4">
-               <label class="block text-xs font-bold text-gray-500">Abogado Actual</label>
-               <input type="text" id="reasignar-abogado-actual" readonly class="w-full bg-gray-100 border p-2 rounded text-sm">
-           </div>
-           <div class="mb-4">
-               <label class="block text-sm font-bold text-gob-gris mb-1">Nuevo Abogado</label>
-               <select id="select-nuevo-abogado" class="w-full border border-gray-300 rounded p-2 focus:ring-gob-oro"></select>
-           </div>
-       </div>
-       <div class="flex justify-end p-4 border-t gap-2 bg-gray-50">
-           <button id="cancel-reasignar" class="px-4 py-2 bg-white border rounded text-sm">Cancelar</button>
-           <button id="save-reasignar" class="px-4 py-2 bg-orange-600 text-white rounded text-sm font-bold hover:bg-orange-700">Reasignar</button>
-       </div>
-   </div>
-</div>
-
-<div id="modal-presentar-termino" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <h2 class="text-xl font-bold text-gob-guinda font-headings" id="modal-termino-title">Nuevo Término</h2>
+            <button id="close-modal-termino" class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6">
+            <form id="form-termino">
+                <input type="hidden" id="termino-id">
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <label class="block text-sm font-bold text-gob-guinda mb-2">Vincular Asunto (Expediente) *</label>
+                    <select id="asunto-selector" class="bg-white border border-blue-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-gob-oro focus:border-gob-oro">
+                        <option value="">Cargando asuntos...</option>
+                    </select>
+                </div>
+ 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div>
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Expediente</label>
+                        <input type="text" id="termino-expediente" readonly class="readonly-field block w-full p-2 text-sm rounded border">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Materia</label>
+                        <input type="text" id="termino-materia" readonly class="readonly-field block w-full p-2 text-sm rounded border">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Gerencia</label>
+                        <input type="text" id="termino-gerencia" readonly class="readonly-field block w-full p-2 text-sm rounded border">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Abogado Resp.</label>
+                        <input type="text" id="termino-abogado" readonly class="readonly-field block w-full p-2 text-sm rounded border">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Partes Procesales</label>
+                        <input type="text" id="termino-partes" readonly class="readonly-field block w-full p-2 text-sm rounded border">
+                    </div>
+                    <input type="hidden" id="termino-tipo-asunto">
+                    <input type="hidden" id="termino-prioridad">
+                    <input type="hidden" id="termino-organo">
+                </div>
+ 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Actuación / Asunto del Término *</label>
+                        <input type="text" id="actuacion" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5" placeholder="Ej. Contestación de demanda">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Fecha de Ingreso</label>
+                        <input type="date" id="fecha-ingreso" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gob-gris mb-1">Fecha de Vencimiento *</label>
+                        <input type="date" id="fecha-vencimiento" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                    </div>
+                </div>
+ 
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <input id="check-crear-recordatorio" type="checkbox" class="w-4 h-4 text-gob-guinda bg-gray-100 border-gray-300 rounded focus:ring-gob-guinda focus:ring-2 cursor-pointer">
+                        <label for="check-crear-recordatorio" class="ml-2 text-sm font-bold text-gob-gris cursor-pointer select-none">
+                            <i class="fas fa-bell text-gob-oro mr-1"></i> Programar recordatorio automático
+                        </label>
+                    </div>
+ 
+                    <div id="container-recordatorio" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-down">
+                        <div>
+                            <label class="block text-xs font-bold text-gob-gris mb-1">Fecha del Recordatorio *</label>
+                            <input type="date" id="fecha-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gob-gris mb-1">Hora *</label>
+                            <input type="time" id="hora-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gob-gris mb-1">Nota adicional</label>
+                            <input type="text" id="nota-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5" placeholder="Ej: Subir documentos antes del vencimiento">
+                        </div>
+                    </div>
+                </div>
+ 
+            </form>
+        </div>
+        
+        <div class="flex-none flex items-center justify-end p-4 border-t bg-gray-50 rounded-b-lg gap-3">
+            <button id="cancel-termino" class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5">Cancelar</button>
+            <button id="save-termino" class="text-white bg-gob-guinda hover:bg-gob-guindaDark font-bold rounded-lg text-sm px-5 py-2.5 shadow-md">
+                <i class="fas fa-save mr-2"></i> Guardar Término
+            </button>
+        </div>
+    </div>
+ </div>
+ 
+ <div id="modal-reasignar" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl border-t-4 border-orange-500 animate-fade-in-down">
+        <div class="p-4 border-b bg-gray-50 rounded-t flex justify-between">
+            <h3 class="font-bold text-gob-gris">Reasignar Término</h3>
+            <button id="close-modal-reasignar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-6">
+            <input type="hidden" id="reasignar-termino-id">
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-500">Actuación</label>
+                <input type="text" id="reasignar-actuacion" readonly class="w-full bg-gray-100 border p-2 rounded text-sm">
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-500">Abogado Actual</label>
+                <input type="text" id="reasignar-abogado-actual" readonly class="w-full bg-gray-100 border p-2 rounded text-sm">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-gob-gris mb-1">Nuevo Abogado</label>
+                <select id="select-nuevo-abogado" class="w-full border border-gray-300 rounded p-2 focus:ring-gob-oro"></select>
+            </div>
+        </div>
+        <div class="flex justify-end p-4 border-t gap-2 bg-gray-50">
+            <button id="cancel-reasignar" class="px-4 py-2 bg-white border rounded text-sm">Cancelar</button>
+            <button id="save-reasignar" class="px-4 py-2 bg-orange-600 text-white rounded text-sm font-bold hover:bg-orange-700">Reasignar</button>
+        </div>
+    </div>
+ </div>
+ 
+ <div id="modal-presentar-termino" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
    <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl border-t-4 border-green-600 animate-fade-in-down">
        <div class="p-6">
            <div class="text-center mb-4">
@@ -125,40 +150,40 @@
        </div>
    </div>
 </div>
-
-<div id="modal-confirmacion-global" class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
-       <div class="p-6 text-center">
-           <h3 id="confirm-titulo" class="mb-2 text-lg font-bold text-gob-gris">Confirmar</h3>
-           <p id="confirm-mensaje" class="text-sm text-gray-500 mb-6"></p>
-           <div class="flex justify-center gap-3">
-               <button id="btn-confirm-cancel" class="px-4 py-2 bg-white border rounded text-gray-600">Cancelar</button>
-               <button id="btn-confirm-accept" class="px-4 py-2 bg-gob-guinda text-white rounded font-bold">Aceptar</button>
-           </div>
-       </div>
-   </div>
-</div>
-
-<div id="modal-prompt-global" class="fixed inset-0 z-[70] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-red-500 animate-fade-in-down">
-       <div class="p-6">
-           <h3 id="prompt-titulo" class="mb-2 text-lg font-bold text-gob-gris">Motivo</h3>
-           <p id="prompt-mensaje" class="text-sm text-gray-500 mb-4"></p>
-           <textarea id="prompt-input" rows="3" class="w-full border p-2 rounded mb-4"></textarea>
-           <div class="flex justify-end gap-3">
-               <button id="btn-prompt-cancel" class="px-4 py-2 bg-white border rounded text-gray-600">Cancelar</button>
-               <button id="btn-prompt-accept" class="px-4 py-2 bg-red-600 text-white rounded font-bold">Aceptar</button>
-           </div>
-       </div>
-   </div>
-</div>
-
-<div id="modal-alerta-termino" class="fixed inset-0 z-[80] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
-   <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-blue-600 animate-fade-in-down">
-       <div class="p-6 text-center">
-           <h3 class="mb-2 text-lg font-bold text-gob-gris">Información</h3>
-           <p id="alerta-mensaje-termino" class="text-sm text-gray-500 mb-6"></p>
-           <button id="btn-alerta-accept-termino" class="w-full px-4 py-2 bg-blue-600 text-white rounded font-bold">Entendido</button>
-       </div>
-   </div>
-</div>
+ 
+ <div id="modal-confirmacion-global" class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        <div class="p-6 text-center">
+            <h3 id="confirm-titulo" class="mb-2 text-lg font-bold text-gob-gris">Confirmar</h3>
+            <p id="confirm-mensaje" class="text-sm text-gray-500 mb-6"></p>
+            <div class="flex justify-center gap-3">
+                <button id="btn-confirm-cancel" class="px-4 py-2 bg-white border rounded text-gray-600">Cancelar</button>
+                <button id="btn-confirm-accept" class="px-4 py-2 bg-gob-guinda text-white rounded font-bold">Aceptar</button>
+            </div>
+        </div>
+    </div>
+ </div>
+ 
+ <div id="modal-prompt-global" class="fixed inset-0 z-[70] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-red-500 animate-fade-in-down">
+        <div class="p-6">
+            <h3 id="prompt-titulo" class="mb-2 text-lg font-bold text-gob-gris">Motivo</h3>
+            <p id="prompt-mensaje" class="text-sm text-gray-500 mb-4"></p>
+            <textarea id="prompt-input" rows="3" class="w-full border p-2 rounded mb-4"></textarea>
+            <div class="flex justify-end gap-3">
+                <button id="btn-prompt-cancel" class="px-4 py-2 bg-white border rounded text-gray-600">Cancelar</button>
+                <button id="btn-prompt-accept" class="px-4 py-2 bg-red-600 text-white rounded font-bold">Aceptar</button>
+            </div>
+        </div>
+    </div>
+ </div>
+ 
+ <div id="modal-alerta-termino" class="fixed inset-0 z-[80] hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-sm bg-white rounded-lg shadow-2xl border-t-4 border-blue-600 animate-fade-in-down">
+        <div class="p-6 text-center">
+            <h3 class="mb-2 text-lg font-bold text-gob-gris">Información</h3>
+            <p id="alerta-mensaje-termino" class="text-sm text-gray-500 mb-6"></p>
+            <button id="btn-alerta-accept-termino" class="w-full px-4 py-2 bg-blue-600 text-white rounded font-bold">Entendido</button>
+        </div>
+    </div>
+ </div>

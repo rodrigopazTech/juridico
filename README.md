@@ -295,7 +295,7 @@ CREATE TABLE recordatorios (
 | `actividades` | `expediente_id` | `expedientes` | Una actividad pertenece a un expediente | {eliminar}
 | `actividades` | `usuario_asignado_id` | `usuarios` | Una actividad es asignada a un usuario | {eliminar}
 | `actividades` | `usuario_creador_id` | `usuarios` | Una actividad es creada por un usuario | {eliminar}
-| `notificaciones` | `usuario_id` | `usuarios` | Una notificación pertenece a un usuario | {aclaracion: el usuario tipo direccion debera enterarse cuando se de alta una nueva audiencia o un nuevo termino}
+| `notificaciones` | `usuario_id` | `usuarios` | Una notificación pertenece a un usuario | {aclaracion: el usuario tipo direccion debera enterarse cuando se de alta una nueva audiencia o un nuevo termino }
 | `eventos_calendario` | `usuario_id` | `usuarios` | Un evento del calendario pertenece a un usuario |
 | `eventos_calendario` | `expediente_id` | `expedientes` | Un evento puede estar relacionado con un expediente (opcional) |
 | `eventos_calendario` | `audiencia_id` | `audiencias` | Un evento puede estar relacionado con una audiencia (opcional) |

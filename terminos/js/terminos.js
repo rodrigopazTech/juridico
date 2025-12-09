@@ -3,7 +3,7 @@
 // ===============================================
 // 1. CONFIGURACIÓN Y DATOS
 // ===============================================
-const USER_ROLE = 'Direccion'; 
+const USER_ROLE = 'Subdireccion'; 
 
 const FLUJO_ETAPAS = {
     'Proyectista': { siguiente: 'Revisión', accion: 'enviarRevision', label: 'Enviar a Revisión' },
@@ -13,14 +13,14 @@ const FLUJO_ETAPAS = {
     'Liberado':    { siguiente: 'Presentado', accion: 'subirAcuse', label: 'Subir Acuse' },
     'Presentado':  { siguiente: 'Concluido', accion: 'concluir', label: 'Concluir' }
 };
-
+// ROLES : Abogado, Gerente, Subdireccion, JefeDepto, Direccion
 const PERMISOS_ETAPAS = {
     'Proyectista': ['Abogado', 'Gerente','JefeDepto','Direccion'],
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion'],
     'Gerencia':    ['Gerente', 'Direccion'],
-    'Dirección':   ['Direccion', 'Subdireccion'],
+    'Dirección':   ['Direccion'],
     'Liberado':    ['Abogado', 'JefeDepto', 'Gerente','Direccion'],
-    'Presentado':  ['Direccion'],
+    'Presentado':  ['Direccion','Abogado'],
     'Concluido':   []
 };
 
@@ -79,9 +79,9 @@ function cargarDatosIniciales() {
         } else {
             // Datos de Ejemplo
             TERMINOS = [
-                { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-04', acuseDocumento: '', prioridad: 'Alta' },
-                { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-03', acuseDocumento: '', prioridad: 'Media' },
-                { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-01', acuseDocumento: '', prioridad: 'Alta' },
+                { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
+                { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
+                { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }

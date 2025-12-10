@@ -35,7 +35,12 @@
                         <label class="block text-xs font-bold text-gob-gris mb-1">Abogado Resp.</label>
                         <input type="text" id="termino-abogado" readonly class="readonly-field block w-full p-2 text-sm rounded border">
                     </div>
-                    <div class="md:col-span-2">
+                    <!--se agrego organo jurisdiccional-->
+                     <div class="md:col-span-2 lg:col-span-1"> 
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Órgano Jurisdiccional</label>
+                        <input type="text" id="organo-auto-audiencia" readonly class="bg-gray-100 border border-gray-300 text-gray-500 text-sm rounded block w-full p-2">
+                    </div>
+                    <div class="md:col-span-3">
                         <label class="block text-xs font-bold text-gob-gris mb-1">Partes Procesales</label>
                         <input type="text" id="termino-partes" readonly class="readonly-field block w-full p-2 text-sm rounded border">
                     </div>
@@ -59,27 +64,25 @@
                     </div>
                 </div>
  
-                <div class="mt-6 pt-4 border-t border-gray-200">
-                    <div class="flex items-center mb-4">
-                        <input id="check-crear-recordatorio" type="checkbox" class="w-4 h-4 text-gob-guinda bg-gray-100 border-gray-300 rounded focus:ring-gob-guinda focus:ring-2 cursor-pointer">
-                        <label for="check-crear-recordatorio" class="ml-2 text-sm font-bold text-gob-gris cursor-pointer select-none">
-                            <i class="fas fa-bell text-gob-oro mr-1"></i> Programar recordatorio automático
-                        </label>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6 animate-fade-in-down">
+                    <div class="flex items-center gap-2 mb-3 border-b border-yellow-200 pb-2">
+                        <i class="fas fa-bell text-gob-oro"></i>
+                        <p class="text-sm font-bold text-gob-guinda uppercase tracking-wide">Configuración del Recordatorio Automático</p>
                     </div>
- 
-                    <div id="container-recordatorio" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-down">
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-3">
                         <div>
-                            <label class="block text-xs font-bold text-gob-gris mb-1">Fecha del Recordatorio *</label>
-                            <input type="date" id="fecha-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Días antes</label>
+                            <input type="number" id="dias-antes-recordatorio" min="0" value="3" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gob-gris mb-1">Hora *</label>
-                            <input type="time" id="hora-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Horas antes</label>
+                            <input type="number" id="horas-antes-recordatorio" min="0" value="0" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5">
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-bold text-gob-gris mb-1">Nota adicional</label>
-                            <input type="text" id="nota-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5" placeholder="Ej: Subir documentos antes del vencimiento">
-                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gob-gris mb-1">Nota para el recordatorio</label>
+                        <input type="text" id="nota-recordatorio" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro block w-full p-2.5" placeholder="Ej: Revisar expediente físico antes del cierre">
                     </div>
                 </div>
  

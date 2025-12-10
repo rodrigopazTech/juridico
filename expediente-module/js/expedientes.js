@@ -9,7 +9,7 @@ export class ExpedientesModule {
     this.createBtn = this.root.querySelector('#expediente-nuevo');
     this.emptyCreateBtn = this.root.querySelector('#empty-create-expediente');
     
-    // Modal elements
+    // Elementos del Modal Crear
     this.modal = this.root.querySelector('#modal-create-expediente');
     this.closeModalBtn = this.root.querySelector('#close-create-expediente');
     this.cancelModalBtn = this.root.querySelector('#cancel-create-expediente');
@@ -31,16 +31,13 @@ export class ExpedientesModule {
   }
 
   bindEvents() {
-    if (this.searchInput) {
-      this.searchInput.addEventListener('input', () => this.render());
-    }
+    if (this.searchInput) this.searchInput.addEventListener('input', () => this.render());
     Object.values(this.filters).forEach(el => {
       if (el) el.addEventListener('change', () => this.render());
     });
     
     if (this.createBtn) this.createBtn.addEventListener('click', () => this.openModal());
     if (this.emptyCreateBtn) this.emptyCreateBtn.addEventListener('click', () => this.openModal());
-    
     if (this.closeModalBtn) this.closeModalBtn.addEventListener('click', () => this.closeModal());
     if (this.cancelModalBtn) this.cancelModalBtn.addEventListener('click', () => this.closeModal());
     
@@ -50,16 +47,14 @@ export class ExpedientesModule {
         const formData = new FormData(this.form);
         const data = Object.fromEntries(formData.entries());
         
-        // Crear expediente
+        // Crear expediente (los campos extra se manejan en data/expedientes-data.js ahora)
         const expediente = createExpediente(data);
         this.data.unshift(expediente);
         
         this.closeModal();
         this.form.reset();
         this.render();
-        
-        // Opcional: Mostrar alerta
-        alert('Expediente creado exitosamente');
+        alert('Expediente creado correctamente en TRAMITE');
       });
     }
   }
@@ -74,19 +69,17 @@ export class ExpedientesModule {
     };
   }
 
-  // --- CORRECCIÓN AQUÍ ---
   openModal() {
     if (!this.modal) return;
     this.modal.classList.remove('hidden');
-    this.modal.classList.add('flex'); // Necesario para que funcionen justify-center e items-center
+    this.modal.classList.add('flex');
   }
 
   closeModal() {
     if (!this.modal) return;
     this.modal.classList.add('hidden');
-    this.modal.classList.remove('flex'); // Limpieza
+    this.modal.classList.remove('flex');
   }
-  // ------------------------
 
   buildCard(expediente) {
     const tpl = this.root.querySelector('#expediente-card-template');
@@ -95,8 +88,8 @@ export class ExpedientesModule {
     const node = tpl.content.firstElementChild.cloneNode(true);
     node.dataset.expedienteId = expediente.id;
     
-    // Llenar datos
-    const setText = (sel, val) => { const el = node.querySelector(sel); if(el) el.textContent = val; };
+    // Helpers
+    const setText = (sel, val) => { const el = node.querySelector(sel); if(el) el.textContent = val || '—'; };
     
     setText('.numero-expediente', expediente.numero);
     setText('.descripcion-expediente', expediente.descripcion);
@@ -104,30 +97,45 @@ export class ExpedientesModule {
     setText('.abogado-expediente', expediente.abogado);
     setText('.ultima-actividad-expediente', expediente.ultimaActividad);
     
+    // 1. Lógica de ESTADO (TRAMITE, LAUDO, FIRME)
     const estadoEl = node.querySelector('.estado-badge');
     if(estadoEl) {
-        estadoEl.textContent = expediente.estado;
-        // Colores simples
-        if (['Activo', 'Tramite'].includes(expediente.estado)) {
-            estadoEl.className = 'text-xs font-medium px-2.5 py-0.5 rounded border bg-green-100 text-green-800 border-green-400';
+        const st = (expediente.estado || 'TRAMITE').toUpperCase();
+        estadoEl.textContent = st;
+
+        if (st === 'TRAMITE') {
+            estadoEl.className = 'estado-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-blue-50 text-blue-700 border-blue-200';
+        } else if (st === 'LAUDO') {
+            estadoEl.className = 'estado-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-200';
+        } else if (st === 'FIRME') {
+            estadoEl.className = 'estado-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200';
         } else {
-            estadoEl.className = 'text-xs font-medium px-2.5 py-0.5 rounded border bg-yellow-100 text-yellow-800 border-yellow-400';
+            estadoEl.className = 'estado-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-200';
         }
     }
 
-    const verDetalleBtn = node.querySelector('.ver-detalle-btn');
+    // 2. Lógica de PRIORIDAD (Alta, Media, Baja)
+    const prioEl = node.querySelector('.prioridad-badge');
+    if(prioEl) {
+        const prio = expediente.prioridad || 'Media';
+        prioEl.textContent = prio;
+
+        if (prio === 'Alta') {
+            prioEl.className = 'prioridad-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-red-50 text-red-700 border-red-200';
+        } else if (prio === 'Baja') {
+            prioEl.className = 'prioridad-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-gray-50 text-gray-600 border-gray-200';
+        } else {
+            // Media
+            prioEl.className = 'prioridad-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-orange-50 text-orange-700 border-orange-200';
+        }
+    }
+
     const irADetalle = () => {
         window.location.href = `expediente-detalle.html?id=${encodeURIComponent(expediente.id)}`;
     };
 
-    if (verDetalleBtn) {
-        verDetalleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            irADetalle();
-        });
-    }
-    
-    // Click en toda la tarjeta
+    const btnDetalle = node.querySelector('.ver-detalle-btn');
+    if(btnDetalle) btnDetalle.addEventListener('click', (e) => { e.stopPropagation(); irADetalle(); });
     node.addEventListener('click', irADetalle);
 
     return node;

@@ -2,7 +2,7 @@
 
 const USER_ROLE = 'Gerente'; 
 
-// Lista base de tipos de audiencia (si no hay en localStorage)
+// Lista base de tipos de audiencia
 const DEFAULT_TIPOS_AUDIENCIA = ['Inicial', 'Intermedia', 'Juicio Oral', 'Constitucional', 'Incidental', 'Conciliación'];
 
 let AUDIENCIAS = [];
@@ -50,21 +50,21 @@ function initAudiencias() {
     initModalAudiencias();
     initModalFinalizarAudiencia();
     initModalReasignarAudiencia(); 
-    initModalManageTipos(); // Inicializar el nuevo modal
+    initModalManageTipos(); 
     
     setupActionMenuListenerAudiencia();
     setupFilters();
     
     cargarAsuntosEnSelectorAudiencia();
     cargarAbogadosSelects();
-    cargarTiposAudienciaSelect(); // Cargar los tipos dinámicos
+    cargarTiposAudienciaSelect();
 
     const searchInput = document.getElementById('search-audiencias');
     if(searchInput) searchInput.addEventListener('input', loadAudiencias);
 }
 
 // -------------------------------
-// Lógica de Tipos de Audiencia (NUEVO)
+// Lógica de Tipos de Audiencia
 // -------------------------------
 function getTiposAudiencia() {
     return JSON.parse(localStorage.getItem('tiposAudiencia')) || DEFAULT_TIPOS_AUDIENCIA;
@@ -72,7 +72,7 @@ function getTiposAudiencia() {
 
 function saveTiposAudiencia(tipos) {
     localStorage.setItem('tiposAudiencia', JSON.stringify(tipos));
-    cargarTiposAudienciaSelect(); // Refrescar el select principal
+    cargarTiposAudienciaSelect();
 }
 
 function cargarTiposAudienciaSelect() {
@@ -80,7 +80,6 @@ function cargarTiposAudienciaSelect() {
     if (!select) return;
     
     const tipos = getTiposAudiencia();
-    // Guardar valor actual si existe
     const currentVal = select.value;
     
     select.innerHTML = '<option value="">Seleccione...</option>';
@@ -91,7 +90,6 @@ function cargarTiposAudienciaSelect() {
         select.appendChild(opt);
     });
     
-    // Restaurar valor si aun existe
     if (tipos.includes(currentVal)) {
         select.value = currentVal;
     }
@@ -107,23 +105,8 @@ function initModalManageTipos() {
     
     if(!modal) return;
 
-    if(btnOpen) {
-        btnOpen.onclick = () => {
-            renderListaTipos();
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        };
-    }
-    
-    if(btnClose) {
-        btnClose.onclick = () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            input.value = '';
-            document.getElementById('tipo-audiencia-edit-index').value = '';
-            resetEditMode();
-        };
-    }
+    if(btnOpen) btnOpen.onclick = () => { renderListaTipos(); modal.classList.remove('hidden'); modal.classList.add('flex'); };
+    if(btnClose) btnClose.onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); resetEditMode(); };
 
     if(btnSave) {
         btnSave.onclick = () => {
@@ -134,10 +117,8 @@ function initModalManageTipos() {
             if(!valor) return alert("Escribe un nombre");
 
             if(editIndex !== "") {
-                // Editar existente
                 tipos[editIndex] = valor;
             } else {
-                // Nuevo
                 if(tipos.includes(valor)) return alert("Ya existe");
                 tipos.push(valor);
             }
@@ -149,20 +130,14 @@ function initModalManageTipos() {
         };
     }
 
-    if(btnCancelEdit) {
-        btnCancelEdit.onclick = resetEditMode;
-    }
+    if(btnCancelEdit) btnCancelEdit.onclick = resetEditMode;
 }
 
 function resetEditMode() {
     document.getElementById('tipo-audiencia-edit-index').value = '';
     document.getElementById('input-nuevo-tipo').value = '';
-    
-    const btnSave = document.getElementById('btn-save-tipo');
-    const btnCancel = document.getElementById('btn-cancel-edit-tipo');
-    
-    btnSave.innerHTML = '<i class="fas fa-plus"></i>';
-    btnCancel.classList.add('hidden');
+    document.getElementById('btn-save-tipo').innerHTML = '<i class="fas fa-plus"></i>';
+    document.getElementById('btn-cancel-edit-tipo').classList.add('hidden');
 }
 
 function renderListaTipos() {
@@ -185,7 +160,6 @@ function renderListaTipos() {
         lista.appendChild(li);
     });
 
-    // Listeners dinámicos
     lista.querySelectorAll('.btn-del-tipo').forEach(btn => {
         btn.onclick = function() {
             if(confirm('¿Eliminar este tipo?')) {
@@ -202,15 +176,10 @@ function renderListaTipos() {
         btn.onclick = function() {
             const idx = this.dataset.index;
             let t = getTiposAudiencia();
-            
             document.getElementById('input-nuevo-tipo').value = t[idx];
             document.getElementById('tipo-audiencia-edit-index').value = idx;
-            
-            const btnSave = document.getElementById('btn-save-tipo');
-            const btnCancel = document.getElementById('btn-cancel-edit-tipo');
-            
-            btnSave.innerHTML = '<i class="fas fa-save"></i>';
-            btnCancel.classList.remove('hidden');
+            document.getElementById('btn-save-tipo').innerHTML = '<i class="fas fa-save"></i>';
+            document.getElementById('btn-cancel-edit-tipo').classList.remove('hidden');
         };
     });
 }
@@ -223,21 +192,10 @@ function loadAudiencias() {
   if(!tbody) return;
 
   let ls = [];
-  try {
-      ls = JSON.parse(localStorage.getItem('audiencias') || '[]');
-  } catch (e) {
-      ls = [];
-  }
+  try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
   if (!ls || ls.length === 0) {
-      ls = [
-        { id: '1', expediente: '100/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' },
-        { id: '2', expediente: '101/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' },
-        { id: '3', expediente: '102/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' },
-        { id: '4', expediente: '103/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' },
-        { id: '5', expediente: '104/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' },
-        
-    ];
+      ls = [ { id: '1', expediente: '100/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' } ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
   AUDIENCIAS = ls;
@@ -272,9 +230,7 @@ function loadAudiencias() {
     html += `
       <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
         <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}">
-                <i class="fas fa-chevron-down"></i>
-            </button>
+            <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}"><i class="fas fa-chevron-down"></i></button>
         </td>
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center">
@@ -296,9 +252,7 @@ function loadAudiencias() {
                     `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock fa-lg"></i></button>`
                 }
                 <div class="relative action-menu-container">
-                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones">
-                        <i class="fas fa-ellipsis-v fa-lg"></i>
-                    </button>
+                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones"><i class="fas fa-ellipsis-v fa-lg"></i></button>
                      <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
                         ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
                     </div>
@@ -307,7 +261,6 @@ function loadAudiencias() {
             </div>
         </td>
       </tr>
-      
       <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
         <td colspan="7" class="p-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -361,10 +314,8 @@ function setupActionMenuListenerAudiencia() {
     tbody.addEventListener('click', function(e) {
         const target = e.target.closest('button');
         if (!target) return;
-
         const row = target.closest('tr');
         if (!row) return; 
-        
         const id = row.getAttribute('data-id');
         const audiencia = AUDIENCIAS.find(t => String(t.id) === String(id));
 
@@ -373,10 +324,7 @@ function setupActionMenuListenerAudiencia() {
             if (detailRow) {
                 detailRow.classList.toggle('hidden');
                 const icon = target.querySelector('i');
-                if(icon) { 
-                    icon.classList.toggle('fa-chevron-up'); 
-                    icon.classList.toggle('fa-chevron-down'); 
-                }
+                if(icon) { icon.classList.toggle('fa-chevron-up'); icon.classList.toggle('fa-chevron-down'); }
             }
             return;
         }
@@ -387,40 +335,22 @@ function setupActionMenuListenerAudiencia() {
         }
 
         if (target.classList.contains('action-menu-toggle')) {
-            e.preventDefault(); 
-            e.stopPropagation();
-            
+            e.preventDefault(); e.stopPropagation();
             const menu = target.nextElementSibling; 
-            
-            if (!menu.classList.contains('hidden')) {
-                menu.classList.add('hidden');
-                menu.style.cssText = ''; 
-                return;
-            }
-            
+            if (!menu.classList.contains('hidden')) { menu.classList.add('hidden'); menu.style.cssText = ''; return; }
             document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; });
             menu.classList.remove('hidden');
-            
             const rect = target.getBoundingClientRect(); 
             const menuWidth = 224; 
             const menuHeight = menu.offsetHeight || 220; 
             const spaceBelow = window.innerHeight - rect.bottom;
-
-            menu.style.position = 'fixed';
-            menu.style.zIndex = '99999';
-            menu.style.width = menuWidth + 'px';           
-            menu.style.left = (rect.right - menuWidth) + 'px'; 
-
+            menu.style.position = 'fixed'; menu.style.zIndex = '99999'; menu.style.width = menuWidth + 'px'; menu.style.left = (rect.right - menuWidth) + 'px'; 
             if (spaceBelow < menuHeight) {
-                menu.style.top = 'auto';
-                menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
-                menu.classList.remove('border-t-4');
-                menu.classList.add('border-b-4');
+                menu.style.top = 'auto'; menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+                menu.classList.remove('border-t-4'); menu.classList.add('border-b-4');
             } else {
-                menu.style.bottom = 'auto';
-                menu.style.top = (rect.bottom + 5) + 'px';
-                menu.classList.add('border-t-4');
-                menu.classList.remove('border-b-4');
+                menu.style.bottom = 'auto'; menu.style.top = (rect.bottom + 5) + 'px';
+                menu.classList.add('border-t-4'); menu.classList.remove('border-b-4');
             }
             return;
         }
@@ -428,9 +358,7 @@ function setupActionMenuListenerAudiencia() {
         if(audiencia) {
             if (target.classList.contains('action-view-asunto-audiencia')) window.location.href = `asuntos-detalle.html?id=${audiencia.asuntoId}`;
             else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
-            else if (target.classList.contains('action-remove-acta')) {
-                mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
-            }
+            else if (target.classList.contains('action-remove-acta')) mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
             else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
             else if (target.classList.contains('action-reasignar-audiencia')) abrirModalReasignarAudiencia(id);
@@ -443,21 +371,14 @@ function setupActionMenuListenerAudiencia() {
                 });
             }
         }
-        
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
     });
 
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.action-menu-toggle')) document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-    });
-    window.addEventListener('scroll', () => {
-        document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => m.classList.add('hidden'));
-    }, true);
+    document.addEventListener('click', e => { if (!e.target.closest('.action-menu-toggle')) document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden')); });
+    window.addEventListener('scroll', () => { document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => m.classList.add('hidden')); }, true);
     
     tbody.addEventListener('change', function(e) {
-        if (e.target.classList.contains('input-acta-hidden') && e.target.files.length) {
-            subirActa(e.target.getAttribute('data-id'), e.target.files[0]);
-        }
+        if (e.target.classList.contains('input-acta-hidden') && e.target.files.length) subirActa(e.target.getAttribute('data-id'), e.target.files[0]);
     });
 }
 
@@ -500,16 +421,6 @@ function initModalAudiencias() {
     if(btnClose) btnClose.onclick = () => modal.style.display = 'none';
     if(btnCancel) btnCancel.onclick = () => modal.style.display = 'none';
     if(btnSave) btnSave.onclick = guardarAudiencia;
-    
-    // Checkbox Recordatorio
-    const checkRecordatorio = document.getElementById('check-recordatorio-aud');
-    const containerRecordatorio = document.getElementById('container-recordatorio-aud');
-    if(checkRecordatorio && containerRecordatorio) {
-       checkRecordatorio.addEventListener('change', (e) => {
-           if(e.target.checked) containerRecordatorio.classList.remove('hidden');
-           else containerRecordatorio.classList.add('hidden');
-       });
-    }
 }
 
 function openAudienciaModal(audiencia = null) {
@@ -519,12 +430,6 @@ function openAudienciaModal(audiencia = null) {
     
     form.reset();
     
-    // Reset recordatorio
-    const checkRec = document.getElementById('check-recordatorio-aud');
-    const contRec = document.getElementById('container-recordatorio-aud');
-    if(checkRec) checkRec.checked = false;
-    if(contRec) contRec.classList.add('hidden');
-    
     cargarAsuntosEnSelectorAudiencia();
     cargarTiposAudienciaSelect();
 
@@ -533,26 +438,22 @@ function openAudienciaModal(audiencia = null) {
         document.getElementById('audiencia-id').value = audiencia.id;
         
         const selector = document.getElementById('asunto-selector-audiencia');
-        if(selector && audiencia.asuntoId) {
-            selector.value = audiencia.asuntoId;
-            selector.dispatchEvent(new Event('change'));
-        }
+        if(selector && audiencia.asuntoId) { selector.value = audiencia.asuntoId; selector.dispatchEvent(new Event('change')); }
 
         if(document.getElementById('fecha-audiencia')) document.getElementById('fecha-audiencia').value = audiencia.fecha || '';
         if(document.getElementById('hora-audiencia')) document.getElementById('hora-audiencia').value = audiencia.hora || '';
         if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = audiencia.sala || '';
         if(document.getElementById('tipo-audiencia')) document.getElementById('tipo-audiencia').value = audiencia.tipo || '';
-        
         if(document.getElementById('abogado-comparece')) {
              const selAbogado = document.getElementById('abogado-comparece');
              if(audiencia.abogadoComparece && ![...selAbogado.options].some(o => o.value === audiencia.abogadoComparece)){
-                 const opt = document.createElement('option');
-                 opt.value = audiencia.abogadoComparece;
-                 opt.text = audiencia.abogadoComparece;
-                 selAbogado.appendChild(opt);
+                 const opt = document.createElement('option'); opt.value = audiencia.abogadoComparece; opt.text = audiencia.abogadoComparece; selAbogado.appendChild(opt);
              }
              selAbogado.value = audiencia.abogadoComparece || '';
         }
+        
+        // Cargar valores del recordatorio si existieran (opcional, requeriría guardar esto en el objeto audiencia)
+        // Por simplicidad, se reinicia.
 
     } else {
         title.textContent = 'Nueva Audiencia';
@@ -570,39 +471,55 @@ function guardarAudiencia() {
 
     if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
 
-    // === Lógica Recordatorio ===
-    const checkRecordatorio = document.getElementById('check-recordatorio-aud');
-    if (checkRecordatorio && checkRecordatorio.checked) {
-        const fechaRec = document.getElementById('fecha-rec-aud').value;
-        const horaRec = document.getElementById('hora-rec-aud').value;
-        const notaRec = document.getElementById('nota-rec-aud').value;
+    // === LÓGICA DE RECORDATORIO (NUEVA: TIEMPO RELATIVO) ===
+    // Se ejecuta siempre porque el contenedor de recordatorios siempre está visible (sin checkbox)
+    const fechaBase = new Date(fecha + 'T' + hora);
+    const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
+    const horasAntes = parseInt(document.getElementById('horas-antes-rec-aud').value) || 0;
+    const notaRec = document.getElementById('nota-rec-aud').value;
 
-        if (!fechaRec || !horaRec) return mostrarMensajeGlobal('Fecha y hora son obligatorias para el recordatorio', 'danger');
+    // Calcular fecha de notificación
+    const fechaNotificacion = new Date(fechaBase);
+    fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
+    fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
 
-        const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
-        const tipoAudiencia = document.getElementById('tipo-audiencia').value;
-        const exp = document.getElementById('expediente-auto-audiencia').value;
-        
-        const nuevoRecordatorio = {
-            id: Date.now() + 1,
-            titulo: `Audiencia: ${tipoAudiencia}`,
-            detalles: notaRec || `Recordatorio de audiencia del expediente ${exp}`,
-            fecha: fechaRec,
-            hora: horaRec,
-            prioridad: 'urgent',
-            completado: false
-        };
-        recordatorios.unshift(nuevoRecordatorio);
-        localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-    }
+    // Texto de anticipación
+    let textoAnticipacion = "";
+    if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
+    if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
+    if (!textoAnticipacion) textoAnticipacion = "el momento";
+
+    const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
+    const tipoAudiencia = document.getElementById('tipo-audiencia').value;
+    const exp = document.getElementById('expediente-auto-audiencia').value;
+    
+    const nuevoRecordatorio = {
+        id: Date.now() + 1,
+        titulo: `Audiencia: ${tipoAudiencia}`,
+        // METADATOS PARA NOTIFICACIONES
+        meta: {
+            tipoOrigen: 'audiencia',
+            expediente: exp,
+            anticipacion: textoAnticipacion,
+            fechaEvento: fechaBase.toISOString()
+        },
+        detalles: notaRec || `Recordatorio de audiencia programada para el expediente ${exp}.`,
+        fecha: fechaNotificacion.toISOString().split('T')[0],
+        hora: fechaNotificacion.toTimeString().substring(0,5),
+        prioridad: 'urgent',
+        completado: false
+    };
+    recordatorios.unshift(nuevoRecordatorio);
+    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+    // ========================================================
 
     const nueva = {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
-        tipo: document.getElementById('tipo-audiencia').value || 'General',
+        tipo: tipoAudiencia || 'General',
         sala: document.getElementById('sala-audiencia').value,
         abogadoComparece: document.getElementById('abogado-comparece').value,
-        expediente: document.getElementById('expediente-auto-audiencia').value,
+        expediente: exp,
         tribunal: document.getElementById('organo-auto-audiencia').value,
         actor: document.getElementById('partes-auto-audiencia').value,
         atendida: false,
@@ -624,12 +541,10 @@ function guardarAudiencia() {
     mostrarMensajeGlobal('Audiencia guardada', 'success');
 }
 
-// ... Resto de funciones (finalizar, comentarios, reasignar, alertas) igual que antes ...
 function initModalFinalizarAudiencia() {
     const modal = document.getElementById('modal-finalizar-audiencia');
     document.getElementById('close-modal-finalizar').onclick = () => modal.style.display='none';
     document.getElementById('cancel-finalizar').onclick = () => modal.style.display='none';
-    
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
@@ -654,7 +569,6 @@ function initModalComentarios() {
     const modal = document.getElementById('modal-comentarios');
     const btnClose = document.getElementById('close-modal-comentarios');
     const btnSave = document.getElementById('save-comentario');
-
     if (btnClose) btnClose.onclick = () => modal.style.display = 'none';
     if (btnSave) {
         const newBtn = btnSave.cloneNode(true);
@@ -678,10 +592,7 @@ function renderComentarios(id) {
     const audiencia = AUDIENCIAS.find(a => String(a.id) === String(id));
     if (!audiencia) return;
     const comentarios = audiencia.comentarios || [];
-    if (comentarios.length === 0) {
-        lista.innerHTML = '<li class="text-gray-400 text-sm italic text-center p-4">No hay comentarios.</li>';
-        return;
-    }
+    if (comentarios.length === 0) { lista.innerHTML = '<li class="text-gray-400 text-sm italic text-center p-4">No hay comentarios.</li>'; return; }
     comentarios.forEach(c => {
         const li = document.createElement('li');
         li.className = "bg-gray-50 p-3 rounded border border-gray-200 text-sm";
@@ -698,11 +609,7 @@ function guardarComentario() {
     const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
     if (idx !== -1) {
         if (!AUDIENCIAS[idx].comentarios) AUDIENCIAS[idx].comentarios = [];
-        AUDIENCIAS[idx].comentarios.push({
-            texto: texto,
-            usuario: 'Usuario Actual', 
-            fecha: new Date().toLocaleString('es-MX')
-        });
+        AUDIENCIAS[idx].comentarios.push({ texto: texto, usuario: 'Usuario Actual', fecha: new Date().toLocaleString('es-MX') });
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         textoInput.value = '';
         renderComentarios(id);
@@ -720,8 +627,7 @@ function mostrarMensajeGlobal(msg, type) {
 function cargarAsuntosEnSelectorAudiencia() {
     const sel = document.getElementById('asunto-selector-audiencia');
     if(!sel) return;
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || []; // O expedientesData si usas ese key
-    // Fallback a expedientesData si asuntos no existe
+    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || []; 
     const dataToUse = asuntos.length ? asuntos : (JSON.parse(localStorage.getItem('expedientesData')) || []);
     
     sel.innerHTML = '<option value="">Seleccionar...</option>';
@@ -749,7 +655,6 @@ function cargarAbogadosSelects() {
     if(sel) sel.innerHTML += '<option>Lic. Demo</option><option>Lic. Pérez</option>';
 }
 
-// ... Confirmaciones y Alertas (iguales al original) ...
 function initModalReasignarAudiencia() { /* Mismo codigo anterior */ }
 function abrirModalReasignarAudiencia(id) { /* Mismo codigo anterior */ }
 function mostrarAlertaAudiencia(mensaje) { /* ... */ }

@@ -1,22 +1,34 @@
-<!-- Tarjeta de Expediente -->
 <template id="expediente-card-template">
-  <div class="card-asunto group cursor-pointer" data-expediente-id="">
-    <div class="mb-3 flex justify-between items-start">
-        <div>
-            <h3 class="text-lg font-bold text-gob-guinda font-headings numero-expediente" data-numero="">EXP-2025/001</h3>
-            <p class="text-xs text-gray-500 font-medium uppercase materia-expediente" data-materia="">Administrativo</p>
-        </div>
-        <span class="text-xs font-medium px-2.5 py-0.5 rounded border estado-badge" data-estado="">Activo</span>
+    <div class="card-asunto group cursor-pointer bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all" data-expediente-id="">
+      
+      <div class="mb-3 flex justify-between items-start gap-2">
+          <div class="overflow-hidden">
+              <h3 class="text-lg font-bold text-gob-guinda font-headings numero-expediente truncate">EXP-0000</h3>
+              <p class="text-xs text-gray-500 font-medium uppercase materia-expediente truncate">Materia</p>
+          </div>
+          
+          <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border estado-badge text-center min-w-[70px]">Estado</span>
+              <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border prioridad-badge text-center min-w-[70px]">Prioridad</span>
+          </div>
+      </div>
+  
+      <div class="mb-4">
+          <p class="text-sm text-gray-600 line-clamp-2 descripcion-expediente min-h-[40px]">Descripción...</p>
+          <div class="mt-2 flex items-center text-xs text-gray-500">
+              <i class="fas fa-user mr-1 text-gray-400"></i> 
+              <span class="abogado-expediente font-medium text-gray-600">Lic. Abogado</span>
+          </div>
+      </div>
+  
+      <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+          <span class="text-xs text-gob-oro font-bold">
+              <i class="fas fa-calendar mr-1"></i> 
+              <span class="ultima-actividad-expediente">Fecha</span>
+          </span>
+          <button class="text-gray-400 hover:text-gob-guinda text-sm ver-detalle-btn transition-colors px-2">
+              <i class="fas fa-chevron-right"></i>
+          </button>
+      </div>
     </div>
-    <div class="mb-4">
-        <p class="text-sm text-gray-600 line-clamp-2 descripcion-expediente">Demanda de nulidad contra resolución administrativa...</p>
-        <div class="mt-2 flex items-center text-xs text-gray-500">
-            <i class="fas fa-user mr-1"></i> <span class="abogado-expediente" data-abogado="">Lic. Martínez</span>
-        </div>
-    </div>
-    <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
-        <span class="text-xs text-gob-oro font-bold"><i class="fas fa-calendar mr-1"></i> <span class="ultima-actividad-expediente" data-ultima="">20 Nov 2025</span></span>
-        <button class="text-gob-gris hover:text-gob-guinda text-sm ver-detalle-btn"><i class="fas fa-chevron-right"></i></button>
-    </div>
-  </div>
-</template>
+  </template>

@@ -1,8 +1,9 @@
 export class NotificacionesModule {
     constructor() {
-        this.STORAGE_KEY = 'jl_notifications_v3'; // Cambié key para forzar nuevos datos
+        this.STORAGE_KEY = 'jl_notifications_v4'; // Versión actualizada
         this.currentFilter = 'all';
         this.notifications = [];
+        this.updateInterval = null;
         
         // Elementos DOM
         this.tableBody = null;
@@ -14,15 +15,17 @@ export class NotificacionesModule {
     }
 
     init() {
+        // Esperamos un momento a que el loader inyecte el HTML y los Templates
         setTimeout(() => {
             this.bindElements();
             this.bindEvents();
             this.loadNotifications();
             
-            // Si no hay datos, cargar ejemplos variados
+            // Cargar datos de prueba si está vacío para visualizar el diseño
             if(this.notifications.length === 0) this.seedDemoData();
             
             this.renderTable();
+            this.startAutoUpdate();
         }, 200);
     }
 
@@ -34,7 +37,7 @@ export class NotificacionesModule {
         this.modal = document.querySelector('#modal-notificacion');
         this.form = document.querySelector('#form-notificacion');
         
-        // Botón nuevo (si existe)
+        // Botón nuevo (si existe en el toolbar)
         const btnNew = document.querySelector('#btn-nueva-notificacion');
         if(btnNew) btnNew.addEventListener('click', () => this.showModal());
     }
@@ -55,18 +58,28 @@ export class NotificacionesModule {
         }
     }
 
-    // ==================== DATOS ====================
-    uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+    // ==================== GESTIÓN DE DATOS ====================
+    
+    uid() { 
+        return Date.now().toString(36) + Math.random().toString(36).slice(2); 
+    }
     
     loadNotifications() {
-        this.notifications = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        // Intentamos cargar notificaciones, si falla o no hay, array vacío
+        try {
+            this.notifications = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+        } catch (e) {
+            this.notifications = [];
+        }
+
+        // También podríamos intentar leer de los módulos de 'recordatorios' para sincronizar,
+        // pero por simplicidad asumimos que los otros módulos empujan datos a este storage key.
     }
     
     saveNotifications() {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.notifications));
     }
     
-    // === DATOS DE EJEMPLO AMPLIADOS ===
     seedDemoData() {
         const now = new Date();
         const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
@@ -74,114 +87,99 @@ export class NotificacionesModule {
         const past = new Date(now); past.setDate(now.getDate() - 1);
 
         this.notifications = [
-            // AUDIENCIAS (Estados: Pendiente, Con Acta, Concluido)
+            // AUDIENCIAS
             { 
                 id: this.uid(), 
                 eventType: 'audiencia', 
                 title: 'Audiencia Inicial', 
                 expediente: '100/2025', 
-                status: 'Pendiente', // Amarillo
+                status: 'Pendiente', 
                 detalles: { juzgado: 'Juzgado 1 Civil' }, 
                 notifyAt: tomorrow.toISOString() 
             },
             { 
                 id: this.uid(), 
                 eventType: 'audiencia', 
-                title: 'Audiencia Intermedia', 
-                expediente: '200/2025', 
-                status: 'Con Acta', // Azul
-                detalles: { juzgado: 'Juzgado 2 Penal' }, 
-                notifyAt: in3Days.toISOString() 
-            },
-            { 
-                id: this.uid(), 
-                eventType: 'audiencia', 
                 title: 'Juicio Oral', 
                 expediente: '300/2025', 
-                status: 'Concluida', // Gris/Oscuro
+                status: 'Concluida', 
                 detalles: { juzgado: 'Tribunal Laboral' }, 
                 notifyAt: past.toISOString() 
             },
 
-            // TÉRMINOS (Estados del Flujo: Proyectista, Revisión, Gerencia, etc.)
+            // TÉRMINOS
             { 
                 id: this.uid(), 
                 eventType: 'termino', 
                 title: 'Contestación de Demanda', 
                 expediente: '456/2024', 
-                status: 'Proyectista', // Gris claro
+                status: 'Proyectista', 
                 detalles: { actuacion: 'Elaboración de proyecto' }, 
                 notifyAt: now.toISOString() 
             },
             { 
                 id: this.uid(), 
                 eventType: 'termino', 
-                title: 'Alegatos Finales', 
-                expediente: '789/2024', 
-                status: 'Gerencia', // Morado
-                detalles: { actuacion: 'Revisión Gerencial' }, 
-                notifyAt: tomorrow.toISOString() 
-            },
-            { 
-                id: this.uid(), 
-                eventType: 'termino', 
                 title: 'Amparo Directo', 
                 expediente: '999/2024', 
-                status: 'Liberado', // Verde
+                status: 'Liberado', 
                 detalles: { actuacion: 'Listo para presentar' }, 
                 notifyAt: in3Days.toISOString() 
             },
-            { 
-                id: this.uid(), 
-                eventType: 'termino', 
-                title: 'Recurso de Revisión', 
-                expediente: '555/2024', 
-                status: 'Presentado', // Azul/Verde oscuro
-                detalles: { actuacion: 'Acuse recibido' }, 
-                notifyAt: past.toISOString() 
-            },
 
-            // RECORDATORIOS
+            // RECORDATORIOS (Con metadatos para el resumen inteligente)
             { 
                 id: this.uid(), 
                 eventType: 'recordatorio', 
-                title: 'Junta Semanal', 
-                expediente: '-', 
-                status: 'Activo', // Oro
-                detalles: { descripcion: 'Sala de juntas 3' }, 
+                title: 'Recordatorio: Vencimiento de plazo', 
+                meta: { 
+                    tipoOrigen: 'termino', 
+                    expediente: '777/2024', 
+                    anticipacion: '2 días', 
+                    fechaEvento: in3Days.toISOString() 
+                },
+                status: 'Activo',
+                detalles: { descripcion: 'Subir documentos pendientes' }, 
                 notifyAt: now.toISOString() 
             }
         ];
         this.saveNotifications();
     }
 
-    // ==================== RENDERIZADO ====================
+    // ==================== RENDERIZADO (TABLA) ====================
 
     renderTable() {
         if (!this.tableBody) return;
         
         const template = document.getElementById('template-notification-row');
-        if (!template) return;
+        if (!template) return console.error("Template 'template-notification-row' no encontrado en el DOM.");
 
         const searchTerm = this.searchInput ? this.searchInput.value.toLowerCase() : '';
         
+        // Filtrar y Ordenar (Más recientes primero)
         const filtered = this.notifications.filter(n => {
             const matchesFilter = this.currentFilter === 'all' || n.eventType === this.currentFilter;
+            
+            // Búsqueda profunda en título, expediente o estado
             const matchesSearch = n.title.toLowerCase().includes(searchTerm) || 
                                   (n.expediente || '').toLowerCase().includes(searchTerm) ||
                                   (n.status || '').toLowerCase().includes(searchTerm);
+                                  
             return matchesFilter && matchesSearch;
         }).sort((a, b) => new Date(b.notifyAt) - new Date(a.notifyAt));
 
+        // Limpiar tabla actual
         this.tableBody.innerHTML = '';
 
+        // Manejo de estado vacío
         if (filtered.length === 0) {
             this.emptyState?.classList.remove('hidden');
-            this.tableBody.parentElement.classList.add('hidden');
+            this.tableBody.parentElement.classList.add('hidden'); // Ocultar el contenedor de la tabla
         } else {
             this.emptyState?.classList.add('hidden');
             this.tableBody.parentElement.classList.remove('hidden');
             
+            // Generar filas
             filtered.forEach(n => {
                 const clone = template.content.cloneNode(true);
                 this.hydrateRow(clone, n);
@@ -191,73 +189,109 @@ export class NotificacionesModule {
     }
 
     hydrateRow(clone, n) {
-        // 1. Fechas
+        // 1. FECHAS
         const dateObj = new Date(n.notifyAt);
-        clone.querySelector('.js-date').textContent = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-        clone.querySelector('.js-time').textContent = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+        const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        clone.querySelector('.js-date').textContent = dateStr;
+        clone.querySelector('.js-time').textContent = timeStr;
 
-        // 2. Tipo (Badge) - Usando los colores semánticos globales
+        // 2. TIPO (Icono y Color Semántico)
         const styles = {
-            audiencia: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-gavel' },
-            termino: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-hourglass-end' },
-            recordatorio: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: 'fa-sticky-note' }
+            audiencia: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-gavel', label: 'Audiencia' },
+            termino: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-hourglass-end', label: 'Término' },
+            recordatorio: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: 'fa-sticky-note', label: 'Aviso' }
         };
         const st = styles[n.eventType] || styles.recordatorio;
 
         const typeBadge = clone.querySelector('.js-badge');
         typeBadge.classList.add(st.bg, st.text, st.border);
+        
         clone.querySelector('.js-type-icon').classList.add(st.icon);
-        clone.querySelector('.js-type-text').textContent = n.eventType.charAt(0).toUpperCase() + n.eventType.slice(1);
+        clone.querySelector('.js-type-text').textContent = st.label;
 
-        // 3. ESTADO (Lógica de colores específica)
+        // 3. ESTADO (Colores Específicos por Tipo)
         const statusBadge = clone.querySelector('.js-status-badge');
         const statusText = n.status || 'Pendiente';
         statusBadge.textContent = statusText;
         
         let statusClass = 'bg-gray-100 text-gray-600 border-gray-200'; // Default
 
-        // Reglas para Audiencias
         if (n.eventType === 'audiencia') {
             if (statusText === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
             else if (statusText === 'Con Acta') statusClass = 'bg-blue-100 text-blue-800 border-blue-200';
-            else if (statusText === 'Concluida' || statusText === 'Desahogada') statusClass = 'bg-gray-800 text-white border-gray-600';
-        }
-        // Reglas para Términos (Flujo)
-        else if (n.eventType === 'termino') {
-            if (statusText === 'Proyectista') statusClass = 'bg-gray-100 text-gray-700 border-gray-300';
-            else if (statusText === 'Revisión') statusClass = 'bg-indigo-100 text-indigo-700 border-indigo-200';
-            else if (statusText === 'Gerencia') statusClass = 'bg-purple-100 text-purple-700 border-purple-200';
-            else if (statusText === 'Dirección') statusClass = 'bg-orange-100 text-orange-700 border-orange-200';
-            else if (statusText === 'Liberado') statusClass = 'bg-green-100 text-green-700 border-green-200';
-            else if (statusText === 'Presentado') statusClass = 'bg-teal-100 text-teal-700 border-teal-200';
+            else if (['Concluida', 'Desahogada'].includes(statusText)) statusClass = 'bg-gray-800 text-white border-gray-600';
+        } else if (n.eventType === 'termino') {
+            if (['Liberado', 'Presentado'].includes(statusText)) statusClass = 'bg-green-100 text-green-800 border-green-200';
             else if (statusText === 'Concluido') statusClass = 'bg-gray-800 text-white border-gray-600';
-        }
-        // Reglas para Recordatorios
-        else if (n.eventType === 'recordatorio') {
+            else if (['Revisión', 'Gerencia', 'Dirección'].includes(statusText)) statusClass = 'bg-indigo-100 text-indigo-800 border-indigo-200';
+        } else { // Recordatorio
             statusClass = 'bg-amber-100 text-amber-800 border-amber-200';
         }
-
+        
         // Limpiar clases anteriores y aplicar nuevas
         statusBadge.className = `js-status-badge inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-bold ${statusClass}`;
 
-        // 4. Textos
-        clone.querySelector('.js-title').textContent = n.title;
-        clone.querySelector('.js-expediente').textContent = n.expediente || '-';
+        // 4. RESUMEN INTELIGENTE
+        const resumenEl = clone.querySelector('.js-resumen');
+        const extraEl = clone.querySelector('.js-detalles-extra');
+        
+        let resumenHTML = '';
+        let extraText = '';
 
-        let detailsText = '-';
-        if (n.detalles) {
-            detailsText = Object.values(n.detalles).filter(v => v).join(' • ');
+        if (n.eventType === 'termino') {
+            const accion = this.obtenerAccionTermino(statusText);
+            const exp = n.expediente ? `<span class="font-mono text-xs bg-gray-100 px-1 rounded border ml-1">${n.expediente}</span>` : '';
+            resumenHTML = `El término <span class="font-bold text-gob-guinda">${n.title}</span> ${exp} ${accion}.`;
+            extraText = n.detalles?.actuacion || 'Sin detalles adicionales';
+
+        } else if (n.eventType === 'audiencia') {
+            let estadoDesc = "está pendiente de realizarse";
+            if (statusText === 'Con Acta') estadoDesc = "ya cuenta con acta cargada";
+            if (['Concluida', 'Desahogada'].includes(statusText)) estadoDesc = "ha sido concluida exitosamente";
+            
+            const exp = n.expediente ? `<span class="font-mono text-xs bg-gray-100 px-1 rounded border ml-1">${n.expediente}</span>` : '';
+            resumenHTML = `La audiencia <span class="font-bold text-blue-700">${n.title}</span> ${exp} ${estadoDesc}.`;
+            extraText = n.detalles?.juzgado || 'Juzgado no especificado';
+
+        } else if (n.eventType === 'recordatorio') {
+            // Usamos metadatos si existen para ser precisos con el tiempo relativo
+            const tiempo = n.meta?.anticipacion || "breve";
+            const expRef = n.meta?.expediente ? `(Exp. ${n.meta.expediente})` : '';
+            
+            // Limpiar título redundante si viene con prefijo
+            const cleanTitle = n.title.replace('Recordatorio:', '').trim();
+            
+            resumenHTML = `<span class="text-amber-700 font-bold"><i class="fas fa-exclamation-circle"></i> Aviso:</span> El evento <span class="font-semibold">${cleanTitle}</span> ${expRef} es en <span class="font-bold underline text-gray-800">${tiempo}</span>.`;
+            // Unir descripción con nota si existen
+            extraText = n.detalles?.descripcion || n.detalles || '';
         }
-        const detailsEl = clone.querySelector('.js-details');
-        detailsEl.textContent = detailsText;
-        detailsEl.title = detailsText;
 
-        // 5. Botón Eliminar
+        resumenEl.innerHTML = resumenHTML;
+        extraEl.textContent = extraText;
+        extraEl.title = extraText; // Tooltip nativo
+
+        // 5. BOTÓN ELIMINAR
         const btnDelete = clone.querySelector('.js-delete-btn');
         btnDelete.onclick = () => this.deleteNotification(n.id);
     }
 
-    // ==================== ACCIONES ====================
+    // Helper para textos descriptivos de términos
+    obtenerAccionTermino(estado) {
+        switch(estado) {
+            case 'Proyectista': return 'ha sido asignado a Proyectista';
+            case 'Revisión': return 'pasó a la etapa de Revisión';
+            case 'Gerencia': return 'fue enviado para aprobación de Gerencia';
+            case 'Dirección': return 'pasó a Dirección para firma final';
+            case 'Liberado': return 'ha sido Liberado y está listo para presentarse';
+            case 'Presentado': return 'fue Presentado ante la autoridad';
+            case 'Concluido': return 'ha finalizado su proceso';
+            default: return 'ha cambiado de estado';
+        }
+    }
+
+    // ==================== ACCIONES DE UI ====================
 
     handleFilterClick(event) {
         const btn = event.target.closest('.btn-filter');
@@ -275,14 +309,20 @@ export class NotificacionesModule {
     }
 
     deleteNotification(id) {
-        if(confirm('¿Eliminar notificación?')) {
+        if(confirm('¿Eliminar esta notificación del historial?')) {
             this.notifications = this.notifications.filter(n => n.id !== id);
             this.saveNotifications();
             this.renderTable();
         }
     }
 
-    // ==================== MODAL ====================
+    startAutoUpdate() { 
+        // Refrescar cada minuto para actualizar tiempos relativos si fuera necesario
+        this.updateInterval = setInterval(() => this.renderTable(), 60000); 
+    }
+
+    // ==================== MODAL (CREACIÓN MANUAL) ====================
+    
     showModal() {
         if (this.modal) {
             this.modal.classList.remove('hidden'); this.modal.classList.add('flex');
@@ -301,19 +341,22 @@ export class NotificacionesModule {
         const tipo = document.querySelector('#notif-tipo').value;
         const titulo = document.querySelector('#notif-titulo').value;
         const expediente = document.querySelector('#notif-expediente').value;
+        const detalles = document.querySelector('#notif-detalles').value;
+        const fecha = document.querySelector('#notif-fecha-evento').value;
         
         if (!tipo || !titulo) return alert('Datos incompletos');
 
         const now = new Date().toISOString();
+        const notifyAt = fecha ? new Date(fecha).toISOString() : now;
         
         this.notifications.push({
             id: this.uid(),
             eventType: tipo,
             title: titulo,
             expediente: expediente,
-            status: 'Pendiente', // Default manual
-            detalles: { creado: 'Manualmente' },
-            notifyAt: now,
+            status: 'Pendiente', 
+            detalles: { descripcion: detalles || 'Notificación manual' },
+            notifyAt: notifyAt,
             sent: false
         });
         

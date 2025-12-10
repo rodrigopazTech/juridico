@@ -15,6 +15,7 @@ export class ExpedienteDetalleModule {
     
     this.populateVista360();
     setTimeout(() => { 
+        this.renderTimeline()
         this.setupModals(); 
         this.setupDocumentsModule();
     }, 200);
@@ -27,6 +28,17 @@ export class ExpedienteDetalleModule {
 
   loadData(){
     this.expediente = expedienteById(this.id);
+    if(!this.expediente.documentos) this.expediente.documentos = [];
+    if(!this.expediente.actividad) {
+        this.expediente.actividad = [
+            { 
+                fecha: new Date().toISOString(), 
+                titulo: 'Expediente Consultado', 
+                descripcion: 'Se accedió al detalle del expediente.',
+                tipo: 'info' 
+            }
+        ];
+    }
   }
 
   populateVista360() {
@@ -150,6 +162,7 @@ export class ExpedienteDetalleModule {
       };
 
       updateExpediente(this.id, changes);
+      this.registrarActividad('Edición de Datos', 'Se actualizaron los datos generales del expediente.', 'edit');
       this.loadData();
       this.populateVista360();
   }
@@ -193,6 +206,7 @@ export class ExpedienteDetalleModule {
               const nuevo = document.getElementById('nuevo-estado-select').value;
               if(nuevo) {
                   updateExpediente(this.id, { estado: nuevo });
+                  this.registrarActividad('Cambio de Estado', `Estado cambiado a ${nuevo}. ${razon ? 'Motivo: '+razon : ''}`, 'status');
                   this.loadData();
                   this.populateVista360();
                   close();
@@ -209,7 +223,7 @@ export class ExpedienteDetalleModule {
     this.setupSearch();
   }
 
-  renderDocumentsTable(filterText = '') {
+ renderDocumentsTable(filterText = '') {
       const tbody = document.getElementById('tabla-documentos-body');
       if(!tbody) return;
 
@@ -217,7 +231,6 @@ export class ExpedienteDetalleModule {
       
       const docs = this.expediente.documentos || [];
       
-      // Filtrar
       const filteredDocs = docs.filter(d => {
           const term = filterText.toLowerCase();
           return d.nombre.toLowerCase().includes(term) || 
@@ -232,36 +245,48 @@ export class ExpedienteDetalleModule {
 
       filteredDocs.forEach((doc, index) => {
           const row = document.createElement('tr');
-          row.className = 'bg-white border-b hover:bg-gray-50 transition-colors';
+          row.className = 'bg-white border-b hover:bg-gray-50 transition-colors group'; // 'group' para efectos hover
           
-          // Icono según extensión (simulado)
           let iconClass = 'fa-file-alt text-gray-400';
           if(doc.nombre.endsWith('.pdf')) iconClass = 'fa-file-pdf text-red-500';
           else if(doc.nombre.endsWith('.doc') || doc.nombre.endsWith('.docx')) iconClass = 'fa-file-word text-blue-600';
           else if(doc.nombre.endsWith('.jpg') || doc.nombre.endsWith('.png')) iconClass = 'fa-file-image text-purple-500';
+          else if(doc.nombre.endsWith('.xls') || doc.nombre.endsWith('.xlsx')) iconClass = 'fa-file-excel text-green-600';
 
           row.innerHTML = `
             <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                    <i class="fas ${iconClass} text-xl"></i>
+                    <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
+                        <i class="fas ${iconClass} text-xl"></i>
+                    </div>
                     <div>
                         <div class="font-bold text-gray-900">${doc.nombre}</div>
-                        <div class="text-xs text-gob-oro font-bold uppercase">${doc.tipo}</div>
+                        <div class="text-[10px] text-gob-oro font-bold uppercase tracking-wide bg-yellow-50 px-1.5 py-0.5 rounded inline-block border border-yellow-100">${doc.tipo}</div>
                     </div>
                 </div>
             </td>
-            <td class="px-6 py-4 text-gray-600 italic text-xs max-w-xs truncate">
-                ${doc.comentario}
+            <td class="px-6 py-4">
+                <p class="text-gray-600 italic text-xs max-w-xs truncate" title="${doc.comentario}">
+                    ${doc.comentario}
+                </p>
             </td>
-            <td class="px-6 py-4 text-gray-500 text-xs">
+            <td class="px-6 py-4 text-gray-500 text-xs font-mono">
                 ${doc.fecha}
             </td>
             <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                    <button class="text-blue-600 hover:text-blue-800 p-1" title="Descargar (Simulado)" onclick="alert('Descargando: ${doc.nombre}')">
+                <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <button class="btn-preview-doc w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm" 
+                            title="Ver detalles" data-index="${index}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    
+                    <button class="btn-download-doc w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm" 
+                            title="Descargar documento" data-index="${index}">
                         <i class="fas fa-download"></i>
                     </button>
-                    <button class="delete-doc-btn text-red-500 hover:text-red-700 p-1" title="Eliminar" data-index="${index}">
+                    
+                    <button class="btn-delete-doc w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" 
+                            title="Eliminar documento" data-index="${index}">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -270,14 +295,112 @@ export class ExpedienteDetalleModule {
           tbody.appendChild(row);
       });
 
-      // Listeners para eliminar (delegación o asignación directa)
-      document.querySelectorAll('.delete-doc-btn').forEach(btn => {
+      // Asignar listeners a los nuevos botones
+      this.asignarListenersDocumentos();
+  }
+
+asignarListenersDocumentos() {
+      // Listener para PREVISUALIZAR
+      document.querySelectorAll('.btn-preview-doc').forEach(btn => {
           btn.addEventListener('click', (e) => {
               const idx = e.currentTarget.getAttribute('data-index');
-              this.deleteDocument(idx);
+              this.previewDocument(idx);
+          });
+      });
+
+      // Listener para DESCARGAR
+      document.querySelectorAll('.btn-download-doc').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              const idx = e.currentTarget.getAttribute('data-index');
+              this.downloadDocument(idx);
+          });
+      });
+
+      // Listener para ELIMINAR
+      document.querySelectorAll('.btn-delete-doc').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              const idx = e.currentTarget.getAttribute('data-index');
+              this.confirmDeleteDocument(idx);
           });
       });
   }
+
+  // ACCIÓN 1: Previsualizar (Modal Informativo Bonito)
+  previewDocument(index) {
+      const doc = this.expediente.documentos[index];
+      
+      Swal.fire({
+          title: `<span class="text-gob-guinda">${doc.nombre}</span>`,
+          html: `
+            <div class="text-left bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
+                <p><strong>Tipo:</strong> ${doc.tipo}</p>
+                <p><strong>Fecha:</strong> ${doc.fecha}</p>
+                <p class="mt-2"><strong>Comentario:</strong><br><span class="italic text-gray-600">${doc.comentario}</span></p>
+                <div class="mt-4 text-center text-xs text-gray-400">
+                    <i class="fas fa-eye mr-1"></i> Vista previa de metadatos
+                </div>
+            </div>
+          `,
+          icon: 'info',
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#545454' // Gris
+      });
+  }
+
+  // ACCIÓN 2: Descargar (Toast Notification)
+  downloadDocument(index) {
+      const doc = this.expediente.documentos[index];
+      
+      // Simulación de descarga con Toast
+      const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+          }
+      });
+
+      Toast.fire({
+          icon: 'success',
+          title: 'Descarga iniciada',
+          text: `Bajando: ${doc.nombre}`
+      });
+      
+      // Aquí iría tu lógica real de window.open(url)
+  }
+
+  // ACCIÓN 3: Confirmar Eliminación (SweetAlert2)
+  confirmDeleteDocument(index) {
+      const docName = this.expediente.documentos[index].nombre;
+
+      Swal.fire({
+          title: '¿Eliminar documento?',
+          text: `Se eliminará permanentemente "${docName}".`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#9D2449', // Gob Guinda
+          cancelButtonColor: '#9ca3af',  // Gris
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+          reverseButtons: true
+      }).then((result) => {
+          if (result.isConfirmed) {
+              this.deleteDocument(index); // Llamamos a la lógica real
+              
+              Swal.fire({
+                  title: '¡Eliminado!',
+                  text: 'El documento ha sido borrado.',
+                  icon: 'success',
+                  confirmButtonColor: '#B38E5D' // Gob Oro
+              });
+          }
+      });
+  }
+
 
   setupUploadModal() {
       const modal = document.getElementById('modal-subir-documento');
@@ -327,7 +450,8 @@ export class ExpedienteDetalleModule {
               this.expediente.documentos.push(newDoc);
               
               updateExpediente(this.id, { documentos: this.expediente.documentos });
-              
+
+              this.registrarActividad('Documento Adjuntado', `Se subió el documento "${file.name}" (${tipo}).`, 'upload');
               this.loadData(); // Recargar datos locales
               this.renderDocumentsTable();
               close();
@@ -344,14 +468,101 @@ export class ExpedienteDetalleModule {
       }
   }
 
-  deleteDocument(index) {
-      if(confirm('¿Estás seguro de eliminar este documento?')) {
-          this.expediente.documentos.splice(index, 1);
-          updateExpediente(this.id, { documentos: this.expediente.documentos });
-          this.loadData();
-          this.renderDocumentsTable();
-      }
+  deleteDocument(index) {      
+      const docName = this.expediente.documentos[index].nombre;     
+      this.expediente.documentos.splice(index, 1);     
+      updateExpediente(this.id, { documentos: this.expediente.documentos });     
+      this.registrarActividad('Documento Eliminado', `Se eliminó el documento "${docName}" del expediente.`, 'delete');
+      this.loadData();
+      this.renderDocumentsTable();
+  }
+registrarActividad(titulo, descripcion, tipo) {
+      const nuevaActividad = {
+          fecha: new Date().toISOString(),
+          titulo: titulo,
+          descripcion: descripcion,
+          tipo: tipo // 'upload', 'delete', 'edit', 'status'
+      };
+
+      // Agregar al inicio del array
+      if(!this.expediente.actividad) this.expediente.actividad = [];
+      this.expediente.actividad.unshift(nuevaActividad);
+
+      // Guardar en persistencia
+      updateExpediente(this.id, { actividad: this.expediente.actividad });
+
+      // Refrescar vista
+      this.renderTimeline();
   }
 
+  renderTimeline() {
+      const container = document.getElementById('actividad-reciente-list');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      const actividades = this.expediente.actividad || [];
+
+      if (actividades.length === 0) {
+          container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Sin actividad reciente.</p>';
+          return;
+      }
+
+      actividades.forEach(act => {
+          const date = new Date(act.fecha);
+          const fechaStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+          const horaStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+          
+          // Configurar iconos y colores según tipo
+          let icon = 'fa-info-circle';
+          let colorBg = 'bg-gray-100';
+          let colorIcon = 'text-gray-500';
+
+          switch(act.tipo) {
+              case 'upload':
+                  icon = 'fa-file-upload';
+                  colorBg = 'bg-blue-50';
+                  colorIcon = 'text-blue-600';
+                  break;
+              case 'delete':
+                  icon = 'fa-trash-alt';
+                  colorBg = 'bg-red-50';
+                  colorIcon = 'text-red-600';
+                  break;
+              case 'edit':
+                  icon = 'fa-pen';
+                  colorBg = 'bg-yellow-50';
+                  colorIcon = 'text-yellow-600';
+                  break;
+              case 'status':
+                  icon = 'fa-exchange-alt';
+                  colorBg = 'bg-green-50';
+                  colorIcon = 'text-green-600';
+                  break;
+          }
+
+          const item = document.createElement('div');
+          item.className = 'relative pl-4 pb-6 border-l border-gray-200 last:pb-0 last:border-0';
+          
+          item.innerHTML = `
+              <div class="absolute -left-1.5 top-0 w-3 h-3 rounded-full border border-white ${colorBg.replace('50', '400')}"></div>
+              
+              <div class="flex flex-col gap-1">
+                  <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${fechaStr} • ${horaStr}</span>
+                  
+                  <div class="flex items-start gap-2">
+                      <div class="mt-0.5 p-1 rounded ${colorBg}">
+                          <i class="fas ${icon} ${colorIcon} text-xs"></i>
+                      </div>
+                      <div>
+                          <h4 class="text-xs font-bold text-gray-800">${act.titulo}</h4>
+                          <p class="text-xs text-gray-500 leading-relaxed">${act.descripcion}</p>
+                      </div>
+                  </div>
+              </div>
+          `;
+          container.appendChild(item);
+      });
+  }
   renderError(msg){ console.error(msg); }
 }

@@ -1,5 +1,4 @@
 import { expedienteById, updateExpediente } from '../data/expedientes-data.js';
-import { loadTimeline, loadActividad } from '../data/expediente-timeline-data.js';
 
 export class ExpedienteDetalleModule {
   constructor(){
@@ -14,10 +13,7 @@ export class ExpedienteDetalleModule {
     this.loadData();
     if(!this.expediente){ this.renderError('Expediente no encontrado.'); return; }
     
-    // Renderizamos los datos en el HTML que ya cargó el loader
     this.populateVista360();
-    this.renderActividadReciente();
-    
     setTimeout(() => { this.setupModals(); }, 100);
   }
 
@@ -28,52 +24,45 @@ export class ExpedienteDetalleModule {
 
   loadData(){
     this.expediente = expedienteById(this.id);
-    this.timeline = loadTimeline(this.id);
-    this.actividad = loadActividad(this.id);
   }
 
-  // === NUEVA LÓGICA: Rellenar datos en lugar de crear HTML ===
   populateVista360() {
     const e = this.expediente;
-    
-    // Helper para asignar texto seguro
-    const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if(el) el.textContent = text || '—';
-    };
+    const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text || '—'; };
 
-    // 1. Textos Simples
+    // 1. Datos Generales
     setText('v360-numero', e.numero);
     setText('v360-materia', e.materia);
     setText('v360-gerencia', e.gerencia);
+    setText('v360-abogado', e.abogado);
+    
+    // 2. Datos que antes faltaban (Asegúrate de haber guardado un NUEVO expediente para verlos)
     setText('v360-sede', e.sede);
-    setText('v360-partes', e.partes || 'Actor vs Demandado');
-    setText('v360-abogado', e.abogado || 'Sin asignar');
+    setText('v360-partes', e.partes);
     setText('v360-organo', e.organo);
     
-    // 2. Prioridad (Texto + Color)
+    // 3. Prioridad
     const elPrio = document.getElementById('v360-prioridad');
     if(elPrio) {
         elPrio.textContent = e.prioridad || 'Media';
-        elPrio.className = `text-sm font-bold ${e.prioridad === 'Alta' ? 'text-gob-guinda' : 'text-gray-600'}`;
+        elPrio.className = `text-sm font-bold ${e.prioridad === 'Alta' ? 'text-red-700' : (e.prioridad === 'Baja' ? 'text-gray-600' : 'text-orange-600')}`;
     }
 
-    // 3. Estado (Badge)
+    // 4. Estado (TRAMITE, LAUDO, FIRME)
     const elEstado = document.getElementById('v360-estado');
     if(elEstado) {
-        elEstado.textContent = e.estado || 'Activo';
-        // Limpiar clases anteriores y asignar nuevas según estado
-        let colorClass = 'bg-gray-100 text-gray-800 border-gray-200';
-        const st = (e.estado || '').toLowerCase();
+        const st = (e.estado || 'TRAMITE').toUpperCase();
+        elEstado.textContent = st;
         
-        if (st.includes('tramite') || st.includes('activo')) colorClass = 'bg-green-100 text-green-800 border-green-200';
-        else if (st.includes('suspendido')) colorClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
-        else if (st.includes('concluido') || st.includes('sentencia')) colorClass = 'bg-blue-100 text-blue-800 border-blue-200';
+        let colorClass = 'bg-gray-100 text-gray-800 border-gray-200';
+        if (st === 'TRAMITE') colorClass = 'bg-blue-100 text-blue-800 border-blue-200';
+        else if (st === 'LAUDO') colorClass = 'bg-amber-100 text-amber-800 border-amber-200';
+        else if (st === 'FIRME') colorClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
         
         elEstado.className = `px-3 py-1 rounded-full text-sm font-bold border uppercase tracking-wide font-headings ${colorClass}`;
     }
 
-    // 4. Descripción (Mostrar solo si existe)
+    // 5. Descripción
     const descContainer = document.getElementById('v360-descripcion-container');
     const descText = document.getElementById('v360-descripcion');
     if(e.descripcion && descContainer) {
@@ -81,6 +70,7 @@ export class ExpedienteDetalleModule {
         descContainer.classList.remove('hidden');
     }
 
+    // 6. Actualizar Header (Quitar "Cargando...")
     this.actualizarHeader();
   }
 
@@ -91,29 +81,16 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ... (El resto de tu código: renderActividadReciente, setupModals, renderError, etc. se mantiene igual)
-  
-  renderActividadReciente() {
-      // Tu código existente...
-  }
-  
   setupModals() {
-      // Tu código existente de modales...
-      // Asegúrate de copiar el setupModals completo de la respuesta anterior
-      // (setupEditModal y setupEstadoModal)
       this.setupEditModal();
       this.setupEstadoModal();
   }
 
-  // Agrega aquí las funciones setupEditModal, setupEstadoModal, saveEditForm, etc. 
-  // tal como estaban en la respuesta anterior.
-  
   setupEditModal() {
       const modal = document.getElementById('modal-edit-expediente');
       const btnOpen = document.getElementById('btn-editar-expediente');
       
       if (!modal) return;
-
       if(btnOpen) {
           btnOpen.onclick = () => {
               this.populateEditForm();
@@ -132,10 +109,7 @@ export class ExpedienteDetalleModule {
       if(btnSave) {
           const newBtn = btnSave.cloneNode(true);
           btnSave.parentNode.replaceChild(newBtn, btnSave);
-          newBtn.onclick = () => {
-              this.saveEditForm();
-              close();
-          };
+          newBtn.onclick = () => { this.saveEditForm(); close(); };
       }
   }
 
@@ -146,7 +120,7 @@ export class ExpedienteDetalleModule {
       setValue('edit-id', e.id);
       setValue('edit-numero', e.numero);
       setValue('edit-materia', e.materia);
-      if(e.gerenciaId) setValue('edit-gerencia', e.gerenciaId);
+      setValue('edit-gerencia', e.gerenciaId);
       setValue('edit-sede', e.sede);
       setValue('edit-abogado', e.abogado);
       setValue('edit-partes', e.partes);
@@ -174,7 +148,7 @@ export class ExpedienteDetalleModule {
 
       updateExpediente(this.id, changes);
       this.loadData();
-      this.populateVista360(); // Refrescamos la vista sin recargar
+      this.populateVista360();
   }
 
   setupEstadoModal() {
@@ -186,6 +160,18 @@ export class ExpedienteDetalleModule {
       btnOpen.onclick = () => {
           const display = document.getElementById('estado-actual-display');
           if(display) display.textContent = this.expediente.estado;
+          
+          // Limpiar/Reiniciar Select de Estado
+          const select = document.getElementById('nuevo-estado-select');
+          if(select) {
+             select.innerHTML = `
+                <option value="">Seleccione...</option>
+                <option value="TRAMITE">TRAMITE</option>
+                <option value="LAUDO">LAUDO</option>
+                <option value="FIRME">FIRME</option>
+             `;
+          }
+
           modal.classList.remove('hidden');
           modal.classList.add('flex');
       };
@@ -207,14 +193,12 @@ export class ExpedienteDetalleModule {
                   this.loadData();
                   this.populateVista360();
                   close();
+              } else {
+                  alert('Seleccione un nuevo estado.');
               }
           };
       }
   }
 
-  renderError(msg){
-      // Lógica de error simple
-      console.error(msg);
-      alert(msg);
-  }
+  renderError(msg){ console.error(msg); }
 }

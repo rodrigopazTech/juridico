@@ -14,7 +14,10 @@ export class ExpedienteDetalleModule {
     if(!this.expediente){ this.renderError('Expediente no encontrado.'); return; }
     
     this.populateVista360();
-    setTimeout(() => { this.setupModals(); }, 100);
+    setTimeout(() => { 
+        this.setupModals(); 
+        this.setupDocumentsModule();
+    }, 200);
   }
 
   parseId(){
@@ -197,6 +200,156 @@ export class ExpedienteDetalleModule {
                   alert('Seleccione un nuevo estado.');
               }
           };
+      }
+  }
+
+ setupDocumentsModule() {
+    this.renderDocumentsTable();
+    this.setupUploadModal();
+    this.setupSearch();
+  }
+
+  renderDocumentsTable(filterText = '') {
+      const tbody = document.getElementById('tabla-documentos-body');
+      if(!tbody) return;
+
+      tbody.innerHTML = '';
+      
+      const docs = this.expediente.documentos || [];
+      
+      // Filtrar
+      const filteredDocs = docs.filter(d => {
+          const term = filterText.toLowerCase();
+          return d.nombre.toLowerCase().includes(term) || 
+                 d.tipo.toLowerCase().includes(term) || 
+                 d.comentario.toLowerCase().includes(term);
+      });
+
+      if (filteredDocs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400 italic">No se encontraron documentos.</td></tr>`;
+          return;
+      }
+
+      filteredDocs.forEach((doc, index) => {
+          const row = document.createElement('tr');
+          row.className = 'bg-white border-b hover:bg-gray-50 transition-colors';
+          
+          // Icono según extensión (simulado)
+          let iconClass = 'fa-file-alt text-gray-400';
+          if(doc.nombre.endsWith('.pdf')) iconClass = 'fa-file-pdf text-red-500';
+          else if(doc.nombre.endsWith('.doc') || doc.nombre.endsWith('.docx')) iconClass = 'fa-file-word text-blue-600';
+          else if(doc.nombre.endsWith('.jpg') || doc.nombre.endsWith('.png')) iconClass = 'fa-file-image text-purple-500';
+
+          row.innerHTML = `
+            <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                    <i class="fas ${iconClass} text-xl"></i>
+                    <div>
+                        <div class="font-bold text-gray-900">${doc.nombre}</div>
+                        <div class="text-xs text-gob-oro font-bold uppercase">${doc.tipo}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-gray-600 italic text-xs max-w-xs truncate">
+                ${doc.comentario}
+            </td>
+            <td class="px-6 py-4 text-gray-500 text-xs">
+                ${doc.fecha}
+            </td>
+            <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2">
+                    <button class="text-blue-600 hover:text-blue-800 p-1" title="Descargar (Simulado)" onclick="alert('Descargando: ${doc.nombre}')">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="delete-doc-btn text-red-500 hover:text-red-700 p-1" title="Eliminar" data-index="${index}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+      });
+
+      // Listeners para eliminar (delegación o asignación directa)
+      document.querySelectorAll('.delete-doc-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+              const idx = e.currentTarget.getAttribute('data-index');
+              this.deleteDocument(idx);
+          });
+      });
+  }
+
+  setupUploadModal() {
+      const modal = document.getElementById('modal-subir-documento');
+      const btnOpen = document.getElementById('btn-nuevo-documento');
+      
+      if(!modal) return;
+
+      const open = () => {
+          document.getElementById('form-subir-documento').reset();
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+      };
+      
+      const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+      if(btnOpen) btnOpen.onclick = open;
+      document.getElementById('close-subir-documento').onclick = close;
+      document.getElementById('cancel-subir-documento').onclick = close;
+
+      const btnSave = document.getElementById('save-subir-documento');
+      if(btnSave) {
+          // Reemplazar nodo para limpiar listeners viejos
+          const newBtn = btnSave.cloneNode(true);
+          btnSave.parentNode.replaceChild(newBtn, btnSave);
+          
+          newBtn.onclick = () => {
+              const fileInput = document.getElementById('doc-file');
+              const tipo = document.getElementById('doc-tipo').value;
+              const comentario = document.getElementById('doc-comentario').value;
+
+              if(fileInput.files.length === 0) { alert('Seleccione un archivo.'); return; }
+              if(!tipo) { alert('Seleccione un tipo de documento.'); return; }
+              if(!comentario) { alert('Escriba un comentario.'); return; }
+
+              const file = fileInput.files[0];
+              const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit', hour:'2-digit', minute:'2-digit'});
+
+              const newDoc = {
+                  nombre: file.name,
+                  tipo: tipo,
+                  comentario: comentario,
+                  fecha: fecha
+              };
+
+              // Guardar en array y actualizar localStorage
+              if(!this.expediente.documentos) this.expediente.documentos = [];
+              this.expediente.documentos.push(newDoc);
+              
+              updateExpediente(this.id, { documentos: this.expediente.documentos });
+              
+              this.loadData(); // Recargar datos locales
+              this.renderDocumentsTable();
+              close();
+          };
+      }
+  }
+
+  setupSearch() {
+      const input = document.getElementById('search-documentos');
+      if(input) {
+          input.addEventListener('input', (e) => {
+              this.renderDocumentsTable(e.target.value);
+          });
+      }
+  }
+
+  deleteDocument(index) {
+      if(confirm('¿Estás seguro de eliminar este documento?')) {
+          this.expediente.documentos.splice(index, 1);
+          updateExpediente(this.id, { documentos: this.expediente.documentos });
+          this.loadData();
+          this.renderDocumentsTable();
       }
   }
 

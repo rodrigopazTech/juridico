@@ -515,6 +515,86 @@ function abrirModalReasignar(id) {
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
+
+function initModalPresentar() {
+    const modal = document.getElementById('modal-presentar-termino');
+    if (!modal) return;
+    
+    const btnConfirm = document.getElementById('confirmar-presentar');
+    
+    // Configurar botones de cerrar
+    document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => {
+        if(btn) btn.onclick = () => { 
+            modal.classList.remove('flex'); 
+            modal.classList.add('hidden'); 
+        };
+    });
+
+    // Configurar botón Confirmar
+    if(btnConfirm) {
+        // Clonar para limpiar eventos previos
+        const newBtn = btnConfirm.cloneNode(true);
+        btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+        
+        newBtn.onclick = () => {
+            const id = document.getElementById('presentar-termino-id').value;
+            const observaciones = document.getElementById('observaciones-cambio-estatus')?.value.trim();
+            
+            const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
+            
+            if(idx !== -1) {
+                let nuevoEstatus = '';
+                // Lógica para determinar el siguiente estado
+                if (TERMINOS[idx].estatus === 'Presentado') {
+                    nuevoEstatus = 'Concluido';
+                } else if (TERMINOS[idx].estatus === 'Dirección') {
+                    nuevoEstatus = 'Liberado';
+                } else {
+                    const siguiente = FLUJO_ETAPAS[TERMINOS[idx].estatus]?.siguiente;
+                    if(siguiente) nuevoEstatus = siguiente;
+                }
+                
+                if(nuevoEstatus) {
+                    TERMINOS[idx].estatus = nuevoEstatus;
+                    
+                    // Guardar observación si existe
+                    if(observaciones) {
+                        TERMINOS[idx].observaciones = observaciones;
+                    }
+                    
+                    guardarYRecargar();
+                    mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
+                }
+                
+                modal.classList.remove('flex'); 
+                modal.classList.add('hidden');
+            }
+        };
+    }
+}
+
+function abrirModalPresentar(id, titulo, mensaje) {
+    const modal = document.getElementById('modal-presentar-termino');
+    if(!modal) return;
+
+    document.getElementById('presentar-termino-id').value = id;
+    
+    const tituloEl = document.getElementById('modal-presentar-titulo');
+    const mensajeEl = document.getElementById('modal-presentar-mensaje');
+    
+    if(tituloEl) tituloEl.textContent = titulo;
+    if(mensajeEl) mensajeEl.textContent = mensaje;
+
+    // Limpiar textarea si existe
+    const txtArea = document.getElementById('observaciones-cambio-estatus');
+    if(txtArea) {
+        txtArea.value = ''; 
+        setTimeout(() => txtArea.focus(), 100); 
+    }
+
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex');
+}
 // ===============================================
 // 7. HELPERS Y UTILIDADES
 // ===============================================

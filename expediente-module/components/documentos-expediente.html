@@ -1,0 +1,95 @@
+<div id="seccion-documentos" class="flex flex-col gap-6 animate-fade-in-down">
+    
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h3 class="text-lg font-bold text-gob-guinda font-headings flex items-center gap-2">
+                <i class="fas fa-folder-open text-gob-oro"></i> Expediente Digital
+            </h3>
+            
+            <button id="btn-nuevo-documento" class="bg-gob-oro hover:bg-yellow-600 text-white text-sm font-bold py-2 px-4 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                <i class="fas fa-cloud-upload-alt"></i> Subir Documento
+            </button>
+        </div>
+        
+        <div class="p-6">
+            <div class="mb-4 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="search-documentos" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full pl-10 p-2.5" placeholder="Buscar por nombre, tipo o comentario...">
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gob-gris uppercase bg-gray-100 font-bold">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Documento / Tipo</th>
+                            <th scope="col" class="px-6 py-3">Comentarios</th>
+                            <th scope="col" class="px-6 py-3">Fecha Subida</th>
+                            <th scope="col" class="px-6 py-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-documentos-body" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-400 italic">
+                                No hay documentos adjuntos a este expediente.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-subir-documento" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-lg bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
+        <div class="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gob-guinda font-headings">
+                <i class="fas fa-file-upload mr-2"></i> Adjuntar Documento
+            </h3>
+            <button id="close-subir-documento" class="text-gray-400 hover:text-gray-900 rounded-lg p-1">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-4">
+            <form id="form-subir-documento">
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Seleccionar Archivo *</label>
+                    <input type="file" id="doc-file" required class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                    <p class="mt-1 text-xs text-gray-500" id="file-name-display">Formatos: PDF, DOCX, JPG (Max 10MB)</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Tipo de Documento *</label>
+                    <select id="doc-tipo" required class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                        <option value="">Seleccione...</option>
+                        <option value="Demanda Inicial">Demanda Inicial</option>
+                        <option value="Acuerdo">Acuerdo</option>
+                        <option value="Promoción">Promoción</option>
+                        <option value="Sentencia / Laudo">Sentencia / Laudo</option>
+                        <option value="Pruebas">Pruebas / Evidencia</option>
+                        <option value="Amparo">Amparo</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gob-gris uppercase mb-1">Comentario / Descripción *</label>
+                    <textarea id="doc-comentario" required rows="3" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" placeholder="Ej. Versión firmada por el actor..."></textarea>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="flex items-center justify-end p-4 border-t bg-gray-50 rounded-b-lg gap-3">
+            <button id="cancel-subir-documento" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100">Cancelar</button>
+            <button id="save-subir-documento" class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded hover:bg-gob-guindaDark shadow-md">
+                <i class="fas fa-upload mr-1"></i> Subir Ahora
+            </button>
+        </div>
+    </div>
+</div>

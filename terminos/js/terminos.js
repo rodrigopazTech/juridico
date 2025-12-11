@@ -70,11 +70,11 @@ function cargarDatosIniciales() {
         } else {
             // Datos de prueba si está vacío
             TERMINOS = [
-                { id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
-                { id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
-                { id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
-                { id: 4, expediente: '2376/2125', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Dirección', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
-                { id: 5, expediente: '1290/2124', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' }
+                //{ id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
+                //{ id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
+                //{ id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
+                //{ id: 4, expediente: '2376/2125', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Dirección', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
+                //{ id: 5, expediente: '1290/2124', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' }
             ];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
@@ -187,8 +187,10 @@ function generarAccionesRapidas(termino, rol) {
 
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
-    html += `<button class="${itemClass} action-view-asunto"><i class="fas fa-briefcase text-gray-400"></i> Ver Asunto</button>`;
+// En la función generarAccionesRapidas...
 
+// CAMBIO: Texto "Ver Expediente" y clase nueva 'action-view-expediente'
+html += `<button class="${itemClass} action-view-expediente"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
     if (etapa === 'Concluido') {
         if (termino.acuseDocumento) {
             html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
@@ -276,6 +278,13 @@ function setupActionMenuListener() {
 
         // ACCIONES
         if (target.classList.contains('action-edit')) openTerminoModalJS(termino);
+        else if (target.classList.contains('action-view-expediente')) {
+            if (termino.asuntoId) {
+                window.location.href = `../expediente-module/expediente-detalle.html?id=${termino.asuntoId}`;
+            } else {
+                mostrarMensajeGlobal("Este término no está vinculado a un expediente digital.", "warning");
+            }
+        }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
@@ -691,6 +700,7 @@ function mostrarMensajeGlobal(msg, type) {
 function cargarAsuntosEnSelectorJS() {
     const sel = document.getElementById('asunto-selector');
     if(!sel) return;
+    
     const expedientesData = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
     sel.innerHTML = '<option value="">Seleccionar...</option>';
@@ -701,18 +711,42 @@ function cargarAsuntosEnSelectorJS() {
         sel.appendChild(opt);
     });
     
+    // Función para limpiar todos los campos automáticos
+    const limpiarCampos = () => {
+        if(document.getElementById('termino-expediente')) document.getElementById('termino-expediente').value = '';
+        if(document.getElementById('termino-materia')) document.getElementById('termino-materia').value = '';
+        if(document.getElementById('termino-gerencia')) document.getElementById('termino-gerencia').value = '';
+        if(document.getElementById('termino-abogado')) document.getElementById('termino-abogado').value = '';
+        if(document.getElementById('termino-partes')) document.getElementById('termino-partes').value = '';
+        if(document.getElementById('termino-organo')) document.getElementById('termino-organo').value = '';
+    };
+
     sel.onchange = () => {
-        const e = expedientesData.find(x => String(x.id) === sel.value);
+        const selectedId = sel.value;
+        
+        // 1. Manejamos el tipado: convertimos el ID a string para buscar, o lo buscamos con Number si el ID es un número.
+        // Usamos String() para asegurar la comparación.
+        const e = expedientesData.find(x => String(x.id) === selectedId);
+        
         if(e) {
+            // 2. Si encuentra el expediente (e NO es undefined), asignamos:
             if(document.getElementById('termino-expediente')) document.getElementById('termino-expediente').value = e.numero || '';
-            if(document.getElementById('termino-materia')) document.getElementById('termino-materia').value = e.materia || '';
-            if(document.getElementById('termino-gerencia')) document.getElementById('termino-gerencia').value = e.gerencia || '';
-            if(document.getElementById('termino-abogado')) document.getElementById('termino-abogado').value = e.abogado || '';
+            if(document.getElementById('termino-materia')) document.getElementById('termino-materia').value = e.materia || 'S/D';
+            if(document.getElementById('termino-gerencia')) document.getElementById('termino-gerencia').value = e.gerencia || 'S/D';
+            if(document.getElementById('termino-abogado')) document.getElementById('termino-abogado').value = e.abogado || 'S/D';
             if(document.getElementById('termino-partes')) document.getElementById('termino-partes').value = e.partes || 'Actor vs Demandado';
+            
+            // 3. Órgano Jurisdiccional (CORREGIDO Y ROBUSTO)
+            if(document.getElementById('termino-organo')) {
+                document.getElementById('termino-organo').value = e.organo || e.organoJurisdiccional || 'Por asignar';
+            }
+            
+        } else {
+            // 4. Si no encuentra o si seleccionó la opción vacía: limpiamos
+            limpiarCampos();
         }
     };
 }
-
 function cargarDatosAsuntoEnModalJS(asuntoId) {
     const selector = document.getElementById('asunto-selector');
     if(selector) { selector.value = asuntoId; selector.dispatchEvent(new Event('change')); }

@@ -60,16 +60,26 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gob-guinda font-headings">
-            <i class="fas fa-users mr-2"></i>Carga de Trabajo por Usuario
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
+          <h3 class="text-lg font-bold text-gob-guinda font-headings flex items-center">
+            <i class="fas fa-users mr-2"></i>Carga de Trabajo
           </h3>
+          
+          <div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+            <span class="text-xs font-semibold text-gray-500 pl-2">Ver en:</span>
+            <select id="filterCargaTrabajoMetric" class="text-xs border-0 bg-transparent py-1 pl-1 pr-7 text-gray-700 font-medium focus:ring-0 cursor-pointer hover:text-gob-guinda">
+              <option value="expedientes">Expedientes</option>
+              <option value="audiencias">Audiencias</option>
+              <option value="terminos">Términos</option>
+            </select>
+          </div>
         </div>
+        
         <div class="chart-container">
-          <canvas id="chartUsuarios"></canvas>
+          <canvas id="chartUsuarios">
+          </canvas>
         </div>
       </div>
-
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gob-guinda font-headings">

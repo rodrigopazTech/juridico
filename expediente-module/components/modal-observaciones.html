@@ -1,0 +1,29 @@
+<div id="modal-observaciones-expediente" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+    <div class="relative w-full max-w-2xl bg-white rounded-lg shadow-2xl border-t-4 border-blue-500 animate-fade-in-down h-[80vh] flex flex-col">
+        
+        <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gob-gris font-headings flex items-center gap-2">
+                <i class="fas fa-comments text-blue-500"></i> Observaciones y Notas
+            </h3>
+            <button id="close-observaciones-expediente" class="text-gray-400 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar" id="lista-observaciones-container">
+            <div class="text-center text-gray-400 mt-10 italic">
+                No hay observaciones registradas.
+            </div>
+        </div>
+
+        <div class="flex-none p-4 border-t bg-white rounded-b-lg shadow-inner">
+            <label class="block text-xs font-bold text-gob-gris mb-2 uppercase">Nueva Observación</label>
+            <div class="flex gap-2">
+                <textarea id="texto-nueva-observacion" rows="2" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Escribe una nota interna sobre este expediente..."></textarea>
+                <button id="btn-guardar-observacion" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition-colors flex items-center justify-center min-w-[50px]">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

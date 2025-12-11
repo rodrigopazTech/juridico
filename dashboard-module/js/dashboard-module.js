@@ -1,10 +1,18 @@
 /**
  * Dashboard Module
  * Displays analytics and charts for expedientes, usuarios, and gerencias
+ * MODO OFFLINE: Requiere chart.min.js cargado en el HTML
  */
 export class DashboardModule {
   constructor() {
     this.charts = {};
+    
+    // Estado para los filtros activos
+    this.currentFilters = {
+        gerenciaId: null,
+        workloadMetric: 'expedientes' // Valor por defecto
+    };
+
     this.gobColors = {
       guinda: '#9D2449',
       guindaDark: '#611232',
@@ -15,6 +23,7 @@ export class DashboardModule {
       verde: '#13322B',
       verdeDark: '#0C231E'
     };
+    
     this.chartColors = [
       '#9D2449', // guinda
       '#B38E5D', // oro
@@ -31,82 +40,83 @@ export class DashboardModule {
 
   init() {
     console.log('Initializing Dashboard Module...');
+    
+    // VERIFICACIÓN: Asegurar que la librería Chart.js esté cargada
+    if (typeof Chart === 'undefined') {
+        console.error("Chart.js no está definido. Asegúrate de incluir <script src='../js/chart.min.js'></script> en tu HTML.");
+        return;
+    }
+
     this.loadData();
+    
+    // Validación básica de datos
+    if (!this.expedientes || !this.usuarios || !this.gerencias) {
+        console.warn("Datos incompletos. Inicializando arrays vacíos para evitar errores.");
+        this.expedientes = this.expedientes || [];
+        this.usuarios = this.usuarios || [];
+        this.gerencias = this.gerencias || [];
+        this.audiencias = this.audiencias || [];
+        this.terminos = this.terminos || [];
+    }
+    
     console.log('Data loaded:', {
       expedientes: this.expedientes.length,
       usuarios: this.usuarios.length,
       gerencias: this.gerencias.length
     });
+
     this.updateStats();
-    this.initCharts();
+    
+    // Retardo leve para asegurar que el DOM (canvas) esté listo
+    setTimeout(() => {
+        this.initCharts();
+    }, 100);
+    
     this.setupFilters();
     console.log('Dashboard Module initialized successfully');
   }
 
   // ==================== DATA LOADING ====================
   loadData() {
-    let storedExpedientes = JSON.parse(localStorage.getItem('expedientesData'));
+    // 1. Expedientes
+    try {
+        this.expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+        if (this.expedientes.length === 0) {
+             this.expedientes = this.getSampleExpedientes();
+             localStorage.setItem('expedientesData', JSON.stringify(this.expedientes));
+        }
+    } catch(e) { this.expedientes = []; }
 
-    if (!storedExpedientes || storedExpedientes.length === 0) {
-        this.expedientes = this.getSampleExpedientes();
-        localStorage.setItem('expedientesData', JSON.stringify(this.expedientes));
-    } else {
-        this.expedientes = storedExpedientes;
-    }
-    
-    this.usuarios = JSON.parse(localStorage.getItem('usuarios')) || this.getSampleUsuarios();
+    // 2. Usuarios
+    try { 
+        this.usuarios = JSON.parse(localStorage.getItem('usuarios')) || this.getSampleUsuarios(); 
+    } catch(e) { this.usuarios = []; }
 
-    this.gerencias = JSON.parse(localStorage.getItem('gerencias')) || this.getSampleGerencias();
+    // 3. Gerencias
+    try { 
+        this.gerencias = JSON.parse(localStorage.getItem('gerencias')) || this.getSampleGerencias(); 
+    } catch(e) { this.gerencias = []; }
 
-    // Load audiencias
-    this.audiencias = JSON.parse(localStorage.getItem('audiencias')) || this.getSampleAudiencias();
-    
-    // Load terminos
-    this.terminos = JSON.parse(localStorage.getItem('terminos')) || this.getSampleTerminos();
+    // 4. Audiencias
+    try { 
+        this.audiencias = JSON.parse(localStorage.getItem('audiencias')) || this.getSampleAudiencias(); 
+    } catch(e) { this.audiencias = []; }
+
+    // 5. Términos
+    try { 
+        this.terminos = JSON.parse(localStorage.getItem('terminos')) || this.getSampleTerminos(); 
+    } catch(e) { this.terminos = []; }
   }
 
+  // --- DATOS DE EJEMPLO ---
   getSampleExpedientes() {
     return [
-      // Gerencia 1: Civil, Mercantil, Fiscal y Administrativo (15 expedientes)
       { id: 1, numero: 'EXP-0001', descripcion: 'Conflicto contractual', materia: 'Civil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-15' },
       { id: 2, numero: 'EXP-0002', descripcion: 'Revisión normativa', materia: 'Administrativo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Martínez', gerenciaId: 1, ultimaActividad: '2025-01-14' },
-      { id: 4, numero: 'EXP-0004', descripcion: 'Fraude fiscal', materia: 'Fiscal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-12' },
-      { id: 7, numero: 'EXP-0007', descripcion: 'Litigio mercantil', materia: 'Mercantil', prioridad: 'Media', estado: 'Activo', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-09' },
-      { id: 9, numero: 'EXP-0009', descripcion: 'Juicio ejecutivo mercantil', materia: 'Mercantil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-08' },
-      { id: 10, numero: 'EXP-0010', descripcion: 'Recurso de revocación fiscal', materia: 'Fiscal', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-07' },
-      { id: 11, numero: 'EXP-0011', descripcion: 'Demanda civil divorcio', materia: 'Civil', prioridad: 'Baja', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-06' },
-      { id: 12, numero: 'EXP-0012', descripcion: 'Nulidad de contrato', materia: 'Civil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Martínez', gerenciaId: 1, ultimaActividad: '2025-01-05' },
-      { id: 13, numero: 'EXP-0013', descripcion: 'Cobro de pesos y costas', materia: 'Mercantil', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-04' },
-      { id: 14, numero: 'EXP-0014', descripcion: 'Juicio contencioso administrativo', materia: 'Administrativo', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-03' },
-      { id: 15, numero: 'EXP-0015', descripcion: 'Recurso de inconformidad', materia: 'Administrativo', prioridad: 'Media', estado: 'Concluido', abogado: 'Lic. Martínez', gerenciaId: 1, ultimaActividad: '2024-12-20' },
-      { id: 16, numero: 'EXP-0016', descripcion: 'Dictamen fiscal SAT', materia: 'Fiscal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-16' },
-      { id: 17, numero: 'EXP-0017', descripcion: 'Prescripción adquisitiva', materia: 'Civil', prioridad: 'Media', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-02' },
-      { id: 18, numero: 'EXP-0018', descripcion: 'Quiebra mercantil', materia: 'Mercantil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2024-12-28' },
-      { id: 19, numero: 'EXP-0019', descripcion: 'Devolución de impuestos', materia: 'Fiscal', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Martínez', gerenciaId: 1, ultimaActividad: '2024-12-15' },
-
-      // Gerencia 2: Laboral y Penal (12 expedientes)
       { id: 3, numero: 'EXP-0003', descripcion: 'Demanda laboral', materia: 'Laboral', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-13' },
+      { id: 4, numero: 'EXP-0004', descripcion: 'Fraude fiscal', materia: 'Fiscal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-12' },
       { id: 5, numero: 'EXP-0005', descripcion: 'Procedimiento penal', materia: 'Penal', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-11' },
-      { id: 20, numero: 'EXP-0020', descripcion: 'Despido injustificado', materia: 'Laboral', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-14' },
-      { id: 21, numero: 'EXP-0021', descripcion: 'Defensa penal robo', materia: 'Penal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-13' },
-      { id: 22, numero: 'EXP-0022', descripcion: 'Horas extras no pagadas', materia: 'Laboral', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-10' },
-      { id: 23, numero: 'EXP-0023', descripcion: 'Proceso penal fraude', materia: 'Penal', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-09' },
-      { id: 24, numero: 'EXP-0024', descripcion: 'Indemnización laboral', materia: 'Laboral', prioridad: 'Media', estado: 'Activo', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-08' },
-      { id: 25, numero: 'EXP-0025', descripcion: 'Defensa penal lesiones', materia: 'Penal', prioridad: 'Media', estado: 'Activo', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-07' },
-      { id: 26, numero: 'EXP-0026', descripcion: 'Reinstalación laboral', materia: 'Laboral', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-06' },
-      { id: 27, numero: 'EXP-0027', descripcion: 'Amparo en penal', materia: 'Penal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-15' },
-      { id: 28, numero: 'EXP-0028', descripcion: 'Acoso laboral', materia: 'Laboral', prioridad: 'Alta', estado: 'En Revisión', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-05' },
-      { id: 29, numero: 'EXP-0029', descripcion: 'Delito fiscal penal', materia: 'Penal', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-04' },
-
-      // Gerencia 3: Transparencia y Amparo (8 expedientes)
-      { id: 6, numero: 'EXP-0006', descripcion: 'Amparo constitucional', materia: 'Amparo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-10' },
-      { id: 8, numero: 'EXP-0008', descripcion: 'Solicitud transparencia', materia: 'Transparencia', prioridad: 'Baja', estado: 'Concluido', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2024-12-28' },
-      { id: 30, numero: 'EXP-0030', descripcion: 'Amparo indirecto', materia: 'Amparo', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-12' },
-      { id: 31, numero: 'EXP-0031', descripcion: 'Recurso de revisión INAI', materia: 'Transparencia', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-11' },
-      { id: 32, numero: 'EXP-0032', descripcion: 'Amparo directo', materia: 'Amparo', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-09' },
-      { id: 33, numero: 'EXP-0033', descripcion: 'Acceso a la información', materia: 'Transparencia', prioridad: 'Media', estado: 'Activo', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-08' },
-      { id: 34, numero: 'EXP-0034', descripcion: 'Amparo adhesivo', materia: 'Amparo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-07' },
-      { id: 35, numero: 'EXP-0035', descripcion: 'Protección de datos personales', materia: 'Transparencia', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-06' }
+      { id: 6, numero: 'EXP-0006', descripcion: 'Amparo constitucional', materia: 'Amparo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-10' }
     ];
   }
 
@@ -130,44 +140,18 @@ export class DashboardModule {
 
   getSampleAudiencias() {
     return [
-      { id: 1, fecha: '2024-09-15', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 2, fecha: '2024-09-20', estado: 'Desahogada', gerenciaId: 2 },
-      { id: 3, fecha: '2024-10-05', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 4, fecha: '2024-10-12', estado: 'Pendiente', gerenciaId: 3 },
-      { id: 5, fecha: '2024-10-18', estado: 'Desahogada', gerenciaId: 2 },
-      { id: 6, fecha: '2024-10-25', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 7, fecha: '2024-11-02', estado: 'Desahogada', gerenciaId: 3 },
-      { id: 8, fecha: '2024-11-08', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 9, fecha: '2024-11-15', estado: 'Desahogada', gerenciaId: 2 },
-      { id: 10, fecha: '2024-11-22', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 11, fecha: '2024-12-03', estado: 'Desahogada', gerenciaId: 3 },
-      { id: 12, fecha: '2024-12-10', estado: 'Desahogada', gerenciaId: 2 },
-      { id: 13, fecha: '2024-12-18', estado: 'Desahogada', gerenciaId: 1 },
-      { id: 14, fecha: '2025-01-05', estado: 'Desahogada', gerenciaId: 2 },
-      { id: 15, fecha: '2025-01-12', estado: 'Desahogada', gerenciaId: 3 },
-      { id: 16, fecha: '2025-01-20', estado: 'Desahogada', gerenciaId: 1 }
+      { id: 1, fecha: '2024-09-15', estado: 'Desahogada', gerenciaId: 1, usuarioId: 1 },
+      { id: 2, fecha: '2024-10-20', estado: 'Desahogada', gerenciaId: 2, usuarioId: 3 },
+      { id: 3, fecha: '2024-11-05', estado: 'Desahogada', gerenciaId: 1, usuarioId: 2 },
+      { id: 4, fecha: '2024-12-12', estado: 'Pendiente', gerenciaId: 3, usuarioId: 5 }
     ];
   }
 
   getSampleTerminos() {
     return [
-      { id: 1, fecha: '2024-09-10', estado: 'Concluido', gerenciaId: 1 },
-      { id: 2, fecha: '2024-09-18', estado: 'Concluido', gerenciaId: 2 },
-      { id: 3, fecha: '2024-09-25', estado: 'Pendiente', gerenciaId: 3 },
-      { id: 4, fecha: '2024-10-08', estado: 'Concluido', gerenciaId: 1 },
-      { id: 5, fecha: '2024-10-15', estado: 'Concluido', gerenciaId: 2 },
-      { id: 6, fecha: '2024-10-22', estado: 'Concluido', gerenciaId: 3 },
-      { id: 7, fecha: '2024-10-28', estado: 'Concluido', gerenciaId: 1 },
-      { id: 8, fecha: '2024-11-05', estado: 'Concluido', gerenciaId: 2 },
-      { id: 9, fecha: '2024-11-12', estado: 'Concluido', gerenciaId: 1 },
-      { id: 10, fecha: '2024-11-19', estado: 'Concluido', gerenciaId: 3 },
-      { id: 11, fecha: '2024-11-26', estado: 'Concluido', gerenciaId: 2 },
-      { id: 12, fecha: '2024-12-05', estado: 'Concluido', gerenciaId: 1 },
-      { id: 13, fecha: '2024-12-12', estado: 'Concluido', gerenciaId: 3 },
-      { id: 14, fecha: '2024-12-20', estado: 'Concluido', gerenciaId: 2 },
-      { id: 15, fecha: '2025-01-08', estado: 'Concluido', gerenciaId: 1 },
-      { id: 16, fecha: '2025-01-15', estado: 'Concluido', gerenciaId: 2 },
-      { id: 17, fecha: '2025-01-22', estado: 'Concluido', gerenciaId: 3 }
+      { id: 1, fecha: '2024-09-10', estado: 'Concluido', gerenciaId: 1, usuarioId: 1 },
+      { id: 2, fecha: '2024-10-18', estado: 'Concluido', gerenciaId: 2, usuarioId: 4 },
+      { id: 3, fecha: '2024-11-25', estado: 'Pendiente', gerenciaId: 3, usuarioId: 5 }
     ];
   }
 
@@ -178,32 +162,37 @@ export class DashboardModule {
     const usuariosActivos = this.usuarios.filter(u => u.activo).length;
     const totalGerencias = this.gerencias.length;
 
-    document.getElementById('stat-total-expedientes').textContent = totalExpedientes;
-    document.getElementById('stat-activos').textContent = expedientesActivos;
-    document.getElementById('stat-usuarios').textContent = usuariosActivos;
-    document.getElementById('stat-gerencias').textContent = totalGerencias;
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = val;
+    };
+
+    setVal('stat-total-expedientes', totalExpedientes);
+    setVal('stat-activos', expedientesActivos);
+    setVal('stat-usuarios', usuariosActivos);
+    setVal('stat-gerencias', totalGerencias);
   }
 
   // ==================== CHART INITIALIZATION ====================
   initCharts() {
     this.createChartGerencias();
-    this.createChartUsuarios();
-    this.createChartTrabajoCompletado();
+    // Inicializar gráficas con los filtros actuales (por defecto null / 'expedientes')
+    this.createChartUsuarios(this.currentFilters.gerenciaId, this.currentFilters.workloadMetric);
+    this.createChartTrabajoCompletado(this.currentFilters.gerenciaId);
     this.createChartEstados();
   }
 
-  // Chart 1: Estados de Expedientes (Doughnut Chart)
+  // 1. GRÁFICA DE ESTADOS (Doughnut)
   createChartEstados() {
     const ctx = document.getElementById('chartEstados');
     if (!ctx) return;
 
     const estados = {};
-    this.expedientes.forEach(e => {
-      estados[e.estado] = (estados[e.estado] || 0) + 1;
-    });
-
+    this.expedientes.forEach(e => { estados[e.estado] = (estados[e.estado] || 0) + 1; });
     const labels = Object.keys(estados);
     const data = Object.values(estados);
+
+    if(this.charts.estados) this.charts.estados.destroy();
 
     this.charts.estados = new Chart(ctx, {
       type: 'doughnut',
@@ -219,55 +208,70 @@ export class DashboardModule {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              padding: 15,
-              font: {
-                size: 12
-              }
-            }
-          }
-        }
+        plugins: { legend: { position: 'right', labels: { padding: 15, font: { size: 12 } } } }
       }
     });
   }
 
-  // Chart 3: Carga de Trabajo por Usuario (Horizontal Bar Chart)
-  createChartUsuarios(gerenciaId = null) {
+  // 2. GRÁFICA CARGA DE TRABAJO (Bar Horizontal) - Con soporte de Métricas
+  createChartUsuarios(gerenciaId = null, metric = 'expedientes') {
     const ctx = document.getElementById('chartUsuarios');
     if (!ctx) return;
 
-    // Destroy existing chart if exists
     if (this.charts.usuarios) {
       this.charts.usuarios.destroy();
     }
 
+    // Filtrar usuarios
     let usuariosFiltrados = this.usuarios.filter(u => u.activo);
     if (gerenciaId) {
       usuariosFiltrados = usuariosFiltrados.filter(u => u.gerenciaId == gerenciaId);
     }
 
-    const data = usuariosFiltrados.map(usuario => {
-      const count = this.expedientes.filter(e => {
-        const nombreAbogado = e.abogado || '';
-        return nombreAbogado.includes(usuario.nombre.split(' ')[1]) || 
-               nombreAbogado.includes(usuario.nombre.split(' ')[2]);
-      }).length;
-      return { nombre: usuario.nombre, count };
-    });
+    // Configurar datos según métrica
+    let labelChart = '';
+    let barColor = '';
+    let dataCounts = [];
+
+    if (metric === 'audiencias') {
+        labelChart = 'Audiencias Asignadas';
+        barColor = '#3B82F6'; // Azul
+        dataCounts = usuariosFiltrados.map(u => {
+            // Nota: Esto asume que en tus datos de audiencia hay un campo usuarioId o similar
+            // Si no lo tienes, puedes usar la lógica de coincidencia de nombres como en expedientes
+            return this.audiencias.filter(a => String(a.usuarioId) === String(u.id)).length; 
+        });
+    } else if (metric === 'terminos') {
+        labelChart = 'Términos Asignados';
+        barColor = '#10B981'; // Verde
+        dataCounts = usuariosFiltrados.map(u => {
+            return this.terminos.filter(t => String(t.usuarioId) === String(u.id)).length;
+        });
+    } else {
+        // Default: Expedientes
+        labelChart = 'Expedientes Asignados';
+        barColor = this.gobColors.oro;
+        dataCounts = usuariosFiltrados.map(u => {
+            return this.expedientes.filter(e => {
+                const nombreAbogado = e.abogado || '';
+                const parts = u.nombre.split(' ');
+                // Coincidencia simple por nombre
+                return parts.some(p => p.length > 3 && nombreAbogado.includes(p));
+            }).length;
+        });
+    }
 
     this.charts.usuarios = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: data.map(d => d.nombre),
+        labels: usuariosFiltrados.map(u => u.nombre),
         datasets: [{
-          label: 'Expedientes Asignados',
-          data: data.map(d => d.count),
-          backgroundColor: this.gobColors.oro,
-          borderColor: this.gobColors.oro,
-          borderWidth: 1
+          label: labelChart,
+          data: dataCounts,
+          backgroundColor: barColor,
+          borderColor: barColor,
+          borderWidth: 1,
+          borderRadius: 4
         }]
       },
       options: {
@@ -275,191 +279,110 @@ export class DashboardModule {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false
+          legend: { display: false },
+          tooltip: {
+              callbacks: {
+                  label: function(context) {
+                      return `${context.dataset.label}: ${context.raw}`;
+                  }
+              }
           }
         },
         scales: {
-          x: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
+          x: { 
+            beginAtZero: true, 
+            ticks: { stepSize: 1 },
+            grid: { display: false }
+          },
+          y: { grid: { display: false } }
         }
       }
     });
   }
 
-  // Chart 3: Trabajo Completado por Gerencia (Multi-line with colored points)
+  // 3. GRÁFICA TRABAJO COMPLETADO (Line)
   createChartTrabajoCompletado(gerenciaId = null) {
     const ctx = document.getElementById('chartTrabajoCompletado');
     if (!ctx) return;
+    if (this.charts.trabajoCompletado) this.charts.trabajoCompletado.destroy();
 
-    // Destroy existing chart if exists
-    if (this.charts.trabajoCompletado) {
-      this.charts.trabajoCompletado.destroy();
-    }
-
-    // Get last 6 months
     const months = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      months.push({
-        key,
-        label: d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
-      });
+      months.push({ key, label: d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) });
     }
 
-    // Filter gerencias if specific one is selected
     let gerenciasFiltradas = this.gerencias;
-    if (gerenciaId) {
-      gerenciasFiltradas = this.gerencias.filter(g => g.id == gerenciaId);
-    }
+    if (gerenciaId) gerenciasFiltradas = this.gerencias.filter(g => g.id == gerenciaId);
 
-    // Prepare datasets for each gerencia
     const datasets = [];
-    const gerenciaColors = [
-      { line: '#9D2449', point: '#9D2449' },  // guinda
-      { line: '#B38E5D', point: '#B38E5D' },  // oro
-      { line: '#13322B', point: '#13322B' }   // verde
-    ];
+    const gerenciaColors = [{ line: '#9D2449' }, { line: '#B38E5D' }, { line: '#13322B' }];
 
     gerenciasFiltradas.forEach((gerencia, index) => {
-      // Count Audiencias Desahogadas per month
       const audienciasData = months.map(month => {
         return this.audiencias.filter(a => {
-          if (a.gerenciaId !== gerencia.id || a.estado !== 'Desahogada') return false;
-          const fechaKey = a.fecha.substring(0, 7); // YYYY-MM
+          if (a.gerenciaId != gerencia.id || a.estado !== 'Desahogada') return false;
+          const fechaKey = a.fecha.substring(0, 7); 
           return fechaKey === month.key;
         }).length;
       });
 
-      // Count Términos Concluidos per month
       const terminosData = months.map(month => {
         return this.terminos.filter(t => {
-          if (t.gerenciaId !== gerencia.id || t.estado !== 'Concluido') return false;
-          const fechaKey = t.fecha.substring(0, 7); // YYYY-MM
+          if (t.gerenciaId != gerencia.id || t.estado !== 'Concluido') return false;
+          const fechaKey = t.fecha.substring(0, 7); 
           return fechaKey === month.key;
         }).length;
       });
 
-      const color = gerenciaColors[index] || gerenciaColors[0];
+      const color = gerenciaColors[index % gerenciaColors.length];
 
-      // Add Audiencias dataset
       datasets.push({
-        label: `${this.truncateLabel(gerencia.nombre, 25)} - Audiencias`,
+        label: `${this.truncateLabel(gerencia.nombre, 15)} - Aud.`,
         data: audienciasData,
         borderColor: color.line,
         backgroundColor: 'transparent',
-        pointBackgroundColor: '#3B82F6', // Blue for Audiencias
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        tension: 0.3,
-        borderWidth: 2
+        borderWidth: 2,
+        tension: 0.3
       });
 
-      // Add Términos dataset
       datasets.push({
-        label: `${this.truncateLabel(gerencia.nombre, 25)} - Términos`,
+        label: `${this.truncateLabel(gerencia.nombre, 15)} - Térm.`,
         data: terminosData,
         borderColor: color.line,
         backgroundColor: 'transparent',
-        pointBackgroundColor: '#10B981', // Green for Términos
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        tension: 0.3,
         borderWidth: 2,
-        borderDash: [5, 5] // Dashed line for Términos
+        borderDash: [5, 5],
+        tension: 0.3
       });
     });
 
     this.charts.trabajoCompletado = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: months.map(m => m.label),
-        datasets: datasets
-      },
+      data: { labels: months.map(m => m.label), datasets: datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              padding: 15,
-              font: {
-                size: 11
-              },
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
-          },
-          tooltip: {
-            callbacks: {
-              title: (items) => {
-                return items[0].label;
-              },
-              label: (context) => {
-                const label = context.dataset.label || '';
-                const value = context.parsed.y;
-                return `${label}: ${value}`;
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            },
-            title: {
-              display: true,
-              text: 'Cantidad'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Mes'
-            }
-          }
-        }
+        plugins: { legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10, font: { size: 9 } } } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
       }
     });
   }
 
-  // Chart 4: Distribución por Gerencia (Doughnut Chart)
+  // 4. GRÁFICA GERENCIAS (Doughnut)
   createChartGerencias() {
     const ctx = document.getElementById('chartGerencias');
-    if (!ctx) {
-      console.error('Canvas element chartGerencias not found');
-      return;
-    }
+    if (!ctx) return;
 
-    // Count expedientes by gerencia
     const gerenciaData = this.gerencias.map(gerencia => {
       const count = this.expedientes.filter(e => e.gerenciaId == gerencia.id).length;
-      return {
-        nombre: gerencia.nombre,
-        count: count
-      };
+      return { nombre: gerencia.nombre, count: count };
     });
-    // Sort by count descending
     const sorted = gerenciaData.sort((a, b) => b.count - a.count);
 
-    console.log('Gerencia data for chart:', sorted);
+    if(this.charts.gerencias) this.charts.gerencias.destroy();
 
     this.charts.gerencias = new Chart(ctx, {
       type: 'doughnut',
@@ -467,12 +390,7 @@ export class DashboardModule {
         labels: sorted.map(g => g.nombre),
         datasets: [{
           data: sorted.map(g => g.count),
-          backgroundColor: [
-            this.gobColors.guinda,
-            this.gobColors.oro,
-            this.gobColors.verde,
-            this.gobColors.gris
-          ],
+          backgroundColor: [ this.gobColors.guinda, this.gobColors.oro, this.gobColors.verde, this.gobColors.gris ],
           borderWidth: 2,
           borderColor: '#fff'
         }]
@@ -480,38 +398,17 @@ export class DashboardModule {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              padding: 15,
-              font: {
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.label || '';
-                const value = context.parsed;
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${value} expedientes (${percentage}%)`;
-              }
-            }
-          }
-        }
+        plugins: { legend: { position: 'right', labels: { padding: 15, font: { size: 12 } } } }
       }
     });
   }
 
   // ==================== FILTERS ====================
   setupFilters() {
-    // Unified filter for both Carga de Trabajo and Trabajo Completado
+    // 1. Filtro General de Gerencia (Afecta a todo el dashboard)
     const filterGerenciaUnificado = document.getElementById('filterGerenciaUnificado');
     if (filterGerenciaUnificado) {
-      // Populate gerencias dropdown
+      filterGerenciaUnificado.innerHTML = '<option value="">📊 Todas las gerencias</option>';
       this.gerencias.forEach(gerencia => {
         const option = document.createElement('option');
         option.value = gerencia.id;
@@ -519,13 +416,22 @@ export class DashboardModule {
         filterGerenciaUnificado.appendChild(option);
       });
 
-      // Listen for changes and update both charts
       filterGerenciaUnificado.addEventListener('change', (e) => {
-        const gerenciaId = e.target.value;
-        // Update both charts simultaneously
-        this.createChartUsuarios(gerenciaId || null);
-        this.createChartTrabajoCompletado(gerenciaId || null);
+        this.currentFilters.gerenciaId = e.target.value || null;
+        // Actualizar gráficas dependientes
+        this.createChartUsuarios(this.currentFilters.gerenciaId, this.currentFilters.workloadMetric);
+        this.createChartTrabajoCompletado(this.currentFilters.gerenciaId);
       });
+    }
+
+    // 2. Filtro Específico para Carga de Trabajo (Expedientes / Audiencias / Términos)
+    const filterMetric = document.getElementById('filterCargaTrabajoMetric');
+    if (filterMetric) {
+        filterMetric.addEventListener('change', (e) => {
+            this.currentFilters.workloadMetric = e.target.value;
+            // Solo actualizamos la gráfica de usuarios
+            this.createChartUsuarios(this.currentFilters.gerenciaId, this.currentFilters.workloadMetric);
+        });
     }
   }
 

@@ -1,22 +1,26 @@
 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-  <div>
-      <h2 class="text-2xl font-bold text-gob-guinda font-headings" id="detalle-titulo">
-          <i class="fas fa-folder-open text-gob-oro mr-2"></i> Cargando...
-      </h2>
-      <p class="text-sm text-gray-500 mt-1">Detalle general del asunto jurídico y seguimiento.</p>
-  </div>
+    <div>
+        <h2 class="text-2xl font-bold text-gob-guinda font-headings" id="detalle-titulo">
+            <i class="fas fa-folder-open text-gob-oro mr-2"></i> Cargando...
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">Detalle general del asunto jurídico y seguimiento.</p>
+    </div>
+    
+    <div class="flex flex-wrap gap-2">
+        <button onclick="window.history.back()" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all">
+            <i class="fas fa-arrow-left mr-1"></i> Volver
+        </button>
+        
+        <button id="btn-observaciones-expediente" class="px-4 py-2 text-sm font-bold text-blue-600 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 shadow-sm transition-all">
+            <i class="fas fa-comment-dots mr-1"></i> Observaciones
+        </button>
   
-  <div class="flex flex-wrap gap-2">
-      <button onclick="window.history.back()" class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all">
-          <i class="fas fa-arrow-left mr-1"></i> Volver
-      </button>
-      
-      <button id="btn-editar-expediente" class="px-4 py-2 text-sm font-bold text-gob-gris bg-white border border-gray-300 rounded-lg hover:border-gob-oro hover:text-gob-oro shadow-sm transition-all">
-          <i class="fas fa-edit mr-1"></i> Editar
-      </button>
-      
-      <button id="btn-cambiar-estado-expediente" class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md transition-all">
-          <i class="fas fa-exchange-alt mr-1"></i> Cambiar Estado
-      </button>
+        <button id="btn-editar-expediente" class="px-4 py-2 text-sm font-bold text-gob-gris bg-white border border-gray-300 rounded-lg hover:border-gob-oro hover:text-gob-oro shadow-sm transition-all">
+            <i class="fas fa-edit mr-1"></i> Editar
+        </button>
+        
+        <button id="btn-cambiar-estado-expediente" class="px-4 py-2 text-sm font-bold text-white bg-gob-guinda rounded-lg hover:bg-gob-guindaDark shadow-md transition-all">
+            <i class="fas fa-exchange-alt mr-1"></i> Cambiar Etapa procesal
+        </button>
+    </div>
   </div>
-</div>

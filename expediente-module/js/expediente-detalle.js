@@ -13,11 +13,15 @@ export class ExpedienteDetalleModule {
     this.loadData();
     if(!this.expediente){ this.renderError('Expediente no encontrado.'); return; }
     
+    // Renderizado inicial
     this.populateVista360();
+    
+    // Renderizado de módulos secundarios (con leve retardo para asegurar DOM)
     setTimeout(() => { 
-        this.renderTimeline()
+        this.renderTimeline();
         this.setupModals(); 
         this.setupDocumentsModule();
+        this.setupObservacionesModule(); // <--- Módulo de Observaciones
     }, 200);
   }
 
@@ -28,7 +32,11 @@ export class ExpedienteDetalleModule {
 
   loadData(){
     this.expediente = expedienteById(this.id);
+    
+    // Inicializar arrays si no existen para evitar errores
     if(!this.expediente.documentos) this.expediente.documentos = [];
+    if(!this.expediente.observaciones) this.expediente.observaciones = [];
+    
     if(!this.expediente.actividad) {
         this.expediente.actividad = [
             { 
@@ -41,29 +49,29 @@ export class ExpedienteDetalleModule {
     }
   }
 
+  // ==========================================
+  // VISTA 360 (DATOS GENERALES)
+  // ==========================================
   populateVista360() {
     const e = this.expediente;
     const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text || '—'; };
 
-    // 1. Datos Generales
     setText('v360-numero', e.numero);
     setText('v360-materia', e.materia);
     setText('v360-gerencia', e.gerencia);
     setText('v360-abogado', e.abogado);
-    
-    // 2. Datos que antes faltaban (Asegúrate de haber guardado un NUEVO expediente para verlos)
     setText('v360-sede', e.sede);
     setText('v360-partes', e.partes);
     setText('v360-organo', e.organo);
     
-    // 3. Prioridad
+    // Prioridad con color
     const elPrio = document.getElementById('v360-prioridad');
     if(elPrio) {
         elPrio.textContent = e.prioridad || 'Media';
         elPrio.className = `text-sm font-bold ${e.prioridad === 'Alta' ? 'text-red-700' : (e.prioridad === 'Baja' ? 'text-gray-600' : 'text-orange-600')}`;
     }
 
-    // 4. Estado (TRAMITE, LAUDO, FIRME)
+    // Estado con Badge
     const elEstado = document.getElementById('v360-estado');
     if(elEstado) {
         const st = (e.estado || 'TRAMITE').toUpperCase();
@@ -77,7 +85,7 @@ export class ExpedienteDetalleModule {
         elEstado.className = `px-3 py-1 rounded-full text-sm font-bold border uppercase tracking-wide font-headings ${colorClass}`;
     }
 
-    // 5. Descripción
+    // Descripción
     const descContainer = document.getElementById('v360-descripcion-container');
     const descText = document.getElementById('v360-descripcion');
     if(e.descripcion && descContainer) {
@@ -85,7 +93,6 @@ export class ExpedienteDetalleModule {
         descContainer.classList.remove('hidden');
     }
 
-    // 6. Actualizar Header (Quitar "Cargando...")
     this.actualizarHeader();
   }
 
@@ -96,6 +103,9 @@ export class ExpedienteDetalleModule {
     }
   }
 
+  // ==========================================
+  // MODALES GENERALES (EDICIÓN / ESTADO)
+  // ==========================================
   setupModals() {
       this.setupEditModal();
       this.setupEstadoModal();
@@ -177,20 +187,11 @@ export class ExpedienteDetalleModule {
         const display = document.getElementById('estado-actual-display');
         if(display) display.textContent = this.expediente.estado;
         
-        // Limpiar/Reiniciar Select de Estado
         const select = document.getElementById('nuevo-estado-select');
-        const razonInput = document.getElementById('razon-cambio'); // Referencia al input
+        const razonInput = document.getElementById('razon-cambio');
         
-        if(select) {
-           select.innerHTML = `
-              <option value="">Seleccione...</option>
-              <option value="TRAMITE">TRAMITE</option>
-              <option value="LAUDO">LAUDO</option>
-              <option value="FIRME">FIRME</option>
-           `;
-        }
-        // Limpiar el campo de razón al abrir el modal
-        if(razonInput) razonInput.value = '';
+        if(select) select.value = ""; // Resetear selección
+        if(razonInput) razonInput.value = ''; // Limpiar razón
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -208,17 +209,11 @@ export class ExpedienteDetalleModule {
         btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
         newBtn.onclick = () => {
             const nuevo = document.getElementById('nuevo-estado-select').value;
-            
-            // --- AQUÍ ESTABA EL ERROR: AGREGA ESTA LÍNEA ---
             const razon = document.getElementById('razon-cambio').value; 
-            // -----------------------------------------------
 
             if(nuevo) {
                 updateExpediente(this.id, { estado: nuevo });
-                
-                // Ahora 'razon' ya existe y no dará error
                 this.registrarActividad('Cambio de Estado', `Estado cambiado a ${nuevo}. ${razon ? 'Motivo: '+razon : ''}`, 'status');
-                
                 this.loadData();
                 this.populateVista360();
                 close();
@@ -227,19 +222,22 @@ export class ExpedienteDetalleModule {
             }
         };
     }
-}
- setupDocumentsModule() {
+  }
+
+  // ==========================================
+  // MÓDULO DE DOCUMENTOS
+  // ==========================================
+  setupDocumentsModule() {
     this.renderDocumentsTable();
     this.setupUploadModal();
     this.setupSearch();
   }
 
- renderDocumentsTable(filterText = '') {
+  renderDocumentsTable(filterText = '') {
       const tbody = document.getElementById('tabla-documentos-body');
       if(!tbody) return;
 
       tbody.innerHTML = '';
-      
       const docs = this.expediente.documentos || [];
       
       const filteredDocs = docs.filter(d => {
@@ -256,7 +254,7 @@ export class ExpedienteDetalleModule {
 
       filteredDocs.forEach((doc, index) => {
           const row = document.createElement('tr');
-          row.className = 'bg-white border-b hover:bg-gray-50 transition-colors group'; // 'group' para efectos hover
+          row.className = 'bg-white border-b hover:bg-gray-50 transition-colors group';
           
           let iconClass = 'fa-file-alt text-gray-400';
           if(doc.nombre.endsWith('.pdf')) iconClass = 'fa-file-pdf text-red-500';
@@ -277,141 +275,70 @@ export class ExpedienteDetalleModule {
                 </div>
             </td>
             <td class="px-6 py-4">
-                <p class="text-gray-600 italic text-xs max-w-xs truncate" title="${doc.comentario}">
-                    ${doc.comentario}
-                </p>
+                <p class="text-gray-600 italic text-xs max-w-xs truncate" title="${doc.comentario}">${doc.comentario}</p>
             </td>
-            <td class="px-6 py-4 text-gray-500 text-xs font-mono">
-                ${doc.fecha}
-            </td>
+            <td class="px-6 py-4 text-gray-500 text-xs font-mono">${doc.fecha}</td>
             <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                    <button class="btn-preview-doc w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm" 
-                            title="Ver detalles" data-index="${index}">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    
-                    <button class="btn-download-doc w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm" 
-                            title="Descargar documento" data-index="${index}">
-                        <i class="fas fa-download"></i>
-                    </button>
-                    
-                    <button class="btn-delete-doc w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" 
-                            title="Eliminar documento" data-index="${index}">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <button class="btn-preview-doc w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Ver detalles" data-index="${index}"><i class="fas fa-eye"></i></button>
+                    <button class="btn-download-doc w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Descargar documento" data-index="${index}"><i class="fas fa-download"></i></button>
+                    <button class="btn-delete-doc w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Eliminar documento" data-index="${index}"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </td>
           `;
           tbody.appendChild(row);
       });
 
-      // Asignar listeners a los nuevos botones
       this.asignarListenersDocumentos();
   }
 
-asignarListenersDocumentos() {
-      // Listener para PREVISUALIZAR
-      document.querySelectorAll('.btn-preview-doc').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-              const idx = e.currentTarget.getAttribute('data-index');
-              this.previewDocument(idx);
-          });
-      });
-
-      // Listener para DESCARGAR
-      document.querySelectorAll('.btn-download-doc').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-              const idx = e.currentTarget.getAttribute('data-index');
-              this.downloadDocument(idx);
-          });
-      });
-
-      // Listener para ELIMINAR
-      document.querySelectorAll('.btn-delete-doc').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-              const idx = e.currentTarget.getAttribute('data-index');
-              this.confirmDeleteDocument(idx);
-          });
-      });
+  asignarListenersDocumentos() {
+      document.querySelectorAll('.btn-preview-doc').forEach(btn => btn.addEventListener('click', (e) => this.previewDocument(e.currentTarget.getAttribute('data-index'))));
+      document.querySelectorAll('.btn-download-doc').forEach(btn => btn.addEventListener('click', (e) => this.downloadDocument(e.currentTarget.getAttribute('data-index'))));
+      document.querySelectorAll('.btn-delete-doc').forEach(btn => btn.addEventListener('click', (e) => this.confirmDeleteDocument(e.currentTarget.getAttribute('data-index'))));
   }
 
-  // ACCIÓN 1: Previsualizar (Modal Informativo Bonito)
   previewDocument(index) {
       const doc = this.expediente.documentos[index];
-      
       Swal.fire({
           title: `<span class="text-gob-guinda">${doc.nombre}</span>`,
-          html: `
-            <div class="text-left bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
-                <p><strong>Tipo:</strong> ${doc.tipo}</p>
-                <p><strong>Fecha:</strong> ${doc.fecha}</p>
-                <p class="mt-2"><strong>Comentario:</strong><br><span class="italic text-gray-600">${doc.comentario}</span></p>
-                <div class="mt-4 text-center text-xs text-gray-400">
-                    <i class="fas fa-eye mr-1"></i> Vista previa de metadatos
-                </div>
-            </div>
-          `,
+          html: `<div class="text-left bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm"><p><strong>Tipo:</strong> ${doc.tipo}</p><p><strong>Fecha:</strong> ${doc.fecha}</p><p class="mt-2"><strong>Comentario:</strong><br><span class="italic text-gray-600">${doc.comentario}</span></p></div>`,
           icon: 'info',
           confirmButtonText: 'Cerrar',
-          confirmButtonColor: '#545454' // Gris
+          confirmButtonColor: '#545454'
       });
   }
 
-  // ACCIÓN 2: Descargar (Toast Notification)
   downloadDocument(index) {
       const doc = this.expediente.documentos[index];
-      
-      // Simulación de descarga con Toast
       const Toast = Swal.mixin({
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
           timer: 3000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-          }
+          timerProgressBar: true
       });
-
-      Toast.fire({
-          icon: 'success',
-          title: 'Descarga iniciada',
-          text: `Bajando: ${doc.nombre}`
-      });
-      
-      // Aquí iría tu lógica real de window.open(url)
+      Toast.fire({ icon: 'success', title: 'Descarga iniciada', text: `Bajando: ${doc.nombre}` });
   }
 
-  // ACCIÓN 3: Confirmar Eliminación (SweetAlert2)
   confirmDeleteDocument(index) {
       const docName = this.expediente.documentos[index].nombre;
-
       Swal.fire({
           title: '¿Eliminar documento?',
           text: `Se eliminará permanentemente "${docName}".`,
           icon: 'warning',
           showCancelButton: true,
-          confirmButtonColor: '#9D2449', // Gob Guinda
-          cancelButtonColor: '#9ca3af',  // Gris
+          confirmButtonColor: '#9D2449',
+          cancelButtonColor: '#9ca3af',
           confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar',
-          reverseButtons: true
+          cancelButtonText: 'Cancelar'
       }).then((result) => {
           if (result.isConfirmed) {
-              this.deleteDocument(index); // Llamamos a la lógica real
-              
-              Swal.fire({
-                  title: '¡Eliminado!',
-                  text: 'El documento ha sido borrado.',
-                  icon: 'success',
-                  confirmButtonColor: '#B38E5D' // Gob Oro
-              });
+              this.deleteDocument(index);
+              Swal.fire({ title: '¡Eliminado!', text: 'El documento ha sido borrado.', icon: 'success', confirmButtonColor: '#B38E5D' });
           }
       });
   }
-
 
   setupUploadModal() {
       const modal = document.getElementById('modal-subir-documento');
@@ -419,12 +346,7 @@ asignarListenersDocumentos() {
       
       if(!modal) return;
 
-      const open = () => {
-          document.getElementById('form-subir-documento').reset();
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-      };
-      
+      const open = () => { document.getElementById('form-subir-documento').reset(); modal.classList.remove('hidden'); modal.classList.add('flex'); };
       const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
       if(btnOpen) btnOpen.onclick = open;
@@ -433,7 +355,6 @@ asignarListenersDocumentos() {
 
       const btnSave = document.getElementById('save-subir-documento');
       if(btnSave) {
-          // Reemplazar nodo para limpiar listeners viejos
           const newBtn = btnSave.cloneNode(true);
           btnSave.parentNode.replaceChild(newBtn, btnSave);
           
@@ -449,21 +370,14 @@ asignarListenersDocumentos() {
               const file = fileInput.files[0];
               const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit', hour:'2-digit', minute:'2-digit'});
 
-              const newDoc = {
-                  nombre: file.name,
-                  tipo: tipo,
-                  comentario: comentario,
-                  fecha: fecha
-              };
+              const newDoc = { nombre: file.name, tipo: tipo, comentario: comentario, fecha: fecha };
 
-              // Guardar en array y actualizar localStorage
               if(!this.expediente.documentos) this.expediente.documentos = [];
               this.expediente.documentos.push(newDoc);
               
               updateExpediente(this.id, { documentos: this.expediente.documentos });
-
               this.registrarActividad('Documento Adjuntado', `Se subió el documento "${file.name}" (${tipo}).`, 'upload');
-              this.loadData(); // Recargar datos locales
+              this.loadData(); 
               this.renderDocumentsTable();
               close();
           };
@@ -472,11 +386,7 @@ asignarListenersDocumentos() {
 
   setupSearch() {
       const input = document.getElementById('search-documentos');
-      if(input) {
-          input.addEventListener('input', (e) => {
-              this.renderDocumentsTable(e.target.value);
-          });
-      }
+      if(input) input.addEventListener('input', (e) => this.renderDocumentsTable(e.target.value));
   }
 
   deleteDocument(index) {      
@@ -487,7 +397,93 @@ asignarListenersDocumentos() {
       this.loadData();
       this.renderDocumentsTable();
   }
-registrarActividad(titulo, descripcion, tipo) {
+
+  // ==========================================
+  // MÓDULO DE OBSERVACIONES (NUEVO)
+  // ==========================================
+  setupObservacionesModule() {
+      const modal = document.getElementById('modal-observaciones-expediente');
+      const btnOpen = document.getElementById('btn-observaciones-expediente');
+      const btnClose = document.getElementById('close-observaciones-expediente');
+      const btnSave = document.getElementById('btn-guardar-observacion');
+
+      if(!modal || !btnOpen) return;
+
+      btnOpen.onclick = () => {
+          this.renderObservacionesList();
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          const container = document.getElementById('lista-observaciones-container');
+          if(container) container.scrollTop = container.scrollHeight;
+      };
+
+      const closeObs = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+      if(btnClose) btnClose.onclick = closeObs;
+
+      if(btnSave) {
+          const newBtn = btnSave.cloneNode(true);
+          btnSave.parentNode.replaceChild(newBtn, btnSave);
+          
+          newBtn.onclick = () => {
+              const input = document.getElementById('texto-nueva-observacion');
+              const texto = input.value.trim();
+              if(!texto) return;
+
+              const nuevaObs = {
+                  fecha: new Date().toISOString(),
+                  texto: texto,
+                  usuario: 'Usuario Actual'
+              };
+
+              if(!this.expediente.observaciones) this.expediente.observaciones = [];
+              this.expediente.observaciones.push(nuevaObs);
+
+              updateExpediente(this.id, { observaciones: this.expediente.observaciones });
+              this.registrarActividad('Nota Agregada', 'Se agregó una nueva observación al expediente.', 'edit');
+
+              input.value = '';
+              this.renderObservacionesList();
+              
+              const container = document.getElementById('lista-observaciones-container');
+              setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+          };
+      }
+  }
+
+  renderObservacionesList() {
+      const container = document.getElementById('lista-observaciones-container');
+      if(!container) return;
+
+      const obsList = this.expediente.observaciones || [];
+      container.innerHTML = '';
+
+      if(obsList.length === 0) {
+          container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60"><i class="far fa-comment-dots text-4xl mb-2"></i><p class="text-sm italic">No hay observaciones registradas.</p></div>`;
+          return;
+      }
+
+      obsList.forEach(obs => {
+          const date = new Date(obs.fecha);
+          const fechaStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year:'numeric' });
+          const horaStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+          const item = document.createElement('div');
+          item.className = 'mb-4 bg-white p-3 rounded-lg border border-gray-200 shadow-sm';
+          item.innerHTML = `
+              <div class="flex justify-between items-start mb-2 border-b border-gray-100 pb-1">
+                  <span class="text-xs font-bold text-blue-600 uppercase">${obs.usuario || 'Usuario'}</span>
+                  <span class="text-[10px] text-gray-400">${fechaStr} ${horaStr}</span>
+              </div>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${obs.texto}</p>
+          `;
+          container.appendChild(item);
+      });
+  }
+
+  // ==========================================
+  // ACTIVIDAD / TIMELINE
+  // ==========================================
+  registrarActividad(titulo, descripcion, tipo) {
       const nuevaActividad = {
           fecha: new Date().toISOString(),
           titulo: titulo,
@@ -495,14 +491,9 @@ registrarActividad(titulo, descripcion, tipo) {
           tipo: tipo // 'upload', 'delete', 'edit', 'status'
       };
 
-      // Agregar al inicio del array
       if(!this.expediente.actividad) this.expediente.actividad = [];
       this.expediente.actividad.unshift(nuevaActividad);
-
-      // Guardar en persistencia
       updateExpediente(this.id, { actividad: this.expediente.actividad });
-
-      // Refrescar vista
       this.renderTimeline();
   }
 
@@ -511,7 +502,6 @@ registrarActividad(titulo, descripcion, tipo) {
       if (!container) return;
 
       container.innerHTML = '';
-
       const actividades = this.expediente.actividad || [];
 
       if (actividades.length === 0) {
@@ -524,56 +514,31 @@ registrarActividad(titulo, descripcion, tipo) {
           const fechaStr = date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
           const horaStr = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
           
-          // Configurar iconos y colores según tipo
           let icon = 'fa-info-circle';
           let colorBg = 'bg-gray-100';
           let colorIcon = 'text-gray-500';
 
           switch(act.tipo) {
-              case 'upload':
-                  icon = 'fa-file-upload';
-                  colorBg = 'bg-blue-50';
-                  colorIcon = 'text-blue-600';
-                  break;
-              case 'delete':
-                  icon = 'fa-trash-alt';
-                  colorBg = 'bg-red-50';
-                  colorIcon = 'text-red-600';
-                  break;
-              case 'edit':
-                  icon = 'fa-pen';
-                  colorBg = 'bg-yellow-50';
-                  colorIcon = 'text-yellow-600';
-                  break;
-              case 'status':
-                  icon = 'fa-exchange-alt';
-                  colorBg = 'bg-green-50';
-                  colorIcon = 'text-green-600';
-                  break;
+              case 'upload': icon='fa-file-upload'; colorBg='bg-blue-50'; colorIcon='text-blue-600'; break;
+              case 'delete': icon='fa-trash-alt'; colorBg='bg-red-50'; colorIcon='text-red-600'; break;
+              case 'edit': icon='fa-pen'; colorBg='bg-yellow-50'; colorIcon='text-yellow-600'; break;
+              case 'status': icon='fa-exchange-alt'; colorBg='bg-green-50'; colorIcon='text-green-600'; break;
           }
 
           const item = document.createElement('div');
           item.className = 'relative pl-4 pb-6 border-l border-gray-200 last:pb-0 last:border-0';
-          
           item.innerHTML = `
               <div class="absolute -left-1.5 top-0 w-3 h-3 rounded-full border border-white ${colorBg.replace('50', '400')}"></div>
-              
               <div class="flex flex-col gap-1">
                   <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${fechaStr} • ${horaStr}</span>
-                  
                   <div class="flex items-start gap-2">
-                      <div class="mt-0.5 p-1 rounded ${colorBg}">
-                          <i class="fas ${icon} ${colorIcon} text-xs"></i>
-                      </div>
-                      <div>
-                          <h4 class="text-xs font-bold text-gray-800">${act.titulo}</h4>
-                          <p class="text-xs text-gray-500 leading-relaxed">${act.descripcion}</p>
-                      </div>
+                      <div class="mt-0.5 p-1 rounded ${colorBg}"><i class="fas ${icon} ${colorIcon} text-xs"></i></div>
+                      <div><h4 class="text-xs font-bold text-gray-800">${act.titulo}</h4><p class="text-xs text-gray-500 leading-relaxed">${act.descripcion}</p></div>
                   </div>
-              </div>
-          `;
+              </div>`;
           container.appendChild(item);
       });
   }
+
   renderError(msg){ console.error(msg); }
 }

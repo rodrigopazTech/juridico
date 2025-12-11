@@ -168,55 +168,66 @@ export class ExpedienteDetalleModule {
   }
 
   setupEstadoModal() {
-      const modal = document.getElementById('modal-cambio-estado');
-      const btnOpen = document.getElementById('btn-cambiar-estado-expediente');
-      
-      if (!modal || !btnOpen) return;
+    const modal = document.getElementById('modal-cambio-estado');
+    const btnOpen = document.getElementById('btn-cambiar-estado-expediente');
+    
+    if (!modal || !btnOpen) return;
 
-      btnOpen.onclick = () => {
-          const display = document.getElementById('estado-actual-display');
-          if(display) display.textContent = this.expediente.estado;
-          
-          // Limpiar/Reiniciar Select de Estado
-          const select = document.getElementById('nuevo-estado-select');
-          if(select) {
-             select.innerHTML = `
-                <option value="">Seleccione...</option>
-                <option value="TRAMITE">TRAMITE</option>
-                <option value="LAUDO">LAUDO</option>
-                <option value="FIRME">FIRME</option>
-             `;
-          }
+    btnOpen.onclick = () => {
+        const display = document.getElementById('estado-actual-display');
+        if(display) display.textContent = this.expediente.estado;
+        
+        // Limpiar/Reiniciar Select de Estado
+        const select = document.getElementById('nuevo-estado-select');
+        const razonInput = document.getElementById('razon-cambio'); // Referencia al input
+        
+        if(select) {
+           select.innerHTML = `
+              <option value="">Seleccione...</option>
+              <option value="TRAMITE">TRAMITE</option>
+              <option value="LAUDO">LAUDO</option>
+              <option value="FIRME">FIRME</option>
+           `;
+        }
+        // Limpiar el campo de razón al abrir el modal
+        if(razonInput) razonInput.value = '';
 
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-      };
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
 
-      const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
-      const btnClose = document.getElementById('close-cambio-estado');
-      const btnCancel = document.getElementById('cancel-cambio-estado');
-      if(btnClose) btnClose.onclick = close;
-      if(btnCancel) btnCancel.onclick = close;
+    const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+    const btnClose = document.getElementById('close-cambio-estado');
+    const btnCancel = document.getElementById('cancel-cambio-estado');
+    if(btnClose) btnClose.onclick = close;
+    if(btnCancel) btnCancel.onclick = close;
 
-      const btnConfirm = document.getElementById('confirm-cambio-estado');
-      if(btnConfirm) {
-          const newBtn = btnConfirm.cloneNode(true);
-          btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
-          newBtn.onclick = () => {
-              const nuevo = document.getElementById('nuevo-estado-select').value;
-              if(nuevo) {
-                  updateExpediente(this.id, { estado: nuevo });
-                  this.registrarActividad('Cambio de Estado', `Estado cambiado a ${nuevo}. ${razon ? 'Motivo: '+razon : ''}`, 'status');
-                  this.loadData();
-                  this.populateVista360();
-                  close();
-              } else {
-                  alert('Seleccione un nuevo estado.');
-              }
-          };
-      }
-  }
+    const btnConfirm = document.getElementById('confirm-cambio-estado');
+    if(btnConfirm) {
+        const newBtn = btnConfirm.cloneNode(true);
+        btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+        newBtn.onclick = () => {
+            const nuevo = document.getElementById('nuevo-estado-select').value;
+            
+            // --- AQUÍ ESTABA EL ERROR: AGREGA ESTA LÍNEA ---
+            const razon = document.getElementById('razon-cambio').value; 
+            // -----------------------------------------------
 
+            if(nuevo) {
+                updateExpediente(this.id, { estado: nuevo });
+                
+                // Ahora 'razon' ya existe y no dará error
+                this.registrarActividad('Cambio de Estado', `Estado cambiado a ${nuevo}. ${razon ? 'Motivo: '+razon : ''}`, 'status');
+                
+                this.loadData();
+                this.populateVista360();
+                close();
+            } else {
+                alert('Seleccione un nuevo estado.');
+            }
+        };
+    }
+}
  setupDocumentsModule() {
     this.renderDocumentsTable();
     this.setupUploadModal();

@@ -703,6 +703,14 @@ function cargarAsuntosEnSelectorJS() {
     
     const expedientesData = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
+    // Diccionario de Gerencias 
+    const NOMBRES_GERENCIAS = {
+        1: 'Civil, Mercantil, Fiscal y Administrativo',
+        2: 'Laboral y Penal',
+        3: 'Transparencia y Amparo'
+    };
+    
+    // 3. Llenamos el dropdown
     sel.innerHTML = '<option value="">Seleccionar...</option>';
     expedientesData.forEach(e => {
         const opt = document.createElement('option');
@@ -711,38 +719,48 @@ function cargarAsuntosEnSelectorJS() {
         sel.appendChild(opt);
     });
     
-    // Función para limpiar todos los campos automáticos
+    // 4. Función segura para limpiar campos
     const limpiarCampos = () => {
-        if(document.getElementById('termino-expediente')) document.getElementById('termino-expediente').value = '';
-        if(document.getElementById('termino-materia')) document.getElementById('termino-materia').value = '';
-        if(document.getElementById('termino-gerencia')) document.getElementById('termino-gerencia').value = '';
-        if(document.getElementById('termino-abogado')) document.getElementById('termino-abogado').value = '';
-        if(document.getElementById('termino-partes')) document.getElementById('termino-partes').value = '';
-        if(document.getElementById('termino-organo')) document.getElementById('termino-organo').value = '';
+        const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+        
+        setVal('termino-expediente', '');
+        setVal('termino-materia', '');
+        setVal('termino-gerencia', '');
+        setVal('termino-abogado', '');
+        setVal('termino-partes', '');
+        
+        // Limpiamos ambos IDs de órgano (el oculto y el visual si aplicaste el fix anterior)
+        setVal('termino-organo', ''); 
+        setVal('termino-organo-visual', ''); 
     };
 
+    // 5. Lógica de cambio (On Change) robusta
     sel.onchange = () => {
         const selectedId = sel.value;
-        
-        // 1. Manejamos el tipado: convertimos el ID a string para buscar, o lo buscamos con Number si el ID es un número.
-        // Usamos String() para asegurar la comparación.
+        // Convertimos a string para comparar, por seguridad
         const e = expedientesData.find(x => String(x.id) === selectedId);
         
         if(e) {
-            // 2. Si encuentra el expediente (e NO es undefined), asignamos:
-            if(document.getElementById('termino-expediente')) document.getElementById('termino-expediente').value = e.numero || '';
-            if(document.getElementById('termino-materia')) document.getElementById('termino-materia').value = e.materia || 'S/D';
-            if(document.getElementById('termino-gerencia')) document.getElementById('termino-gerencia').value = e.gerencia || 'S/D';
-            if(document.getElementById('termino-abogado')) document.getElementById('termino-abogado').value = e.abogado || 'S/D';
-            if(document.getElementById('termino-partes')) document.getElementById('termino-partes').value = e.partes || 'Actor vs Demandado';
+            const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
+
+            setVal('termino-expediente', e.numero);
+            setVal('termino-materia', e.materia || 'S/D');
+            setVal('termino-abogado', e.abogado || 'S/D');
+            setVal('termino-partes', e.partes || 'Actor vs Demandado');
             
-            // 3. Órgano Jurisdiccional (CORREGIDO Y ROBUSTO)
-            if(document.getElementById('termino-organo')) {
-                document.getElementById('termino-organo').value = e.organo || e.organoJurisdiccional || 'Por asignar';
+            // Lógica robusta de Gerencia (Si no hay nombre, usa el ID para buscarlo)
+            let nombreGerencia = e.gerencia;
+            if (!nombreGerencia && e.gerenciaId) {
+                nombreGerencia = NOMBRES_GERENCIAS[e.gerenciaId];
             }
+            setVal('termino-gerencia', nombreGerencia || 'Sin Gerencia');
+
+            // Lógica robusta de Órgano (Compatible con fix visual y campo oculto)
+            const organoDato = e.organo || e.organoJurisdiccional || 'Por asignar';
+            setVal('termino-organo', organoDato);          // Campo oculto original
+            setVal('termino-organo-visual', organoDato);   // Campo visual nuevo
             
         } else {
-            // 4. Si no encuentra o si seleccionó la opción vacía: limpiamos
             limpiarCampos();
         }
     };

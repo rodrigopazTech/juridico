@@ -1,4 +1,6 @@
 import { loadExpedientes, filterExpedientes, createExpediente } from '../data/expedientes-data.js';
+// IMPORTANTE: Importar el manager
+import { OrganosManager } from './organos-manager.js';
 
 export class ExpedientesModule {
   constructor(opts = {}) {
@@ -28,6 +30,12 @@ export class ExpedientesModule {
     this.data = loadExpedientes();
     this.bindEvents();
     this.render();
+
+    // INICIALIZACIÓN DEL MANAGER DE ÓRGANOS (Con retardo para asegurar HTML)
+    setTimeout(() => {
+        const manager = new OrganosManager();
+        manager.init();
+    }, 300);
   }
 
   bindEvents() {
@@ -47,7 +55,6 @@ export class ExpedientesModule {
         const formData = new FormData(this.form);
         const data = Object.fromEntries(formData.entries());
         
-        // Crear expediente (los campos extra se manejan en data/expedientes-data.js ahora)
         const expediente = createExpediente(data);
         this.data.unshift(expediente);
         
@@ -88,7 +95,6 @@ export class ExpedientesModule {
     const node = tpl.content.firstElementChild.cloneNode(true);
     node.dataset.expedienteId = expediente.id;
     
-    // Helpers
     const setText = (sel, val) => { const el = node.querySelector(sel); if(el) el.textContent = val || '—'; };
     
     setText('.numero-expediente', expediente.numero);
@@ -97,7 +103,6 @@ export class ExpedientesModule {
     setText('.abogado-expediente', expediente.abogado);
     setText('.ultima-actividad-expediente', expediente.ultimaActividad);
     
-    // 1. Lógica de ESTADO (TRAMITE, LAUDO, FIRME)
     const estadoEl = node.querySelector('.estado-badge');
     if(estadoEl) {
         const st = (expediente.estado || 'TRAMITE').toUpperCase();
@@ -114,7 +119,6 @@ export class ExpedientesModule {
         }
     }
 
-    // 2. Lógica de PRIORIDAD (Alta, Media, Baja)
     const prioEl = node.querySelector('.prioridad-badge');
     if(prioEl) {
         const prio = expediente.prioridad || 'Media';
@@ -125,7 +129,6 @@ export class ExpedientesModule {
         } else if (prio === 'Baja') {
             prioEl.className = 'prioridad-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-gray-50 text-gray-600 border-gray-200';
         } else {
-            // Media
             prioEl.className = 'prioridad-badge text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-orange-50 text-orange-700 border-orange-200';
         }
     }

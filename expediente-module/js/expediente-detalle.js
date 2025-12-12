@@ -1,4 +1,5 @@
 import { expedienteById, updateExpediente } from '../data/expedientes-data.js';
+import { OrganosManager } from './organos-manager.js';
 
 export class ExpedienteDetalleModule {
   constructor(){
@@ -16,13 +17,17 @@ export class ExpedienteDetalleModule {
     // Renderizado inicial
     this.populateVista360();
     
-    // Renderizado de módulos secundarios (con leve retardo para asegurar DOM)
+    // CAMBIO: Aumentado a 500ms para asegurar que los modales existan
     setTimeout(() => { 
         this.renderTimeline();
         this.setupModals(); 
         this.setupDocumentsModule();
-        this.setupObservacionesModule(); // <--- Módulo de Observaciones
-    }, 200);
+        this.setupObservacionesModule();
+        
+        // Inicializar Manager de Órganos
+        const manager = new OrganosManager();
+        manager.init();
+    }, 500);
   }
 
   parseId(){
@@ -33,7 +38,6 @@ export class ExpedienteDetalleModule {
   loadData(){
     this.expediente = expedienteById(this.id);
     
-    // Inicializar arrays si no existen para evitar errores
     if(!this.expediente.documentos) this.expediente.documentos = [];
     if(!this.expediente.observaciones) this.expediente.observaciones = [];
     
@@ -49,9 +53,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // VISTA 360 (DATOS GENERALES)
-  // ==========================================
   populateVista360() {
     const e = this.expediente;
     const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text || '—'; };
@@ -64,14 +65,12 @@ export class ExpedienteDetalleModule {
     setText('v360-partes', e.partes);
     setText('v360-organo', e.organo);
     
-    // Prioridad con color
     const elPrio = document.getElementById('v360-prioridad');
     if(elPrio) {
         elPrio.textContent = e.prioridad || 'Media';
         elPrio.className = `text-sm font-bold ${e.prioridad === 'Alta' ? 'text-red-700' : (e.prioridad === 'Baja' ? 'text-gray-600' : 'text-orange-600')}`;
     }
 
-    // Estado con Badge
     const elEstado = document.getElementById('v360-estado');
     if(elEstado) {
         const st = (e.estado || 'TRAMITE').toUpperCase();
@@ -85,7 +84,6 @@ export class ExpedienteDetalleModule {
         elEstado.className = `px-3 py-1 rounded-full text-sm font-bold border uppercase tracking-wide font-headings ${colorClass}`;
     }
 
-    // Descripción
     const descContainer = document.getElementById('v360-descripcion-container');
     const descText = document.getElementById('v360-descripcion');
     if(e.descripcion && descContainer) {
@@ -103,9 +101,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // MODALES GENERALES (EDICIÓN / ESTADO)
-  // ==========================================
   setupModals() {
       this.setupEditModal();
       this.setupEstadoModal();
@@ -155,28 +150,74 @@ export class ExpedienteDetalleModule {
   }
 
   saveEditForm() {
-      const getVal = (id) => document.getElementById(id)?.value;
-      const getText = (id) => { const el = document.getElementById(id); return el && el.options ? el.options[el.selectedIndex].text : ''; };
+    // Helpers para obtener valores
+    const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
+    const getText = (id) => { const el = document.getElementById(id); return el && el.options ? el.options[el.selectedIndex].text : ''; };
 
-      const changes = {
-          numero: getVal('edit-numero'),
-          materia: getVal('edit-materia'),
-          gerenciaId: getVal('edit-gerencia'),
-          gerencia: getText('edit-gerencia'),
-          sede: getVal('edit-sede'),
-          abogado: getVal('edit-abogado'),
-          partes: getVal('edit-partes'),
-          organo: getVal('edit-organo'),
-          prioridad: getVal('edit-prioridad'),
-          descripcion: getVal('edit-descripcion')
-      };
+    // 1. Obtenemos los valores nuevos del formulario
+    const changes = {
+        numero: getVal('edit-numero'),
+        materia: getVal('edit-materia'),
+        gerenciaId: getVal('edit-gerencia'),
+        gerencia: getText('edit-gerencia'), // Texto de la gerencia
+        sede: getVal('edit-sede'),
+        abogado: getVal('edit-abogado'),
+        partes: getVal('edit-partes'),
+        organo: getVal('edit-organo'),
+        prioridad: getVal('edit-prioridad'),
+        descripcion: getVal('edit-descripcion')
+    };
 
-      updateExpediente(this.id, changes);
-      this.registrarActividad('Edición de Datos', 'Se actualizaron los datos generales del expediente.', 'edit');
-      this.loadData();
-      this.populateVista360();
-  }
+    // 2. DETECTAR CAMBIOS: Comparamos 'this.expediente' (viejo) vs 'changes' (nuevo)
+    const cambiosDetectados = [];
+    const original = this.expediente;
 
+    // Mapa para traducir el nombre técnico a nombre legible
+    const labels = {
+        numero: 'No. Expediente',
+        materia: 'Materia',
+        gerenciaId: 'Gerencia',
+        sede: 'Estado/Sede',
+        abogado: 'Abogado Responsable',
+        partes: 'Partes Procesales',
+        organo: 'Órgano Jurisdiccional',
+        prioridad: 'Prioridad',
+        descripcion: 'Descripción'
+    };
+
+    // Comparamos campo por campo
+    Object.keys(labels).forEach(key => {
+        // Normalizamos a string para evitar falsos positivos (ej: null vs "")
+        const valOriginal = String(original[key] || '').trim();
+        const valNuevo = String(changes[key] || '').trim();
+
+        if (valOriginal !== valNuevo) {
+            cambiosDetectados.push(labels[key]);
+        }
+    });
+
+    // 3. Generar el mensaje de la actividad
+    let mensajeActividad = 'Se actualizaron los datos generales del expediente.';
+    
+    if (cambiosDetectados.length > 0) {
+        // Si hay cambios específicos, los listamos. Ej: "Se modificó: Prioridad, Órgano Jurisdiccional."
+        const listaCambios = cambiosDetectados.join(', ');
+        mensajeActividad = `Se modificó: ${listaCambios}.`;
+    } else {
+        // Si el usuario guardó sin cambiar nada, podemos omitir el registro o avisar
+        // return; // Descomenta esto si NO quieres registrar actividad si no hubo cambios reales
+        mensajeActividad = 'Se guardó la edición sin cambios detectados.';
+    }
+
+    // 4. Guardar y Registrar
+    // Nota: Pasamos el 'changes' original para actualizar
+    updateExpediente(this.id, changes);
+    
+    this.registrarActividad('Edición de Datos', mensajeActividad, 'edit');
+    
+    this.loadData();
+    this.populateVista360();
+}
   setupEstadoModal() {
     const modal = document.getElementById('modal-cambio-estado');
     const btnOpen = document.getElementById('btn-cambiar-estado-expediente');
@@ -190,8 +231,8 @@ export class ExpedienteDetalleModule {
         const select = document.getElementById('nuevo-estado-select');
         const razonInput = document.getElementById('razon-cambio');
         
-        if(select) select.value = ""; // Resetear selección
-        if(razonInput) razonInput.value = ''; // Limpiar razón
+        if(select) select.value = ""; 
+        if(razonInput) razonInput.value = ''; 
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -224,9 +265,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // MÓDULO DE DOCUMENTOS
-  // ==========================================
   setupDocumentsModule() {
     this.renderDocumentsTable();
     this.setupUploadModal();
@@ -398,9 +436,6 @@ export class ExpedienteDetalleModule {
       this.renderDocumentsTable();
   }
 
-  // ==========================================
-  // MÓDULO DE OBSERVACIONES (NUEVO)
-  // ==========================================
   setupObservacionesModule() {
       const modal = document.getElementById('modal-observaciones-expediente');
       const btnOpen = document.getElementById('btn-observaciones-expediente');
@@ -480,15 +515,12 @@ export class ExpedienteDetalleModule {
       });
   }
 
-  // ==========================================
-  // ACTIVIDAD / TIMELINE
-  // ==========================================
   registrarActividad(titulo, descripcion, tipo) {
       const nuevaActividad = {
           fecha: new Date().toISOString(),
           titulo: titulo,
           descripcion: descripcion,
-          tipo: tipo // 'upload', 'delete', 'edit', 'status'
+          tipo: tipo 
       };
 
       if(!this.expediente.actividad) this.expediente.actividad = [];

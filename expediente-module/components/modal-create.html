@@ -79,9 +79,19 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-gob-gris mb-1">Órgano Jurisdiccional*</label>
-                        <input type="text" name="organo" class="w-full bg-gray-50 border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" placeholder="Ej: Juzgado Segundo de Distrito">
+                        <div class="flex gap-2">
+                            <input type="text" name="organo" list="datalist-organos-create" 
+                                   class="flex-1 bg-gray-50 border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" 
+                                   placeholder="Seleccione o escriba..." autocomplete="off">
+                            
+                            <button type="button" id="btn-manage-organos-create" 
+                                    class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gob-gris rounded-lg border border-gray-300 transition-colors" 
+                                    title="Administrar Órganos">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                        <datalist id="datalist-organos-create"></datalist>
                     </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-gob-gris mb-1">Descripción del Expediente</label>
                         <textarea name="descripcion" rows="3" class="w-full bg-gray-50 border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" placeholder="Breve resumen del caso..."></textarea>

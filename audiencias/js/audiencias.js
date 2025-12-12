@@ -205,7 +205,7 @@ function loadAudiencias() {
 
   // Datos de prueba si está vacío
   if (!ls || ls.length === 0) {
-      ls = [ { id: '1', expediente: 'EXP-0001', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1 Civil', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', asuntoId: 1 } ];
+      ls = [ ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
   AUDIENCIAS = ls;
@@ -213,19 +213,15 @@ function loadAudiencias() {
   const filtroTipo = document.getElementById('filter-tipo')?.value || '';
   const filtroGerencia = (document.getElementById('filter-gerencia')?.value || '').toLowerCase();
   const filtroMateria = document.getElementById('filter-materia')?.value || '';
-  const filtroPrioridad = document.getElementById('filter-prioridad')?.value || '';
   const busqueda = (document.getElementById('search-audiencias')?.value || '').toLowerCase();
 
   let html = '';
   
   AUDIENCIAS.forEach(a => {
-    // --- LÓGICA DE RECUPERACIÓN DE DATOS FALTANTES ---
-    // Si la audiencia no tiene materia o gerencia guardada, la buscamos en el expediente original
     let materiaMostrar = a.materia;
     let gerenciaMostrar = a.gerencia;
 
     if (!materiaMostrar || !gerenciaMostrar || materiaMostrar === 'S/D') {
-        // Intentamos encontrar el expediente por ID (asuntoId) o por Texto (expediente)
         const expRelacionado = expedientes.find(e => 
             (a.asuntoId && String(e.id) === String(a.asuntoId)) || 
             (e.numero === a.expediente) ||
@@ -235,20 +231,16 @@ function loadAudiencias() {
         if (expRelacionado) {
             if (!materiaMostrar) materiaMostrar = expRelacionado.materia;
             if (!gerenciaMostrar) {
-                // Si tiene nombre directo úsalo, si tiene ID conviértelo
                 gerenciaMostrar = expRelacionado.gerencia || NOMBRES_GERENCIAS[expRelacionado.gerenciaId] || '';
             }
         }
     }
     
-    // Valores por defecto si aun así falla
     materiaMostrar = materiaMostrar || 'S/D';
     gerenciaMostrar = gerenciaMostrar || '-';
-    // ---------------------------------------------------
 
     const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece}`.toLowerCase();
     
-    // Filtros (Usamos las variables calculadas)
     if (filtroTipo && a.tipo !== filtroTipo) return;
     if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
     if (filtroMateria && materiaMostrar !== filtroMateria) return;
@@ -414,9 +406,7 @@ function setupActionMenuListenerAudiencia() {
 
         if(audiencia) {
             if (target.classList.contains('action-view-asunto-audiencia')) {
-                // Verificamos que tenga ID, si no, intentamos buscarlo o avisamos
                 if(audiencia.asuntoId) {
-                    // CORRECCIÓN: Apuntar a 'expediente-detalle.html'
                     window.location.href = `../expediente-module/expediente-detalle.html?id=${audiencia.asuntoId}`;
                 } else {
                     alert("Esta audiencia no tiene un expediente vinculado correctamente.");
@@ -517,9 +507,6 @@ function openAudienciaModal(audiencia = null) {
              }
              selAbogado.value = audiencia.abogadoComparece || '';
         }
-        
-        // Cargar valores del recordatorio si existieran (opcional, requeriría guardar esto en el objeto audiencia)
-        // Por simplicidad, se reinicia.
 
     } else {
         title.textContent = 'Nueva Audiencia';
@@ -537,19 +524,15 @@ function guardarAudiencia() {
 
     if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
 
-    // === LÓGICA DE RECORDATORIO (NUEVA: TIEMPO RELATIVO) ===
-    // Se ejecuta siempre porque el contenedor de recordatorios siempre está visible (sin checkbox)
     const fechaBase = new Date(fecha + 'T' + hora);
     const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
     const horasAntes = parseInt(document.getElementById('horas-antes-rec-aud').value) || 0;
     const notaRec = document.getElementById('nota-rec-aud').value;
 
-    // Calcular fecha de notificación
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
     fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
 
-    // Texto de anticipación
     let textoAnticipacion = "";
     if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
     if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
@@ -562,7 +545,6 @@ function guardarAudiencia() {
     const nuevoRecordatorio = {
         id: Date.now() + 1,
         titulo: `Audiencia: ${tipoAudiencia}`,
-        // METADATOS PARA NOTIFICACIONES
         meta: {
             tipoOrigen: 'audiencia',
             expediente: exp,
@@ -577,7 +559,6 @@ function guardarAudiencia() {
     };
     recordatorios.unshift(nuevoRecordatorio);
     localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-    // ========================================================
 
     const nueva = {
         id: id || Date.now().toString(),
@@ -596,10 +577,20 @@ function guardarAudiencia() {
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
         nueva.actaDocumento = AUDIENCIAS[idx].actaDocumento;
         nueva.atendida = AUDIENCIAS[idx].atendida;
-        nueva.comentarios = AUDIENCIAS[idx].comentarios; // Importante no perder los comentarios
+        nueva.comentarios = AUDIENCIAS[idx].comentarios; 
         AUDIENCIAS[idx] = nueva;
     } else {
+        // === NUEVA AUDIENCIA ===
         AUDIENCIAS.push(nueva);
+
+        // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CREACIÓN) ---
+        registrarActividadExpediente(
+            asuntoId,
+            'Nueva Audiencia Programada',
+            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora} hrs.`,
+            'edit'
+        );
+        // -----------------------------------------------------
     }
     
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
@@ -618,6 +609,16 @@ function initModalFinalizarAudiencia() {
         if(idx !== -1) {
             AUDIENCIAS[idx].atendida = true;
             AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
+            
+            // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CONCLUIDA) ---
+            registrarActividadExpediente(
+                AUDIENCIAS[idx].asuntoId,
+                'Audiencia Desahogada',
+                `La audiencia de tipo "${AUDIENCIAS[idx].tipo}" ha sido marcada como concluida/atendida.`,
+                'status'
+            );
+            // -------------------------------------------------------
+
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             loadAudiencias();
             mostrarMensajeGlobal('Audiencia desahogada.', 'success');
@@ -695,10 +696,8 @@ function cargarAsuntosEnSelectorAudiencia() {
     const sel = document.getElementById('asunto-selector-audiencia');
     if(!sel) return;
     
-    // Obtener expedientes
     const dataToUse = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
-    // Diccionario para convertir ID de gerencia a Texto (Basado en tu Dashboard)
     const NOMBRES_GERENCIAS = {
         1: 'Civil, Mercantil, Fiscal y Administrativo',
         2: 'Laboral y Penal',
@@ -710,39 +709,25 @@ function cargarAsuntosEnSelectorAudiencia() {
     dataToUse.forEach(a => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        // Muestra Numero - Descripción corta
         opt.text = `${a.numero || a.expediente} - ${(a.descripcion || a.asunto || '').substring(0,30)}...`;
         sel.appendChild(opt);
     });
     
-    // Lógica al seleccionar un expediente
     sel.onchange = () => {
         const a = dataToUse.find(x => String(x.id) === String(sel.value));
         if(a) {
-            // 1. Llenar Expediente
             document.getElementById('expediente-auto-audiencia').value = a.numero || a.expediente || '';
-            
-            // 2. Llenar Materia (Aseguramos que no quede vacío)
             document.getElementById('materia-auto-audiencia').value = a.materia || 'Sin Materia';
-            
-            // 3. Llenar Partes / Actor
             document.getElementById('partes-auto-audiencia').value = a.partes || a.actor || 'Actor vs Demandado';
-            
-            // 4. Llenar Órgano Jurisdiccional
             document.getElementById('organo-auto-audiencia').value = a.organo || a.organoJurisdiccional || 'Por asignar';
             
-            // 5. Llenar Gerencia (Aquí estaba el error S/D)
-            // Intentamos leer el nombre directo, si no existe, usamos el ID para buscar el nombre
             let nombreGerencia = a.gerencia || '';
             if (!nombreGerencia && a.gerenciaId) {
                 nombreGerencia = NOMBRES_GERENCIAS[a.gerenciaId] || 'Gerencia General';
             }
             document.getElementById('gerencia-auto-audiencia').value = nombreGerencia || 'Sin Gerencia';
-            
-            // 6. Llenar Abogado
             document.getElementById('abogado-auto-audiencia').value = a.abogado || 'Por asignar';
         } else {
-            // Limpiar si no hay selección
             document.getElementById('materia-auto-audiencia').value = '';
             document.getElementById('gerencia-auto-audiencia').value = '';
         }
@@ -753,11 +738,11 @@ function cargarAbogadosSelects() {
     const sel = document.getElementById('abogado-comparece');
     if(sel) sel.innerHTML += '<option>Lic. Demo</option><option>Lic. Pérez</option>';
 }
+
 // ===============================================
-// LÓGICA DE MODALES FALTANTE (Agrega esto al final)
+// LÓGICA DE MODALES FALTANTE 
 // ===============================================
 
-// --- 1. Reasignar Audiencia ---
 function initModalReasignarAudiencia() {
     const modal = document.getElementById('modal-reasignar-audiencia');
     const btnClose = document.getElementById('close-modal-reasignar-audiencia');
@@ -770,7 +755,6 @@ function initModalReasignarAudiencia() {
         if (btnCancel) btnCancel.onclick = close;
         
         if (btnSave) {
-            // Clonamos para evitar listeners duplicados
             const newBtn = btnSave.cloneNode(true);
             btnSave.parentNode.replaceChild(newBtn, btnSave);
             
@@ -806,11 +790,9 @@ function abrirModalReasignarAudiencia(id) {
     document.getElementById('reasignar-tipo-audiencia').value = audiencia.tipo;
     document.getElementById('reasignar-abogado-actual-audiencia').value = audiencia.abogadoComparece || 'Sin asignar';
 
-    // Llenar select de abogados (simulado o desde localStorage)
     const select = document.getElementById('select-nuevo-abogado-audiencia');
     select.innerHTML = '<option value="">Seleccione...</option>';
     
-    // Intentamos cargar usuarios reales si existen
     const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
     const abogados = usuarios.filter(u => u.rol === 'ABOGADO' && u.activo);
     
@@ -822,7 +804,6 @@ function abrirModalReasignarAudiencia(id) {
             select.appendChild(opt);
         });
     } else {
-        // Fallback si no hay usuarios
         ['Lic. Demo', 'Lic. Pérez', 'Lic. Gómez'].forEach(nombre => {
             const opt = document.createElement('option');
             opt.value = nombre;
@@ -835,11 +816,9 @@ function abrirModalReasignarAudiencia(id) {
     modal.classList.add('flex');
 }
 
-// --- 2. Alertas y Confirmaciones (Usando tus modales HTML) ---
-
 function mostrarAlertaAudiencia(mensaje) {
     const modal = document.getElementById('modal-alerta-audiencia');
-    if(!modal) return alert(mensaje); // Fallback
+    if(!modal) return alert(mensaje); 
 
     document.getElementById('alerta-mensaje-audiencia').textContent = mensaje;
     
@@ -853,13 +832,11 @@ function mostrarAlertaAudiencia(mensaje) {
     modal.classList.add('flex');
 }
 
-// Variable global para guardar la acción pendiente
 let onConfirmActionAudiencia = null;
 
 function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
     const modal = document.getElementById('modal-confirmacion-audiencia');
     if(!modal) {
-        // Si no existe el modal, usar confirm nativo para que no falle
         if(confirm(mensaje)) callback();
         return;
     }
@@ -869,7 +846,6 @@ function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
     
     onConfirmActionAudiencia = callback;
 
-    // Configurar botones
     document.getElementById('btn-confirm-accept-audiencia').onclick = () => {
         if (onConfirmActionAudiencia) onConfirmActionAudiencia();
         cerrarConfirmacionAudiencia();
@@ -888,4 +864,26 @@ function cerrarConfirmacionAudiencia() {
         modal.classList.remove('flex');
     }
     onConfirmActionAudiencia = null;
+}
+
+// === FUNCION HELPER PARA VINCULAR CON EXPEDIENTE ===
+function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono = 'info') {
+    if (!asuntoId) return;
+
+    const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    const index = expedientes.findIndex(e => String(e.id) === String(asuntoId));
+
+    if (index !== -1) {
+        if (!expedientes[index].actividad) expedientes[index].actividad = [];
+
+        const nuevaActividad = {
+            fecha: new Date().toISOString(),
+            titulo: titulo,
+            descripcion: descripcion,
+            tipo: tipoIcono
+        };
+
+        expedientes[index].actividad.unshift(nuevaActividad);
+        localStorage.setItem('expedientesData', JSON.stringify(expedientes));
+    }
 }

@@ -14,7 +14,6 @@ const FLUJO_ETAPAS = {
     'Presentado':  { siguiente: 'Concluido', accion: 'concluir', label: 'Concluir' }
 };
 
-// CORRECCIÓN: Agregado 'Subdireccion' a todos los permisos para que veas los botones
 const PERMISOS_ETAPAS = {
     'Proyectista': ['Abogado', 'Gerente','JefeDepto','Direccion', 'Subdireccion'],
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion', 'Subdireccion'],
@@ -68,14 +67,7 @@ function cargarDatosIniciales() {
         if (localData && Array.isArray(localData) && localData.length > 0) {
             TERMINOS = localData;
         } else {
-            // Datos de prueba si está vacío
-            TERMINOS = [
-                //{ id: 1, expediente: '2375/2025', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Proyectista', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
-                //{ id: 2, expediente: '1090/2024', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Revisión', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' },
-                //{ id: 3, expediente: '2189/2025', actor: 'Rodrigo Paz', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Gerencia', fechaIngreso: '2025-10-11', fechaVencimiento: '2025-12-06', acuseDocumento: '', prioridad: 'Alta' },
-                //{ id: 4, expediente: '2376/2125', actor: 'Juan Perez', asunto: 'Despido', prestacion: 'Reinstalación', abogado: 'Lic. Martínez', estatus: 'Dirección', fechaIngreso: '2025-11-01', fechaVencimiento: '2025-12-15', acuseDocumento: '', prioridad: 'Alta' },
-                //{ id: 5, expediente: '1290/2124', actor: 'Maria Lopez', asunto: 'Amparo', prestacion: 'Constitucional', abogado: 'Lic. González', estatus: 'Liberado', fechaIngreso: '2025-10-14', fechaVencimiento: '2025-12-12', acuseDocumento: '', prioridad: 'Media' }
-            ];
+            TERMINOS = [];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
     } catch (e) {
@@ -91,7 +83,6 @@ function loadTerminos() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-    // Obtener filtros de forma segura
     const filtros = {
         tribunal: document.getElementById('filter-tribunal-termino')?.value.toLowerCase() || '',
         estado: document.getElementById('filter-estado-termino')?.value.toLowerCase() || '',
@@ -181,16 +172,11 @@ function generarAccionesRapidas(termino, rol) {
     const etapa = termino.estatus;
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
-    
-    // Debug para verificar permisos
-    // console.log(`Generando acciones para ${etapa}. Rol: ${rol}. Permitidos: ${rolesPermitidos}. Puede: ${puedeActuar}`);
 
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
-// En la función generarAccionesRapidas...
-
-// CAMBIO: Texto "Ver Expediente" y clase nueva 'action-view-expediente'
-html += `<button class="${itemClass} action-view-expediente"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
+    html += `<button class="${itemClass} action-view-expediente"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
+    
     if (etapa === 'Concluido') {
         if (termino.acuseDocumento) {
             html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
@@ -242,11 +228,9 @@ function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
 
-    // Clonar para limpiar eventos previos
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
     
-    // Recargar eventos sobre el nuevo elemento
     loadTerminos(); 
     
     document.getElementById('terminos-body').addEventListener('click', function(e) {
@@ -257,7 +241,6 @@ function setupActionMenuListener() {
         const id = row.getAttribute('data-id');
         const termino = TERMINOS.find(t => String(t.id) === String(id));
 
-        // MENU TOGGLE
         if (target.classList.contains('action-menu-toggle')) {
             e.preventDefault(); e.stopPropagation();
             const menu = target.nextElementSibling; 
@@ -266,7 +249,6 @@ function setupActionMenuListener() {
             if (!menu.classList.contains('hidden')) { menu.classList.add('hidden'); menu.style.cssText = ''; return; }
             menu.classList.remove('hidden');
             
-            // Posicionamiento
             const rect = target.getBoundingClientRect(); 
             const menuWidth = 224; 
             const menuHeight = menu.offsetHeight || 220; 
@@ -276,7 +258,6 @@ function setupActionMenuListener() {
             return;
         }
 
-        // ACCIONES
         if (target.classList.contains('action-edit')) openTerminoModalJS(termino);
         else if (target.classList.contains('action-view-expediente')) {
             if (termino.asuntoId) {
@@ -303,7 +284,6 @@ function setupActionMenuListener() {
     document.addEventListener('click', e => { if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) { document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); } });
     window.addEventListener('scroll', () => { document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); }, true);
     
-    // Listener archivo
     document.getElementById('terminos-body').addEventListener('change', function(e) {
         if (e.target.classList.contains('input-acuse-hidden') && e.target.files.length > 0) {
             const id = e.target.getAttribute('data-id');
@@ -329,7 +309,24 @@ function avanzarEtapa(id) {
     
     if(config && config.siguiente) {
         if (actual === 'Dirección') { abrirModalPresentar(id, 'Liberar Término', 'El término pasará a estado "Liberado".'); return; }
-        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => { TERMINOS[idx].estatus = config.siguiente; guardarYRecargar(); mostrarMensajeGlobal(`Avanzado a ${config.siguiente}`, 'success'); });
+        
+        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => { 
+            TERMINOS[idx].estatus = config.siguiente; 
+
+            // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (LIBERADO) ---
+            if (config.siguiente === 'Liberado') {
+                registrarActividadExpediente(
+                    TERMINOS[idx].asuntoId,
+                    'Término Liberado',
+                    `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
+                    'status'
+                );
+            }
+            // -----------------------------------------------------
+
+            guardarYRecargar(); 
+            mostrarMensajeGlobal(`Avanzado a ${config.siguiente}`, 'success'); 
+        });
     }
 }
 
@@ -367,8 +364,6 @@ function initModalTerminosJS() {
        if(btn) btn.onclick = () => { modal.classList.remove('flex'); modal.classList.add('hidden'); };
    });
 
-   // CORRECCIÓN: Eliminado el listener del checkbox que ya no existe
-
    if(btnSave) {
        const newBtn = btnSave.cloneNode(true);
        btnSave.parentNode.replaceChild(newBtn, btnSave);
@@ -385,7 +380,6 @@ function openTerminoModalJS(termino = null) {
     
     if(form) form.reset();
     
-    // Reset inputs de recordatorio manual (opcional)
     document.getElementById('dias-antes-recordatorio').value = "3";
     document.getElementById('horas-antes-recordatorio').value = "0";
     document.getElementById('nota-recordatorio').value = "";
@@ -424,22 +418,17 @@ function guardarTermino() {
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
 
-    // === LÓGICA DE RECORDATORIO (SIEMPRE ACTIVA) ===
-    // Se ejecuta siempre porque el contenedor de recordatorios siempre está visible (sin checkbox)
     const fechaBaseStr = document.getElementById('fecha-vencimiento').value;
-    // Asumimos 9:00 AM del día de vencimiento para el cálculo base
     const fechaBase = new Date(fechaBaseStr + 'T09:00:00');
 
     const diasAntes = parseInt(document.getElementById('dias-antes-recordatorio').value) || 0;
     const horasAntes = parseInt(document.getElementById('horas-antes-recordatorio').value) || 0;
     const notaRec = document.getElementById('nota-recordatorio').value;
 
-    // Calcular fecha notificación
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
     fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
 
-    // Texto anticipación
     let textoAnticipacion = "";
     if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
     if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
@@ -464,12 +453,12 @@ function guardarTermino() {
     
     recordatorios.unshift(nuevoRecordatorio);
     localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-    // =======================================================
 
     if(id) {
         const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
         if(idx !== -1) TERMINOS[idx] = { ...TERMINOS[idx], ...data };
     } else {
+        // === NUEVO TÉRMINO ===
         TERMINOS.push({
             id: Date.now(),
             estatus: 'Proyectista',
@@ -480,6 +469,15 @@ function guardarTermino() {
             abogado: document.getElementById('termino-abogado')?.value || '',
             prioridad: 'Media'
         });
+
+        // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CREACIÓN) ---
+        registrarActividadExpediente(
+            data.asuntoId, 
+            'Nuevo Término Asignado', 
+            `Se agregó el término: "${data.asunto}" con vencimiento al ${formatDate(data.fechaVencimiento)}.`, 
+            'edit'
+        );
+        // -----------------------------------------------------
     }
     
     guardarYRecargar();
@@ -491,7 +489,6 @@ function guardarTermino() {
     mostrarMensajeGlobal('Término guardado correctamente', 'success');
 }
 
-// Helpers...
 function initModalReasignar() {
     const modal = document.getElementById('modal-reasignar');
     if (!modal) return;
@@ -524,14 +521,12 @@ function abrirModalReasignar(id) {
     modal.classList.remove('hidden'); modal.classList.add('flex');
 }
 
-
 function initModalPresentar() {
     const modal = document.getElementById('modal-presentar-termino');
     if (!modal) return;
     
     const btnConfirm = document.getElementById('confirmar-presentar');
     
-    // Configurar botones de cerrar
     document.querySelectorAll('#close-modal-presentar, #cancel-presentar').forEach(btn => {
         if(btn) btn.onclick = () => { 
             modal.classList.remove('flex'); 
@@ -539,9 +534,7 @@ function initModalPresentar() {
         };
     });
 
-    // Configurar botón Confirmar
     if(btnConfirm) {
-        // Clonar para limpiar eventos previos
         const newBtn = btnConfirm.cloneNode(true);
         btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
         
@@ -553,7 +546,6 @@ function initModalPresentar() {
             
             if(idx !== -1) {
                 let nuevoEstatus = '';
-                // Lógica para determinar el siguiente estado
                 if (TERMINOS[idx].estatus === 'Presentado') {
                     nuevoEstatus = 'Concluido';
                 } else if (TERMINOS[idx].estatus === 'Dirección') {
@@ -566,11 +558,21 @@ function initModalPresentar() {
                 if(nuevoEstatus) {
                     TERMINOS[idx].estatus = nuevoEstatus;
                     
-                    // Guardar observación si existe
                     if(observaciones) {
                         TERMINOS[idx].observaciones = observaciones;
                     }
                     
+                    // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CONCLUIDO) ---
+                    if (nuevoEstatus === 'Concluido') {
+                        registrarActividadExpediente(
+                            TERMINOS[idx].asuntoId,
+                            'Término Concluido',
+                            `El término "${TERMINOS[idx].asunto}" ha sido presentado y finalizado.`,
+                            'status'
+                        );
+                    }
+                    // -----------------------------------------------------
+
                     guardarYRecargar();
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
                 }
@@ -594,7 +596,6 @@ function abrirModalPresentar(id, titulo, mensaje) {
     if(tituloEl) tituloEl.textContent = titulo;
     if(mensajeEl) mensajeEl.textContent = mensaje;
 
-    // Limpiar textarea si existe
     const txtArea = document.getElementById('observaciones-cambio-estatus');
     if(txtArea) {
         txtArea.value = ''; 
@@ -604,6 +605,7 @@ function abrirModalPresentar(id, titulo, mensaje) {
     modal.classList.remove('hidden'); 
     modal.classList.add('flex');
 }
+
 // ===============================================
 // 7. HELPERS Y UTILIDADES
 // ===============================================
@@ -703,14 +705,12 @@ function cargarAsuntosEnSelectorJS() {
     
     const expedientesData = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
-    // Diccionario de Gerencias 
     const NOMBRES_GERENCIAS = {
         1: 'Civil, Mercantil, Fiscal y Administrativo',
         2: 'Laboral y Penal',
         3: 'Transparencia y Amparo'
     };
     
-    // 3. Llenamos el dropdown
     sel.innerHTML = '<option value="">Seleccionar...</option>';
     expedientesData.forEach(e => {
         const opt = document.createElement('option');
@@ -719,7 +719,6 @@ function cargarAsuntosEnSelectorJS() {
         sel.appendChild(opt);
     });
     
-    // 4. Función segura para limpiar campos
     const limpiarCampos = () => {
         const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
         
@@ -729,15 +728,12 @@ function cargarAsuntosEnSelectorJS() {
         setVal('termino-abogado', '');
         setVal('termino-partes', '');
         
-        // Limpiamos ambos IDs de órgano (el oculto y el visual si aplicaste el fix anterior)
         setVal('termino-organo', ''); 
         setVal('termino-organo-visual', ''); 
     };
 
-    // 5. Lógica de cambio (On Change) robusta
     sel.onchange = () => {
         const selectedId = sel.value;
-        // Convertimos a string para comparar, por seguridad
         const e = expedientesData.find(x => String(x.id) === selectedId);
         
         if(e) {
@@ -748,17 +744,15 @@ function cargarAsuntosEnSelectorJS() {
             setVal('termino-abogado', e.abogado || 'S/D');
             setVal('termino-partes', e.partes || 'Actor vs Demandado');
             
-            // Lógica robusta de Gerencia (Si no hay nombre, usa el ID para buscarlo)
             let nombreGerencia = e.gerencia;
             if (!nombreGerencia && e.gerenciaId) {
                 nombreGerencia = NOMBRES_GERENCIAS[e.gerenciaId];
             }
             setVal('termino-gerencia', nombreGerencia || 'Sin Gerencia');
 
-            // Lógica robusta de Órgano (Compatible con fix visual y campo oculto)
             const organoDato = e.organo || e.organoJurisdiccional || 'Por asignar';
-            setVal('termino-organo', organoDato);          // Campo oculto original
-            setVal('termino-organo-visual', organoDato);   // Campo visual nuevo
+            setVal('termino-organo', organoDato);          
+            setVal('termino-organo-visual', organoDato);   
             
         } else {
             limpiarCampos();
@@ -791,4 +785,27 @@ function exportarTablaExcel() {
     const table = document.querySelector('table');
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, 'Terminos.xlsx');
+}
+
+// === FUNCION HELPER PARA VINCULAR CON EXPEDIENTE ===
+function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono = 'info') {
+    if (!asuntoId) return;
+
+    const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    const index = expedientes.findIndex(e => String(e.id) === String(asuntoId));
+
+    if (index !== -1) {
+        if (!expedientes[index].actividad) expedientes[index].actividad = [];
+
+        const nuevaActividad = {
+            fecha: new Date().toISOString(),
+            titulo: titulo,
+            descripcion: descripcion,
+            tipo: tipoIcono 
+        };
+
+        expedientes[index].actividad.unshift(nuevaActividad);
+        localStorage.setItem('expedientesData', JSON.stringify(expedientes));
+        console.log(`Actividad registrada en expediente ${asuntoId}: ${titulo}`);
+    }
 }

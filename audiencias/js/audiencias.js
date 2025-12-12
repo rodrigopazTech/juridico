@@ -191,11 +191,21 @@ function loadAudiencias() {
   const tbody = document.getElementById('audiencias-body');
   if(!tbody) return;
 
+  // 1. Cargar Audiencias
   let ls = [];
   try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
+  // 2. Cargar Expedientes para hacer el "cruce" de datos si falta información
+  const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+  const NOMBRES_GERENCIAS = {
+      1: 'Civil, Mercantil, Fiscal y Administrativo',
+      2: 'Laboral y Penal',
+      3: 'Transparencia y Amparo'
+  };
+
+  // Datos de prueba si está vacío
   if (!ls || ls.length === 0) {
-      ls = [ { id: '1', expediente: '100/2025', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo' } ];
+      ls = [ { id: '1', expediente: 'EXP-0001', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1 Civil', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', asuntoId: 1 } ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
   AUDIENCIAS = ls;
@@ -209,11 +219,39 @@ function loadAudiencias() {
   let html = '';
   
   AUDIENCIAS.forEach(a => {
-    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo}`.toLowerCase();
+    // --- LÓGICA DE RECUPERACIÓN DE DATOS FALTANTES ---
+    // Si la audiencia no tiene materia o gerencia guardada, la buscamos en el expediente original
+    let materiaMostrar = a.materia;
+    let gerenciaMostrar = a.gerencia;
+
+    if (!materiaMostrar || !gerenciaMostrar || materiaMostrar === 'S/D') {
+        // Intentamos encontrar el expediente por ID (asuntoId) o por Texto (expediente)
+        const expRelacionado = expedientes.find(e => 
+            (a.asuntoId && String(e.id) === String(a.asuntoId)) || 
+            (e.numero === a.expediente) ||
+            (e.expediente === a.expediente)
+        );
+
+        if (expRelacionado) {
+            if (!materiaMostrar) materiaMostrar = expRelacionado.materia;
+            if (!gerenciaMostrar) {
+                // Si tiene nombre directo úsalo, si tiene ID conviértelo
+                gerenciaMostrar = expRelacionado.gerencia || NOMBRES_GERENCIAS[expRelacionado.gerenciaId] || '';
+            }
+        }
+    }
+    
+    // Valores por defecto si aun así falla
+    materiaMostrar = materiaMostrar || 'S/D';
+    gerenciaMostrar = gerenciaMostrar || '-';
+    // ---------------------------------------------------
+
+    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece}`.toLowerCase();
+    
+    // Filtros (Usamos las variables calculadas)
     if (filtroTipo && a.tipo !== filtroTipo) return;
-    if (filtroGerencia && !(a.gerencia || '').toLowerCase().includes(filtroGerencia)) return;
-    if (filtroMateria && a.materia !== filtroMateria) return;
-    if (filtroPrioridad && a.prioridad !== filtroPrioridad) return;
+    if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
+    if (filtroMateria && materiaMostrar !== filtroMateria) return;
     if (busqueda && !textoFila.includes(busqueda)) return;
 
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
@@ -234,25 +272,44 @@ function loadAudiencias() {
         </td>
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center">
-            <div class="w-3 h-3 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
+            <div class="w-2.5 h-2.5 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
             <div class="flex flex-col">
                 <span class="text-sm font-bold text-gray-900">${formatDate(a.fecha)}</span>
                 <span class="text-xs text-gray-500">${a.hora} hrs</span>
+                <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded mt-0.5 w-fit">${escapeHTML(a.tipo)}</span>
             </div>
           </div>
         </td>
-        <td class="px-4 py-3 text-sm text-gray-700">${escapeHTML(a.tribunal)}</td>
-        <td class="px-4 py-3 text-sm font-bold text-gob-guinda">${escapeHTML(a.expediente)}</td>
-        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]">${escapeHTML(a.actor)}</td>
+        <td class="px-4 py-3 text-sm font-bold text-gob-guinda whitespace-nowrap">
+            ${escapeHTML(a.expediente)}
+        </td>
+        <td class="px-4 py-3">
+            <div class="flex flex-col">
+                <span class="text-xs font-bold text-gray-700">${escapeHTML(materiaMostrar)}</span>
+                <span class="text-[10px] text-gray-500 truncate max-w-[120px]" title="${escapeHTML(gerenciaMostrar)}">${escapeHTML(gerenciaMostrar)}</span>
+            </div>
+        </td>
+        <td class="px-4 py-3 text-sm text-gray-700">
+             <div class="flex items-center gap-1" title="Comparece">
+                <i class="fas fa-user-tie text-gray-400 text-xs"></i>
+                <span>${escapeHTML(a.abogadoComparece || 'Por asignar')}</span>
+             </div>
+        </td>
+        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">
+            ${escapeHTML(a.actor)}
+        </td>
+        <td class="px-4 py-3 text-xs text-gray-500 truncate max-w-[120px]" title="${escapeHTML(a.tribunal)}">
+            ${escapeHTML(a.tribunal)}
+        </td>
         <td class="px-4 py-3">${estadoBadge}</td> 
         <td class="px-4 py-3 text-right whitespace-nowrap relative">
             <div class="flex items-center justify-end gap-2">
                 ${!a.atendida ? 
-                    `<button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit fa-lg"></i></button>` : 
-                    `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock fa-lg"></i></button>`
+                    `<button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit"></i></button>` : 
+                    `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock"></i></button>`
                 }
                 <div class="relative action-menu-container">
-                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones"><i class="fas fa-ellipsis-v fa-lg"></i></button>
+                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones"><i class="fas fa-ellipsis-v"></i></button>
                      <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
                         ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
                     </div>
@@ -262,25 +319,25 @@ function loadAudiencias() {
         </td>
       </tr>
       <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
-        <td colspan="7" class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div><span class="block text-xs font-bold text-gray-400 uppercase">Tipo</span><span class="font-medium text-gray-800">${escapeHTML(a.tipo)}</span></div>
-                <div><span class="block text-xs font-bold text-gray-400 uppercase">Abogado</span><span class="font-medium text-gray-800">${escapeHTML(a.abogadoComparece)}</span></div>
-                <div><span class="block text-xs font-bold text-gray-400 uppercase">Observaciones</span><p class="text-gray-600 italic">${escapeHTML(a.observaciones)}</p></div>
+        <td colspan="9" class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="block text-xs font-bold text-gray-400 uppercase">Sala / Ubicación Detallada</span><span class="font-medium text-gray-800">${escapeHTML(a.sala || 'No especificada')}</span></div>
+                ${a.observaciones ? `<div><span class="block text-xs font-bold text-gray-400 uppercase">Resultado / Observaciones</span><span class="font-medium text-gray-800">${escapeHTML(a.observaciones)}</span></div>` : ''}
             </div>
         </td>
       </tr>
     `;
   });
   
-  tbody.innerHTML = html || `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay datos.</td></tr>`;
+  tbody.innerHTML = html || `<tr><td colspan="9" class="text-center py-8 text-gray-500">No hay datos registrados.</td></tr>`;
 }
+
 
 function generarAccionesRapidasAudiencia(audiencia, rol) {
     let html = '';
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
-    html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Asunto</button>`;
+    html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
 
     if (!audiencia.atendida) {
         if (audiencia.actaDocumento) {
@@ -356,7 +413,16 @@ function setupActionMenuListenerAudiencia() {
         }
 
         if(audiencia) {
-            if (target.classList.contains('action-view-asunto-audiencia')) window.location.href = `asuntos-detalle.html?id=${audiencia.asuntoId}`;
+            if (target.classList.contains('action-view-asunto-audiencia')) {
+                // Verificamos que tenga ID, si no, intentamos buscarlo o avisamos
+                if(audiencia.asuntoId) {
+                    // CORRECCIÓN: Apuntar a 'expediente-detalle.html'
+                    window.location.href = `../expediente-module/expediente-detalle.html?id=${audiencia.asuntoId}`;
+                } else {
+                    alert("Esta audiencia no tiene un expediente vinculado correctamente.");
+                }
+                return;
+            }
             else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
             else if (target.classList.contains('action-remove-acta')) mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
@@ -530,6 +596,7 @@ function guardarAudiencia() {
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
         nueva.actaDocumento = AUDIENCIAS[idx].actaDocumento;
         nueva.atendida = AUDIENCIAS[idx].atendida;
+        nueva.comentarios = AUDIENCIAS[idx].comentarios; // Importante no perder los comentarios
         AUDIENCIAS[idx] = nueva;
     } else {
         AUDIENCIAS.push(nueva);
@@ -627,25 +694,57 @@ function mostrarMensajeGlobal(msg, type) {
 function cargarAsuntosEnSelectorAudiencia() {
     const sel = document.getElementById('asunto-selector-audiencia');
     if(!sel) return;
-    const asuntos = JSON.parse(localStorage.getItem('asuntos')) || []; 
-    const dataToUse = asuntos.length ? asuntos : (JSON.parse(localStorage.getItem('expedientesData')) || []);
+    
+    // Obtener expedientes
+    const dataToUse = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    
+    // Diccionario para convertir ID de gerencia a Texto (Basado en tu Dashboard)
+    const NOMBRES_GERENCIAS = {
+        1: 'Civil, Mercantil, Fiscal y Administrativo',
+        2: 'Laboral y Penal',
+        3: 'Transparencia y Amparo'
+    };
     
     sel.innerHTML = '<option value="">Seleccionar...</option>';
+    
     dataToUse.forEach(a => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        opt.text = `${a.expediente || a.numero} - ${a.descripcion ? a.descripcion.substring(0,30)+'...' : ''}`;
+        // Muestra Numero - Descripción corta
+        opt.text = `${a.numero || a.expediente} - ${(a.descripcion || a.asunto || '').substring(0,30)}...`;
         sel.appendChild(opt);
     });
+    
+    // Lógica al seleccionar un expediente
     sel.onchange = () => {
-        const a = dataToUse.find(x => x.id == sel.value);
+        const a = dataToUse.find(x => String(x.id) === String(sel.value));
         if(a) {
-            document.getElementById('expediente-auto-audiencia').value = a.expediente || a.numero;
-            document.getElementById('materia-auto-audiencia').value = a.materia;
-            document.getElementById('partes-auto-audiencia').value = a.partes || a.partesProcesales;
-            document.getElementById('organo-auto-audiencia').value = a.organoJurisdiccional || a.organo;
-            document.getElementById('gerencia-auto-audiencia').value = a.gerencia || 'N/A';
-            document.getElementById('abogado-auto-audiencia').value = a.abogado || a.abogadoResponsable;
+            // 1. Llenar Expediente
+            document.getElementById('expediente-auto-audiencia').value = a.numero || a.expediente || '';
+            
+            // 2. Llenar Materia (Aseguramos que no quede vacío)
+            document.getElementById('materia-auto-audiencia').value = a.materia || 'Sin Materia';
+            
+            // 3. Llenar Partes / Actor
+            document.getElementById('partes-auto-audiencia').value = a.partes || a.actor || 'Actor vs Demandado';
+            
+            // 4. Llenar Órgano Jurisdiccional
+            document.getElementById('organo-auto-audiencia').value = a.organo || a.organoJurisdiccional || 'Por asignar';
+            
+            // 5. Llenar Gerencia (Aquí estaba el error S/D)
+            // Intentamos leer el nombre directo, si no existe, usamos el ID para buscar el nombre
+            let nombreGerencia = a.gerencia || '';
+            if (!nombreGerencia && a.gerenciaId) {
+                nombreGerencia = NOMBRES_GERENCIAS[a.gerenciaId] || 'Gerencia General';
+            }
+            document.getElementById('gerencia-auto-audiencia').value = nombreGerencia || 'Sin Gerencia';
+            
+            // 6. Llenar Abogado
+            document.getElementById('abogado-auto-audiencia').value = a.abogado || 'Por asignar';
+        } else {
+            // Limpiar si no hay selección
+            document.getElementById('materia-auto-audiencia').value = '';
+            document.getElementById('gerencia-auto-audiencia').value = '';
         }
     };
 }
@@ -654,10 +753,139 @@ function cargarAbogadosSelects() {
     const sel = document.getElementById('abogado-comparece');
     if(sel) sel.innerHTML += '<option>Lic. Demo</option><option>Lic. Pérez</option>';
 }
+// ===============================================
+// LÓGICA DE MODALES FALTANTE (Agrega esto al final)
+// ===============================================
 
-function initModalReasignarAudiencia() { /* Mismo codigo anterior */ }
-function abrirModalReasignarAudiencia(id) { /* Mismo codigo anterior */ }
-function mostrarAlertaAudiencia(mensaje) { /* ... */ }
-function cerrarAlertaAudiencia() { /* ... */ }
-function mostrarConfirmacionAudiencia(titulo, mensaje, callback) { /* ... */ }
-function cerrarConfirmacionAudiencia() { /* ... */ }
+// --- 1. Reasignar Audiencia ---
+function initModalReasignarAudiencia() {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    const btnClose = document.getElementById('close-modal-reasignar-audiencia');
+    const btnCancel = document.getElementById('cancel-reasignar-audiencia');
+    const btnSave = document.getElementById('save-reasignar-audiencia');
+
+    if (modal) {
+        const close = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+        if (btnClose) btnClose.onclick = close;
+        if (btnCancel) btnCancel.onclick = close;
+        
+        if (btnSave) {
+            // Clonamos para evitar listeners duplicados
+            const newBtn = btnSave.cloneNode(true);
+            btnSave.parentNode.replaceChild(newBtn, btnSave);
+            
+            newBtn.onclick = () => {
+                const id = document.getElementById('reasignar-audiencia-id').value;
+                const select = document.getElementById('select-nuevo-abogado-audiencia');
+                const nuevoAbogado = select.value;
+
+                if (nuevoAbogado) {
+                    const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
+                    if (idx !== -1) {
+                        AUDIENCIAS[idx].abogadoComparece = nuevoAbogado;
+                        localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
+                        loadAudiencias();
+                        mostrarMensajeGlobal(`Reasignado a ${nuevoAbogado}`, 'success');
+                        close();
+                    }
+                } else {
+                    alert("Selecciona un abogado");
+                }
+            };
+        }
+    }
+}
+
+function abrirModalReasignarAudiencia(id) {
+    const modal = document.getElementById('modal-reasignar-audiencia');
+    const audiencia = AUDIENCIAS.find(a => String(a.id) === String(id));
+    
+    if(!audiencia || !modal) return;
+
+    document.getElementById('reasignar-audiencia-id').value = id;
+    document.getElementById('reasignar-tipo-audiencia').value = audiencia.tipo;
+    document.getElementById('reasignar-abogado-actual-audiencia').value = audiencia.abogadoComparece || 'Sin asignar';
+
+    // Llenar select de abogados (simulado o desde localStorage)
+    const select = document.getElementById('select-nuevo-abogado-audiencia');
+    select.innerHTML = '<option value="">Seleccione...</option>';
+    
+    // Intentamos cargar usuarios reales si existen
+    const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    const abogados = usuarios.filter(u => u.rol === 'ABOGADO' && u.activo);
+    
+    if(abogados.length > 0) {
+        abogados.forEach(abg => {
+            const opt = document.createElement('option');
+            opt.value = abg.nombre;
+            opt.textContent = abg.nombre;
+            select.appendChild(opt);
+        });
+    } else {
+        // Fallback si no hay usuarios
+        ['Lic. Demo', 'Lic. Pérez', 'Lic. Gómez'].forEach(nombre => {
+            const opt = document.createElement('option');
+            opt.value = nombre;
+            opt.textContent = nombre;
+            select.appendChild(opt);
+        });
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// --- 2. Alertas y Confirmaciones (Usando tus modales HTML) ---
+
+function mostrarAlertaAudiencia(mensaje) {
+    const modal = document.getElementById('modal-alerta-audiencia');
+    if(!modal) return alert(mensaje); // Fallback
+
+    document.getElementById('alerta-mensaje-audiencia').textContent = mensaje;
+    
+    const btn = document.getElementById('btn-alerta-accept-audiencia');
+    btn.onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// Variable global para guardar la acción pendiente
+let onConfirmActionAudiencia = null;
+
+function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
+    const modal = document.getElementById('modal-confirmacion-audiencia');
+    if(!modal) {
+        // Si no existe el modal, usar confirm nativo para que no falle
+        if(confirm(mensaje)) callback();
+        return;
+    }
+
+    document.getElementById('confirm-titulo-audiencia').textContent = titulo;
+    document.getElementById('confirm-mensaje-audiencia').textContent = mensaje;
+    
+    onConfirmActionAudiencia = callback;
+
+    // Configurar botones
+    document.getElementById('btn-confirm-accept-audiencia').onclick = () => {
+        if (onConfirmActionAudiencia) onConfirmActionAudiencia();
+        cerrarConfirmacionAudiencia();
+    };
+    
+    document.getElementById('btn-confirm-cancel-audiencia').onclick = cerrarConfirmacionAudiencia;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function cerrarConfirmacionAudiencia() {
+    const modal = document.getElementById('modal-confirmacion-audiencia');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    onConfirmActionAudiencia = null;
+}

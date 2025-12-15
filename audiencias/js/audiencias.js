@@ -1,5 +1,3 @@
-// js/audiencias.js
-
 const USER_ROLE = 'Gerente'; 
 
 // Lista base de tipos de audiencia
@@ -71,6 +69,41 @@ function guardarAudienciaEnAgendaGeneral(audienciaData) {
     // RETORNAR EL REGISTRO CREADO PARA PODER USARLO DESPUÉS
     return registroAgenda;
 }
+// -------------------------------
+// Guardar audiencia concluida en Agenda General
+// -------------------------------
+function guardarAudienciaEnAgendaGeneral(audienciaData) {
+    // Obtener audiencias desahogadas existentes
+    let audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+    
+    // Crear registro para la agenda general
+    const registroAgenda = {
+        id: Date.now(),
+        fechaAudiencia: audienciaData.fecha,
+        horaAudiencia: audienciaData.hora,
+        expediente: audienciaData.expediente,
+        tipoAudiencia: audienciaData.tipo,
+        partes: audienciaData.actor,
+        abogado: audienciaData.abogadoComparece,
+        actaDocumento: audienciaData.actaDocumento || '',
+        atendida: true,
+        fechaDesahogo: new Date().toISOString().split('T')[0], // Fecha actual
+        observaciones: audienciaData.observaciones || '',
+        fechaCreacion: new Date().toISOString()
+    };
+    
+    // Agregar al inicio del array
+    audienciasDesahogadas.unshift(registroAgenda);
+    
+    // Guardar en localStorage
+    localStorage.setItem('audienciasDesahogadas', JSON.stringify(audienciasDesahogadas));
+    
+    console.log('✅ Audiencia guardada en Agenda General:', registroAgenda);
+    
+    // RETORNAR EL REGISTRO CREADO PARA PODER USARLO DESPUÉS
+    return registroAgenda;
+}
+
 // -------------------------------
 // Inicialización
 // -------------------------------
@@ -639,7 +672,8 @@ function initModalFinalizarAudiencia() {
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
-         if(idx !== -1) {
+        
+        if(idx !== -1) {
             // Guardar observaciones
             AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
             AUDIENCIAS[idx].atendida = true;

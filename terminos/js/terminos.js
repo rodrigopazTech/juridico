@@ -92,8 +92,13 @@ function loadTerminos() {
         search: document.getElementById('search-terminos')?.value.toLowerCase() || ''
     };
 
+    // Filtrar términos que NO están en estado "Liberado" para la tabla principal
+    // (Los liberados se mueven a Agenda General)
     const listaFiltrada = TERMINOS.filter(t => {
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
+        
+        // Excluir términos liberados de la tabla principal
+        if (t.estatus === 'Liberado') return false;
         
         if (filtros.search && !textoCompleto.includes(filtros.search)) return false;
         if (filtros.estatus && !filtros.estatus.includes('Todos') && t.estatus !== filtros.estatus) return false;
@@ -271,11 +276,24 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
         else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
         else if (target.classList.contains('action-remove-acuse')) {
-            mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
+            mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { 
+                termino.acuseDocumento = ''; 
+                termino.estatus = 'Liberado'; 
+                
+                // Cuando se quita el acuse, mover a Agenda General
+                sincronizarConAgendaGeneral(termino);
+                
+                guardarYRecargar(); 
+                mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado y movido a Agenda General.', 'warning'); 
+            });
         }
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
         else if (target.classList.contains('action-delete')) {
-            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); guardarYRecargar(); mostrarMensajeGlobal('Término eliminado.', 'success'); });
+            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { 
+                TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); 
+                guardarYRecargar(); 
+                mostrarMensajeGlobal('Término eliminado.', 'success'); 
+            });
         }
         
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
@@ -290,7 +308,12 @@ function setupActionMenuListener() {
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
             if(idx !== -1) {
                 TERMINOS[idx].acuseDocumento = e.target.files[0].name;
-                if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
+                if(TERMINOS[idx].estatus === 'Liberado') {
+                    TERMINOS[idx].estatus = 'Presentado';
+                    
+                    // Si se sube acuse a un término liberado, sincronizar primero
+                    sincronizarConAgendaGeneral(TERMINOS[idx]);
+                }
                 guardarYRecargar();
                 mostrarMensajeGlobal('Acuse subido', 'success');
             }
@@ -299,7 +322,100 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// 5. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
+// 5. SINCRONIZACIÓN CON AGENDA GENERAL
+// ===============================================
+function sincronizarConAgendaGeneral(termino) {
+    // Solo sincronizar cuando el término está en estado "Liberado"
+    if (termino.estatus !== 'Liberado') return;
+    
+    // Obtener términos presentados actuales
+    let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+    
+    // Verificar si ya existe (para evitar duplicados)
+    const existe = terminosPresentados.some(t => 
+        t.id === termino.id || 
+        (t.terminoIdOriginal && t.terminoIdOriginal === termino.id)
+    );
+    
+    if (!existe) {
+        // Crear objeto para Agenda General
+        const terminoAgenda = {
+            id: Date.now(), // ID único para Agenda General
+            fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
+            fechaVencimiento: termino.fechaVencimiento || '',
+            fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha de presentación (hoy)
+            expediente: termino.expediente || 'S/N',
+            actuacion: termino.asunto || termino.actuacion || '',
+            partes: termino.actor || '',
+            abogado: termino.abogado || 'Sin asignar',
+            acuseDocumento: termino.acuseDocumento || '',
+            etapaRevision: termino.estatus,
+            estatus: termino.estatus,
+            observaciones: termino.observaciones || 'Término liberado para presentación',
+            fechaCreacion: new Date().toISOString(),
+            terminoIdOriginal: termino.id // Referencia al término original
+        };
+        
+        // Agregar a la lista
+        terminosPresentados.unshift(terminoAgenda);
+        
+        // Guardar en localStorage
+        localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
+        
+        console.log('✅ Término sincronizado con Agenda General:', terminoAgenda);
+        
+        // **ELIMINAR EL TÉRMINO DE LA TABLA PRINCIPAL**
+        eliminarTerminoDeTablaPrincipal(termino.id);
+        
+        // Mostrar notificación
+        mostrarMensajeGlobal(`Término liberado y movido a Agenda General`, 'success');
+    }
+}
+
+// ===============================================
+// 6. ELIMINAR TÉRMINO DE TABLA PRINCIPAL
+// ===============================================
+function eliminarTerminoDeTablaPrincipal(id) {
+    // Eliminar de la variable TERMINOS
+    const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
+    if (indice !== -1) {
+        // Guardar una copia en histórico si es necesario (opcional)
+        const terminoEliminado = TERMINOS[indice];
+        
+        // Eliminar del array
+        TERMINOS.splice(indice, 1);
+        
+        // Actualizar localStorage
+        localStorage.setItem('terminos', JSON.stringify(TERMINOS));
+        
+        console.log(`🗑️ Término ${id} eliminado de la tabla principal`);
+        
+        // Opcional: Guardar en histórico
+        guardarEnHistoricoTerminos(terminoEliminado);
+        
+        return true;
+    }
+    return false;
+}
+
+function guardarEnHistoricoTerminos(termino) {
+    // Opcional: Guardar en un histórico de términos movidos
+    try {
+        const historico = JSON.parse(localStorage.getItem('historicoTerminos')) || [];
+        historico.push({
+            ...termino,
+            fechaMovimiento: new Date().toISOString(),
+            motivo: 'Movido a Agenda General'
+        });
+        localStorage.setItem('historicoTerminos', JSON.stringify(historico));
+        console.log(`📋 Término ${termino.id} guardado en histórico`);
+    } catch (e) {
+        console.error('Error guardando en histórico:', e);
+    }
+}
+
+// ===============================================
+// 7. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
 // ===============================================
 
 function avanzarEtapa(id) {
@@ -365,7 +481,7 @@ function guardarYRecargar() {
 }
 
 // ===============================================
-// 7. MODALES (MANUALES) - ROBUSTO
+// 8. MODALES (MANUALES) - ROBUSTO
 // ===============================================
 function initModalTerminosJS() {
    const modal = document.getElementById('modal-termino');
@@ -583,9 +699,9 @@ function initModalPresentar() {
                             `El término "${TERMINOS[idx].asunto}" ha sido presentado y finalizado.`,
                             'status'
                         );
-                    }
-                    // -----------------------------------------------------
+                        sincronizarConAgendaGeneral(TERMINOS[idx]);
 
+                    }
                     guardarYRecargar();
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
                 }
@@ -620,7 +736,7 @@ function abrirModalPresentar(id, titulo, mensaje) {
 }
 
 // ===============================================
-// 7. HELPERS Y UTILIDADES
+// 9. HELPERS Y UTILIDADES
 // ===============================================
 function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;
@@ -820,5 +936,21 @@ function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono =
         expedientes[index].actividad.unshift(nuevaActividad);
         localStorage.setItem('expedientesData', JSON.stringify(expedientes));
         console.log(`Actividad registrada en expediente ${asuntoId}: ${titulo}`);
+// ===============================================
+// 10. FUNCIÓN ADICIONAL PARA SINCRONIZACIÓN MANUAL
+// ===============================================
+function sincronizarTodosLiberados() {
+    const terminosLiberados = TERMINOS.filter(t => t.estatus === 'Liberado');
+    let sincronizados = 0;
+    
+    terminosLiberados.forEach(termino => {
+        sincronizarConAgendaGeneral(termino);
+        sincronizados++;
+    });
+    
+    if (sincronizados > 0) {
+        mostrarMensajeGlobal(`${sincronizados} términos liberados movidos a Agenda General`, 'success');
+    } else {
+        mostrarMensajeGlobal('No hay términos en estado "Liberado" para mover', 'info');
     }
 }

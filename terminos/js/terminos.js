@@ -92,6 +92,8 @@ function loadTerminos() {
         search: document.getElementById('search-terminos')?.value.toLowerCase() || ''
     };
 
+    // Filtrar términos que NO están en estado "Liberado" para la tabla principal
+    // (Los liberados se mueven a Agenda General)
     const listaFiltrada = TERMINOS.filter(t => {
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
         
@@ -397,7 +399,12 @@ function setupActionMenuListener() {
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
             if(idx !== -1) {
                 TERMINOS[idx].acuseDocumento = e.target.files[0].name;
-                if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
+                if(TERMINOS[idx].estatus === 'Liberado') {
+                    TERMINOS[idx].estatus = 'Presentado';
+                    
+                    // Si se sube acuse a un término liberado, sincronizar primero
+                    sincronizarConAgendaGeneral(TERMINOS[idx]);
+                }
                 guardarYRecargar();
                 mostrarMensajeGlobal('Acuse subido', 'success');
             }
@@ -540,7 +547,7 @@ function guardarYRecargar() {
 }
 
 // ===============================================
-// 7. MODALES (MANUALES) - ROBUSTO
+// 8. MODALES (MANUALES) - ROBUSTO
 // ===============================================
 function initModalTerminosJS() {
    const modal = document.getElementById('modal-termino');

@@ -24,26 +24,207 @@ class AgendaGeneralManager {
         console.log('✅ Agenda General Manager iniciado');
     }
 
+    // ==========================================
+    // CARGA DE DATOS (MEJORADO: Carga de localStorage)
+    // ==========================================
     cargarDatos() {
-        // 1. CARGAR AUDIENCIAS DESAHOGADAS
+        // Helper: Genera fechas dinámicas a partir de hoy
+        const hoy = new Date();
+        const getFechaStr = (diasOffset) => {
+            const d = new Date(hoy);
+            d.setDate(hoy.getDate() + diasOffset);
+            return d.toISOString().split('T')[0];
+        };
+
+        // 1. CARGAR AUDIENCIAS DESAHOGADAS DESDE localStorage
         this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
         
-        // NORMALIZACIÓN ROBUSTA (Arregla datos mal guardados)
-        this.audienciasDesahogadas = this.audienciasDesahogadas.map(a => ({
-            ...a,
-            // Si no existe el campo de agenda, usa el campo original de audiencias
-            fechaAudiencia: a.fechaAudiencia || a.fecha || '-',
-            horaAudiencia: a.horaAudiencia || a.hora || '--:--',
-            partes: a.partes || a.actor || 'No especificado',
-            abogado: a.abogado || a.abogadoComparece || 'Sin asignar',
-            tipoAudiencia: a.tipoAudiencia || a.tipo || 'General',
+        // Si no hay datos en el nuevo almacenamiento, buscamos en audiencias concluidas
+        if (this.audienciasDesahogadas.length === 0) {
+            const todasAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
             
-            // Asegurar fecha de desahogo para el filtro
-            fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
-        }));
+            this.audienciasDesahogadas = todasAudiencias
+                .filter(audiencia => audiencia.atendida === true)
+                .map(a => ({
+                    id: a.id,
+                    fechaAudiencia: a.fecha,
+                    horaAudiencia: a.hora,
+                    expediente: a.expediente || 'S/D',
+                    tipoAudiencia: a.tipo || 'General',
+                    partes: a.actor || 'S/D',
+                    abogado: a.abogadoComparece || 'Por asignar',
+                    actaDocumento: a.actaDocumento || '',
+                    atendida: true,
+                    fechaDesahogo: a.fechaDesahogo || new Date().toISOString().split('T')[0],
+                    observaciones: a.observaciones || 'Audiencia concluida',
+                    fechaCreacion: new Date().toISOString()
+                }));
+            
+            // Guardar en el nuevo almacenamiento para futuras cargas
+            if (this.audienciasDesahogadas.length > 0) {
+                localStorage.setItem('audienciasDesahogadas', JSON.stringify(this.audienciasDesahogadas));
+            }
+        }
+        
+        // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
+        if (this.audienciasDesahogadas.length === 0) {
+            this.audienciasDesahogadas = [
+                {
+                    id: 1,
+                    fechaAudiencia: getFechaStr(0),
+                    horaAudiencia: '09:30',
+                    expediente: 'EXP-2025-0456',
+                    tipoAudiencia: 'Conciliación',
+                    partes: 'Martínez vs. Rodríguez',
+                    abogado: 'Dra. Laura Méndez',
+                    actaDocumento: 'ACTA-PENDIENTE.pdf',
+                    atendida: true,
+                    fechaDesahogo: getFechaStr(0),
+                    observaciones: 'Programada para hoy a primera hora.',
+                    fechaCreacion: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    fechaAudiencia: getFechaStr(1),
+                    horaAudiencia: '11:00',
+                    expediente: 'EXP-2025-0789',
+                    tipoAudiencia: 'Vista',
+                    partes: 'Pérez e Hijos S.A. vs. Estado',
+                    abogado: 'Lic. Carlos Ruiz',
+                    actaDocumento: 'ACTA-FUTURA.pdf',
+                    atendida: true,
+                    fechaDesahogo: getFechaStr(1),
+                    observaciones: 'Vista pública confirmada para mañana.',
+                    fechaCreacion: new Date().toISOString()
+                },
+                {
+                    id: 3,
+                    fechaAudiencia: getFechaStr(3),
+                    horaAudiencia: '15:15',
+                    expediente: 'EXP-2025-1123',
+                    tipoAudiencia: 'Juicio',
+                    partes: 'González vs. Instituto Federal',
+                    abogado: 'Lic. Ana Vargas',
+                    actaDocumento: 'ACTA-PROXIMA.pdf',
+                    atendida: true,
+                    fechaDesahogo: getFechaStr(3),
+                    observaciones: 'Juicio oral próximo.',
+                    fechaCreacion: new Date().toISOString()
+                },
+                {
+                    id: 4,
+                    fechaAudiencia: getFechaStr(15),
+                    horaAudiencia: '10:00',
+                    expediente: '3485/2025',
+                    tipoAudiencia: 'Inicial',
+                    partes: 'Herrera Campos vs. Transportes',
+                    abogado: 'Lic. María González',
+                    actaDocumento: 'ACTA-MES.pdf',
+                    atendida: true,
+                    fechaDesahogo: getFechaStr(15),
+                    observaciones: 'Audiencia inicial programada para final de mes.',
+                    fechaCreacion: new Date().toISOString()
+                }
+            ];
+            
+            // Guardar los datos de ejemplo
+            localStorage.setItem('audienciasDesahogadas', JSON.stringify(this.audienciasDesahogadas));
+        }
 
-        // 2. CARGAR TÉRMINOS PRESENTADOS
+        // 2. CARGAR TÉRMINOS PRESENTADOS DESDE localStorage
+        // Primero intentamos cargar del nuevo almacenamiento
         this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+        
+        // Si no hay datos en el nuevo almacenamiento, buscamos en términos existentes
+        if (this.terminosPresentados.length === 0) {
+            const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
+            
+            // Filtrar términos que están en estado "Liberado" o "Presentado" o "Concluido"
+            // PERO: Los términos liberados ya NO deben estar en la tabla principal
+            // Solo debemos mostrar los que ya están en terminosPresentados
+            this.terminosPresentados = todosTerminos
+                .filter(termino => termino.estatus === 'Liberado' || termino.estatus === 'Presentado' || termino.estatus === 'Concluido')
+                .map(t => ({
+                    id: Date.now() + Math.random(), // ID único
+                    fechaIngreso: t.fechaIngreso,
+                    fechaVencimiento: t.fechaVencimiento,
+                    fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha actual como presentación
+                    expediente: t.expediente || 'S/N',
+                    actuacion: t.asunto || t.actuacion || '',
+                    partes: t.actor || '',
+                    abogado: t.abogado || 'Sin asignar',
+                    acuseDocumento: t.acuseDocumento || '',
+                    etapaRevision: t.estatus,
+                    estatus: t.estatus,
+                    observaciones: t.observaciones || 'Término liberado para presentación',
+                    fechaCreacion: new Date().toISOString(),
+                    terminoIdOriginal: t.id // Referencia al término original
+                }));
+            
+            // Guardar en el nuevo almacenamiento para futuras cargas
+            if (this.terminosPresentados.length > 0) {
+                localStorage.setItem('terminosPresentados', JSON.stringify(this.terminosPresentados));
+            }
+        }
+        
+        // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
+        if (this.terminosPresentados.length === 0) {
+            this.terminosPresentados = [
+                {
+                    id: 1,
+                    fechaIngreso: getFechaStr(0),
+                    fechaVencimiento: getFechaStr(0),
+                    fechaPresentacion: getFechaStr(0),
+                    expediente: 'EXP-2025-001',
+                    actuacion: 'Contestación de demanda',
+                    partes: 'Empresa A vs. Empleado B',
+                    abogado: 'Lic. Juan Pérez',
+                    acuseDocumento: 'ACUSE-HOY.pdf',
+                    etapaRevision: 'Presentado',
+                    estatus: 'Presentado',
+                    observaciones: 'Vencimiento el día de hoy.',
+                    fechaCreacion: new Date().toISOString(),
+                    terminoIdOriginal: 1
+                },
+                {
+                    id: 2,
+                    fechaIngreso: getFechaStr(0),
+                    fechaVencimiento: getFechaStr(2),
+                    fechaPresentacion: getFechaStr(2),
+                    expediente: 'EXP-2025-002',
+                    actuacion: 'Ofrecimiento de pruebas',
+                    partes: 'Banco X vs. Deudor Y',
+                    abogado: 'Lic. Ana López',
+                    acuseDocumento: 'ACUSE-PENDIENTE.pdf',
+                    etapaRevision: 'Liberado',
+                    estatus: 'Liberado',
+                    observaciones: 'Preparar pruebas para esta semana.',
+                    fechaCreacion: new Date().toISOString(),
+                    terminoIdOriginal: 2
+                },
+                {
+                    id: 3,
+                    fechaIngreso: getFechaStr(5),
+                    fechaVencimiento: getFechaStr(10),
+                    fechaPresentacion: getFechaStr(10),
+                    expediente: 'EXP-2025-003',
+                    actuacion: 'Alegatos finales',
+                    partes: 'Constructora Z vs. Municipio',
+                    abogado: 'Lic. Roberto M.',
+                    acuseDocumento: 'ACUSE-FUTURO.pdf',
+                    etapaRevision: 'Concluido',
+                    estatus: 'Concluido',
+                    observaciones: 'Alegatos programados para mediados de mes.',
+                    fechaCreacion: new Date().toISOString(),
+                    terminoIdOriginal: 3
+                }
+            ];
+            
+            // Guardar los datos de ejemplo
+            localStorage.setItem('terminosPresentados', JSON.stringify(this.terminosPresentados));
+        }
+        
+        console.log(`📊 Términos presentados cargados: ${this.terminosPresentados.length}`);
     }
 
     configurarPestañas() {
@@ -176,7 +357,7 @@ class AgendaGeneralManager {
         const filtradas = this.filtrarPorPeriodo(this.audienciasDesahogadas, 'fechaDesahogo');
         
         if (filtradas.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay audiencias programadas para este periodo.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No hay audiencias desahogadas para este periodo.</td></tr>`;
             return;
         }
 
@@ -205,25 +386,38 @@ class AgendaGeneralManager {
         const tbody = document.getElementById('terminos-presentados-body');
         if (!tbody) return;
 
+        // Filtrar por fecha de presentación
         const filtradas = this.filtrarPorPeriodo(this.terminosPresentados, 'fechaPresentacion');
         
         if (filtradas.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">No hay términos programados para este periodo.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">No hay términos presentados para este periodo.</td></tr>`;
             return;
         }
 
         let html = '';
         filtradas.forEach(t => {
+            // Determinar color del badge según estado
+            let badgeClass = 'bg-gray-100 text-gray-800';
+            if (t.estatus === 'Presentado') badgeClass = 'bg-green-100 text-green-800';
+            if (t.estatus === 'Concluido') badgeClass = 'bg-blue-100 text-blue-800';
+            if (t.estatus === 'Liberado') badgeClass = 'bg-yellow-100 text-yellow-800';
+            
             html += `
                 <tr class="bg-white hover:bg-gray-50 border-b">
                     <td class="px-6 py-4">${this.formatDate(t.fechaPresentacion)}</td>
                     <td class="px-6 py-4">${this.formatDate(t.fechaVencimiento)}</td>
-                    <td class="px-6 py-4 font-medium text-gob-guinda">${t.expediente || 'S/N'}</td>
-                    <td class="px-6 py-4 text-sm">${t.actuacion || ''}</td>
-                    <td class="px-6 py-4 text-sm truncate max-w-[200px]">${t.partes || ''}</td>
+                    <td class="px-6 py-4 font-medium text-gob-guinda">${t.expediente}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="${badgeClass} text-xs font-semibold px-2.5 py-0.5 rounded mr-2">${t.estatus}</span>
+                        ${t.actuacion}
+                    </td>
+                    <td class="px-6 py-4 text-sm truncate max-w-[200px]">${t.partes}</td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center gap-2">
-                            <button onclick="descargarDocumento('${t.acuseDocumento}')" class="text-gray-500 hover:text-gob-guinda" title="Acuse"><i class="fas fa-file-download"></i></button>
+                            ${t.acuseDocumento ? 
+                                `<button onclick="descargarDocumento('${t.acuseDocumento}')" class="text-gray-500 hover:text-gob-guinda" title="Acuse"><i class="fas fa-file-download"></i></button>` : 
+                                `<span class="text-gray-400" title="Sin acuse"><i class="fas fa-file"></i></span>`
+                            }
                             <button onclick="verObservaciones(${t.id}, 'termino')" class="text-gray-500 hover:text-blue-600" title="Observaciones"><i class="fas fa-eye"></i></button>
                         </div>
                     </td>
@@ -249,6 +443,18 @@ class AgendaGeneralManager {
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const rows = document.querySelectorAll('#audiencias-desahogadas-body tr');
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+        }
+        
+        const searchTerminosInput = document.getElementById('search-terminos');
+        if(searchTerminosInput) {
+            searchTerminosInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#terminos-presentados-body tr');
                 rows.forEach(row => {
                     const text = row.innerText.toLowerCase();
                     row.style.display = text.includes(term) ? '' : 'none';
@@ -299,6 +505,65 @@ export function initAgendaGeneral() {
             document.getElementById('obs-modal-expediente').innerHTML = `<span class="font-bold text-gob-guinda">${item.expediente}</span>`;
             document.getElementById('obs-modal-content').innerHTML = `<p class="text-gray-700 bg-gray-50 p-4 rounded border">${item.observaciones || 'Sin observaciones'}</p>`;
             document.getElementById('modal-observaciones').style.display = 'block';
+        }
+    };
+    
+    // Función para sincronizar manualmente todos los términos liberados
+    window.sincronizarTodosLiberadosManual = () => {
+        const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
+        const terminosLiberados = todosTerminos.filter(t => t.estatus === 'Liberado');
+        let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+        let sincronizados = 0;
+        
+        terminosLiberados.forEach(termino => {
+            // Verificar si ya existe
+            const existe = terminosPresentados.some(t => 
+                t.id === termino.id || 
+                (t.terminoIdOriginal && t.terminoIdOriginal === termino.id)
+            );
+            
+            if (!existe) {
+                const terminoAgenda = {
+                    id: Date.now() + Math.random(),
+                    fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
+                    fechaVencimiento: termino.fechaVencimiento || '',
+                    fechaPresentacion: new Date().toISOString().split('T')[0],
+                    expediente: termino.expediente || 'S/N',
+                    actuacion: termino.asunto || termino.actuacion || '',
+                    partes: termino.actor || '',
+                    abogado: termino.abogado || 'Sin asignar',
+                    acuseDocumento: termino.acuseDocumento || '',
+                    etapaRevision: termino.estatus,
+                    estatus: termino.estatus,
+                    observaciones: termino.observaciones || 'Término liberado para presentación',
+                    fechaCreacion: new Date().toISOString(),
+                    terminoIdOriginal: termino.id
+                };
+                
+                terminosPresentados.unshift(terminoAgenda);
+                
+                // Eliminar de la tabla principal
+                const indice = todosTerminos.findIndex(t => String(t.id) === String(termino.id));
+                if (indice !== -1) {
+                    todosTerminos.splice(indice, 1);
+                }
+                
+                sincronizados++;
+            }
+        });
+        
+        if (sincronizados > 0) {
+            // Actualizar ambos localStorage
+            localStorage.setItem('terminos', JSON.stringify(todosTerminos));
+            localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
+            
+            // Recargar datos
+            agendaGeneral.terminosPresentados = terminosPresentados;
+            agendaGeneral.actualizarVista();
+            
+            alert(`${sincronizados} términos liberados movidos a Agenda General y eliminados de la tabla principal`);
+        } else {
+            alert('No hay términos en estado "Liberado" para mover');
         }
     };
 }

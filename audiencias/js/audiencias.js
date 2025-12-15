@@ -1,5 +1,3 @@
-// js/audiencias.js
-
 const USER_ROLE = 'Gerente'; 
 
 // Lista base de tipos de audiencia

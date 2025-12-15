@@ -116,8 +116,8 @@ function loadTerminos() {
             : `<button class="text-gray-400 hover:text-gob-oro action-edit p-1" title="Editar"><i class="fas fa-edit"></i></button>`;
         
         const iconoObservacion = t.observaciones 
-            ? `<i class="fas fa-comment-alt text-blue-500 ml-2" title="Observación: ${t.observaciones}"></i>` 
-            : '';
+            ? `<i class="fas fa-comment-alt text-blue-500 ml-2 cursor-pointer" title="Observación Final: ${t.observaciones}"></i>` 
+            : '';   
 
         html += `
         <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
@@ -301,6 +301,7 @@ function setupActionMenuListener() {
 // ===============================================
 // 5. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
 // ===============================================
+
 function avanzarEtapa(id) {
     const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
     if (idx === -1) return;
@@ -308,22 +309,34 @@ function avanzarEtapa(id) {
     const config = FLUJO_ETAPAS[actual];
     
     if(config && config.siguiente) {
-        if (actual === 'Dirección') { abrirModalPresentar(id, 'Liberar Término', 'El término pasará a estado "Liberado".'); return; }
         
-        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => { 
-            TERMINOS[idx].estatus = config.siguiente; 
-
-            // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (LIBERADO) ---
-            if (config.siguiente === 'Liberado') {
+        // 1. CASO ESPECIAL: DIRECCIÓN -> LIBERADO (QUITAR COMENTARIO)
+        if (actual === 'Dirección') { 
+            mostrarConfirmacion('Liberar Término', '¿Confirmar la liberación? Esto cambia el estado a "Liberado".', () => {
+                TERMINOS[idx].estatus = config.siguiente; // 'Liberado'
+                // Opcional: Limpiar observación si se cambia a Liberado
+                TERMINOS[idx].observaciones = ''; 
+                
+                // Registro de Actividad
                 registrarActividadExpediente(
                     TERMINOS[idx].asuntoId,
                     'Término Liberado',
                     `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
                     'status'
                 );
-            }
-            // -----------------------------------------------------
 
+                guardarYRecargar(); 
+                mostrarMensajeGlobal(`Término avanzado a ${config.siguiente}`, 'success'); 
+            });
+            return;
+        }
+        if (actual === 'Presentado') {
+             abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado y se registrará la observación final.');
+             return;
+        }
+
+        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => { 
+            TERMINOS[idx].estatus = config.siguiente; 
             guardarYRecargar(); 
             mostrarMensajeGlobal(`Avanzado a ${config.siguiente}`, 'success'); 
         });

@@ -1,5 +1,3 @@
-// js/audiencias.js
-
 const USER_ROLE = 'Gerente'; 
 
 // Lista base de tipos de audiencia
@@ -36,6 +34,41 @@ function getSemaforoStatusAudiencia(fecha, hora) {
   if (diffDays <= 1) return { class: 'bg-red-600 animate-pulse', tooltip: '¡Es HOY o mañana!' };
   if (diffDays <= 3) return { class: 'bg-yellow-400', tooltip: `En ${diffDays} días` };
   return { class: 'bg-green-500', tooltip: `En ${diffDays} días` };
+}
+
+// -------------------------------
+// Guardar audiencia concluida en Agenda General
+// -------------------------------
+function guardarAudienciaEnAgendaGeneral(audienciaData) {
+    // Obtener audiencias desahogadas existentes
+    let audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+    
+    // Crear registro para la agenda general
+    const registroAgenda = {
+        id: Date.now(),
+        fechaAudiencia: audienciaData.fecha,
+        horaAudiencia: audienciaData.hora,
+        expediente: audienciaData.expediente,
+        tipoAudiencia: audienciaData.tipo,
+        partes: audienciaData.actor,
+        abogado: audienciaData.abogadoComparece,
+        actaDocumento: audienciaData.actaDocumento || '',
+        atendida: true,
+        fechaDesahogo: new Date().toISOString().split('T')[0], // Fecha actual
+        observaciones: audienciaData.observaciones || '',
+        fechaCreacion: new Date().toISOString()
+    };
+    
+    // Agregar al inicio del array
+    audienciasDesahogadas.unshift(registroAgenda);
+    
+    // Guardar en localStorage
+    localStorage.setItem('audienciasDesahogadas', JSON.stringify(audienciasDesahogadas));
+    
+    console.log('✅ Audiencia guardada en Agenda General:', registroAgenda);
+    
+    // RETORNAR EL REGISTRO CREADO PARA PODER USARLO DESPUÉS
+    return registroAgenda;
 }
 
 // -------------------------------
@@ -615,13 +648,30 @@ function initModalFinalizarAudiencia() {
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
+        
         if(idx !== -1) {
-            AUDIENCIAS[idx].atendida = true;
+            // Guardar observaciones
             AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
+            AUDIENCIAS[idx].atendida = true;
+            
+            // GUARDAR EN AGENDA GENERAL Y OBTENER EL REGISTRO
+            const registroAgenda = guardarAudienciaEnAgendaGeneral(AUDIENCIAS[idx]);
+            
+            // ELIMINAR DE LA TABLA PRINCIPAL DE AUDIENCIAS
+            AUDIENCIAS = AUDIENCIAS.filter(a => a.id != id);
+            
+            // Guardar cambios en audiencias (sin la audiencia desahogada)
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
+            
+            // Cargar tabla actualizada
             loadAudiencias();
-            mostrarMensajeGlobal('Audiencia desahogada.', 'success');
+            
+            // Mostrar mensaje de éxito
+            mostrarMensajeGlobal('Audiencia desahogada y movida a Agenda General.', 'success');
+            
+            console.log(`🗑️ Audiencia ${id} eliminada de la tabla principal y movida a agenda general`);
         }
+        
         modal.style.display='none';
     };
 }

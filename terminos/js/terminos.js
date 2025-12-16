@@ -191,7 +191,12 @@ function generarAccionesRapidas(termino, rol) {
     if (etapa === 'Presentado') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
         html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
-        
+
+        if (termino.acuseDocumento) {
+            html += `<button class="${itemClass} action-preview-acuse text-gob-oro"><i class="fas fa-eye"></i> Previsualizar Acuse</button>`; 
+        }
+
+        html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
         if (puedeActuar) {
             html += `<button class="${itemClass} action-conclude text-green-600 font-bold"><i class="fas fa-flag-checkered"></i> <strong>Concluir</strong></button>`;
         }
@@ -270,6 +275,9 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
         else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
+        else if (target.classList.contains('action-preview-acuse')) {
+            mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
+        }
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
         }

@@ -368,20 +368,21 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
 
     html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
 
-    if (!audiencia.atendida) {
+   if (!audiencia.atendida) {
         if (audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-blue-600"></i> Ver Acta</button>`;
+            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-blue-600"></i> Previsualizar Acta</button>`;
             html += `<button class="${itemClass} action-desahogar"><i class="fas fa-flag-checkered text-green-600"></i> <strong>Concluir</strong></button>`;
+            html += `<button class="${itemClass} action-download-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
             html += `<button class="${itemClass} action-remove-acta"><i class="fas fa-times-circle text-red-500"></i> Quitar Acta</button>`;
         } else {
             html += `<button class="${itemClass} action-upload-acta"><i class="fas fa-cloud-upload-alt text-gob-oro"></i> <strong>Subir Acta</strong></button>`;
         }
     } else {
         if(audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
+            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-eye text-blue-600"></i> Previsualizar Acta</button>`; // Nuevo botón visible/re-usado
+            html += `<button class="${itemClass} action-download-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
         }
     }
-
     html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
     if (rol === 'Direccion' || rol === 'Gerente') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
@@ -453,7 +454,8 @@ function setupActionMenuListenerAudiencia() {
             else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
             else if (target.classList.contains('action-remove-acta')) mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
-            else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
+            else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia(`Previsualizando Acta (Simulación): ${audiencia.actaDocumento}`);
+            else if (target.classList.contains('action-download-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
             else if (target.classList.contains('action-reasignar-audiencia')) abrirModalReasignarAudiencia(id);
             else if (target.classList.contains('action-comment-audiencia')) openComentariosModal(id);
             else if (target.classList.contains('action-delete-audiencia')) {

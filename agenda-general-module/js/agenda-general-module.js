@@ -24,9 +24,6 @@ class AgendaGeneralManager {
         console.log('✅ Agenda General Manager iniciado');
     }
 
-    // ==========================================
-    // CARGA DE DATOS (CORREGIDO)
-    // ==========================================
     cargarDatos() {
         // 1. CARGAR AUDIENCIAS DESAHOGADAS
         // Leemos la llave específica donde 'audiencias.js' guarda las concluidas

@@ -1,12 +1,12 @@
-# 🏛️ Sistema Jurídico GOB.MX V3 - Arquitectura Frontend
+#  Sistema Jurídico GOB.MX V3 - Arquitectura Frontend
 
-## 📋 Descripción del Proyecto
+## Descripción del Proyecto
 
 Este proyecto es un sistema integral de gestión jurídica desarrollado para instituciones gubernamentales mexicanas, siguiendo las directrices de diseño GOB.MX V3. El sistema modular permite gestionar usuarios, expedientes, audiencias, términos, calendario, notificaciones y otros aspectos del proceso jurídico desde una interfaz web moderna y responsive.
 
 Esta propuesta presenta la arquitectura frontend (HTML, CSS, JavaScript) diseñada para ofrecer una experiencia de usuario fluida y eficiente, con persistencia local y capacidades offline.
 
-## 🏗️ Arquitectura Frontend
+## Arquitectura Frontend
 
 ### Tecnologías Utilizadas
 
@@ -40,7 +40,7 @@ graph TD
     Usuarios --> RBAC[Control de Acceso por Roles]
 ```
 
-## 🔗 Matriz de Módulos y Funcionalidades (Detallada)
+## Matriz de Módulos y Funcionalidades (Detallada)
 
 A continuación se detalla la arquitectura modular y las responsabilidades de cada componente.
 
@@ -52,13 +52,14 @@ A continuación se detalla la arquitectura modular y las responsabilidades de ca
 | Detalle Expediente | `expediente-module/js/expediente-detalle.js` | Vista 360°, timeline, documentos | Integra audiencias, términos | SweetAlert2, Chart.js |
 | Gestión Órganos | `expediente-module/js/organos-manager.js` | Admin órganos jurisdiccionales | Popula selectores | localStorage |
 
+
 ### 2. Seguimiento Procesal (Audiencias y Términos)
 
 | Módulo | Archivo Principal | Funcionalidades Clave | Integración | Dependencias |
 |--------|-------------------|----------------------|-------------|--------------|
 | Audiencias | `audiencias/js/audiencias.js` | CRUD audiencias, semaforización, actas | Vincula expedientes, notificaciones | SweetAlert2 |
 | Términos | `terminos/js/terminos.js` | Flujo etapas, aprobaciones, acuses | Workflow jerárquico, notificaciones | Chart.js (export) |
-| Agenda General | `agenda-general-module/js/agenda-general-module.js` | Vista unificada, filtros combinados | Combina audiencias y términos | Calendario |
+| Agenda General | `agenda-general-module/js/agenda-general-module.js` | Vista personal unificada, observaciones de términos concluidos, observaciones de audiencias desahogadas | Combina audiencias y términos (vista individual por usuario) | Calendario |
 
 ### 3. Gestión de Usuarios y Organización
 
@@ -76,624 +77,9 @@ A continuación se detalla la arquitectura modular y las responsabilidades de ca
 | Calendario | `calendario-module/js/calendario-module.js` | Vista mensual/semanal/diaria | Eventos múltiples | Date manipulation |
 | Notificaciones | `notificaciones-module/js/notificaciones.js` | Sistema alertas, resumen inteligente | Actualización automática | localStorage |
 
-## 📊 Arquitectura de Componentes (Frontend)
+# Estructura de Base de Datos (PostgreSQL)
 
-### 1. Estructura de Módulos
-
-```javascript
-// Estructura típica de módulo
-const ModuleName = {
-  constructor(opts = {}) {
-    this.root = opts.root || document;
-    this.data = [];
-    this.filters = {};
-    this.init();
-  },
-  
-  init() {
-    this.bindElements();
-    this.bindEvents();
-    this.loadData();
-    this.render();
-  },
-  
-  bindElements() {
-    // Selección de elementos DOM
-    this.listContainer = this.root.querySelector('#module-list');
-    this.modal = this.root.querySelector('#modal-module');
-    this.form = this.root.querySelector('#form-module');
-  },
-  
-  bindEvents() {
-    // Event listeners
-    this.searchInput?.addEventListener('input', () => this.render());
-    this.createBtn?.addEventListener('click', () => this.openModal());
-  }
-}
-```
-
-### 2. Sistema de Persistencia (localStorage)
-
-```javascript
-// Patrón de gestión de datos
-class DataManager {
-  static getStorageKey() {
-    return 'jl_module_data_v1';
-  }
-  
-  static load() {
-    try {
-      return JSON.parse(localStorage.getItem(this.getStorageKey())) || [];
-    } catch (e) {
-      console.error('Error cargando datos:', e);
-      return [];
-    }
-  }
-  
-  static save(data) {
-    localStorage.setItem(this.getStorageKey(), JSON.stringify(data));
-  }
-  
-  static seedDemoData() {
-    // Datos de ejemplo para desarrollo
-    return [...];
-  }
-}
-```
-
-### 3. Sistema de Modales
-
-```javascript
-// Patrón de modales reutilizable
-class ModalManager {
-  static open(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-  }
-  
-  static close(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-  }
-  
-  static setupCloseHandlers() {
-    // Cerrar modal al hacer clic fuera
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal-overlay')) {
-        this.close(e.target.dataset.modalId);
-      }
-    });
-  }
-}
-```
-
-## 📝 Patrones de Diseño Implementados
-
-### 1. Module Pattern (Revealing Module)
-
-```javascript
-export class ModuleClass {
-  constructor() {
-    this.privateVar = 'internal';
-    this.publicVar = 'accessible';
-  }
-  
-  init() {
-    this.setupEventListeners();
-    this.loadInitialData();
-  }
-  
-  // Métodos privados
-  setupEventListeners() {
-    // Implementation
-  }
-  
-  loadInitialData() {
-    // Implementation
-  }
-}
-```
-
-### 2. Observer Pattern (Notificaciones)
-
-```javascript
-class NotificationCenter {
-  constructor() {
-    this.observers = [];
-  }
-  
-  subscribe(observer) {
-    this.observers.push(observer);
-  }
-  
-  notify(data) {
-    this.observers.forEach(observer => observer.update(data));
-  }
-  
-  emitEvent(type, payload) {
-    this.notify({ type, payload, timestamp: new Date() });
-  }
-}
-```
-
-### 3. Strategy Pattern (Filtros)
-
-```javascript
-class FilterStrategy {
-  static strategies = {
-    text: (item, query) => item.text.toLowerCase().includes(query.toLowerCase()),
-    date: (item, range) => new Date(item.date) >= range.start && new Date(item.date) <= range.end,
-    status: (item, status) => item.status === status,
-    multi: (item, criteria) => Object.keys(criteria).every(key => 
-      this.strategies[key]?.(item, criteria[key]) ?? true
-    )
-  };
-  
-  static apply(items, criteria) {
-    return items.filter(item => this.strategies.multi(item, criteria));
-  }
-}
-```
-
-## 🔄 Flujo de Datos y Estado
-
-### 1. Gestión de Estado Global
-
-```javascript
-class StateManager {
-  constructor() {
-    this.state = {
-      currentUser: null,
-      filters: {},
-      notifications: [],
-      activeModule: 'dashboard'
-    };
-  }
-  
-  updateState(path, value) {
-    this.state = { ...this.state, [path]: value };
-    this.notifyStateChange(path, value);
-  }
-  
-  getState(path) {
-    return path ? this.state[path] : this.state;
-  }
-}
-```
-
-### 2. Comunicación Entre Módulos
-
-```javascript
-// Event Bus para comunicación
-class EventBus {
-  constructor() {
-    this.events = {};
-  }
-  
-  on(event, callback) {
-    if (!this.events[event]) this.events[event] = [];
-    this.events[event].push(callback);
-  }
-  
-  emit(event, data) {
-    if (this.events[event]) {
-      this.events[event].forEach(callback => callback(data));
-    }
-  }
-}
-
-// Uso: EventBus.emit('user:login', userData);
-//      EventBus.on('expediente:created', (data) => updateDashboard());
-```
-
-## 📱 Responsive Design y Accesibilidad
-
-### 1. Breakpoints Tailwind CSS
-
-```css
-/* Mobile First Approach */
-/* sm: 640px+ */
-/* md: 768px+ */
-/* lg: 1024px+ */
-/* xl: 1280px+ */
-/* 2xl: 1536px+ */
-
-.responsive-grid {
-  @apply grid grid-cols-1 gap-4;
-  @apply md:grid-cols-2 md:gap-6;
-  @apply lg:grid-cols-3 lg:gap-8;
-}
-```
-
-### 2. Patrón de Componentes Reutilizables
-
-```html
-<!-- Template reutilizable para tarjetas -->
-<template id="card-template">
-  <div class="card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-    <div class="card-header p-4 border-b">
-      <h3 class="card-title text-lg font-semibold"></h3>
-    </div>
-    <div class="card-body p-4">
-      <div class="card-content"></div>
-    </div>
-    <div class="card-footer p-4 border-t">
-      <div class="card-actions"></div>
-    </div>
-  </div>
-</template>
-```
-
-## 🎨 Sistema de Diseño GOB.MX
-
-### 1. Variables de Color
-
-```css
-:root {
-  --gob-guinda: #9D2449;
-  --gob-guinda-dark: #611232;
-  --gob-oro: #B38E5D;
-  --gob-oro-light: #DDC9A3;
-  --gob-gris: #545454;
-  --gob-plata: #98989A;
-  --gob-verde: #13322B;
-  --gob-verde-dark: #0C231E;
-}
-```
-
-### 2. Clases de Utilidad Personalizadas
-
-```css
-.text-gob-guinda { color: var(--gob-guinda); }
-.bg-gob-oro { background-color: var(--gob-oro); }
-.border-gob-gris { border-color: var(--gob-gris); }
-.font-headings { font-family: 'Montserrat', sans-serif; }
-```
-
-## 🚀 Optimizaciones de Rendimiento
-
-### 1. Lazy Loading de Módulos
-
-```javascript
-class ModuleLoader {
-  static modules = new Map();
-  
-  static async loadModule(moduleName) {
-    if (this.modules.has(moduleName)) {
-      return this.modules.get(moduleName);
-    }
-    
-    const module = await import(`./modules/${moduleName}/js/${moduleName}.js`);
-    this.modules.set(moduleName, module);
-    return module;
-  }
-  
-  static unloadModule(moduleName) {
-    this.modules.delete(moduleName);
-  }
-}
-```
-
-### 2. Virtual Scrolling para Listas Grandes
-
-```javascript
-class VirtualList {
-  constructor(container, itemHeight, renderItem) {
-    this.container = container;
-    this.itemHeight = itemHeight;
-    this.renderItem = renderItem;
-    this.visibleItems = Math.ceil(container.clientHeight / itemHeight) + 2;
-  }
-  
-  render(data, scrollTop) {
-    const start = Math.floor(scrollTop / this.itemHeight);
-    const end = Math.min(start + this.visibleItems, data.length);
-    
-    // Render solo elementos visibles
-    for (let i = start; i < end; i++) {
-      this.renderItem(data[i], i);
-    }
-  }
-}
-```
-
-## 📋 Puntos de Integración
-
-### 1. APIs Futuras (Backend)
-
-```javascript
-// Adaptadores para futuras integraciones
-class APIClient {
-  constructor(baseURL) {
-    this.baseURL = baseURL;
-    this.token = localStorage.getItem('authToken');
-  }
-  
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
-      },
-      ...options
-    };
-    
-    try {
-      const response = await fetch(url, config);
-      return await response.json();
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
-    }
-  }
-  
-  // Métodos específicos
-  async getExpedientes(filters = {}) {
-    return this.request('/expedientes', { method: 'GET' });
-  }
-  
-  async createAudiencia(data) {
-    return this.request('/audiencias', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  }
-}
-```
-
-### 2. PWA Capabilities
-
-```javascript
-// Service Worker para funcionalidad offline
-self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => caches.match(event.request))
-    );
-  }
-});
-
-// Manifest para instalación
-const manifest = {
-  name: "Sistema Jurídico GOB.MX",
-  short_name: "JuridicoMX",
-  start_url: "/",
-  display: "standalone",
-  background_color: "#ffffff",
-  theme_color: "#9D2449",
-  icons: [
-    {
-      src: "icons/icon-192.png",
-      sizes: "192x192",
-      type: "image/png"
-    }
-  ]
-};
-```
-
-## 🔒 Seguridad Frontend
-
-### 1. Validación de Entrada
-
-```javascript
-class InputValidator {
-  static email(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  }
-  
-  static sanitizeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-  
-  static validateForm(formData, rules) {
-    const errors = {};
-    Object.keys(rules).forEach(field => {
-      const value = formData[field];
-      const rule = rules[field];
-      
-      if (rule.required && !value) {
-        errors[field] = 'Campo requerido';
-      }
-      
-      if (rule.email && !this.email(value)) {
-        errors[field] = 'Email inválido';
-      }
-      
-      if (rule.minLength && value.length < rule.minLength) {
-        errors[field] = `Mínimo ${rule.minLength} caracteres`;
-      }
-    });
-    
-    return errors;
-  }
-}
-```
-
-### 2. Gestión de Sesión
-
-```javascript
-class SessionManager {
-  static login(credentials) {
-    // Validación de credenciales
-    if (this.validateCredentials(credentials)) {
-      const user = this.getUserData(credentials.email);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      localStorage.setItem('sessionToken', this.generateToken());
-      return true;
-    }
-    return false;
-  }
-  
-  static logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('sessionToken');
-    window.location.href = '/login';
-  }
-  
-  static getCurrentUser() {
-    const userStr = localStorage.getItem('currentUser');
-    return userStr ? JSON.parse(userStr) : null;
-  }
-  
-  static isAuthenticated() {
-    return !!localStorage.getItem('sessionToken');
-  }
-}
-```
-
-## 🧪 Testing Strategy
-
-### 1. Unit Testing (Jest)
-
-```javascript
-// Ejemplo de test para módulo de expedientes
-import { ExpedientesModule } from './expedientes.js';
-
-describe('ExpedientesModule', () => {
-  let module;
-  
-  beforeEach(() => {
-    document.body.innerHTML = `
-      <div id="expedientes-list"></div>
-      <div id="expedientes-empty-state" class="hidden"></div>
-    `;
-    module = new ExpedientesModule();
-  });
-  
-  test('should initialize module', () => {
-    expect(module.listContainer).toBeTruthy();
-    expect(module.data).toEqual([]);
-  });
-  
-  test('should filter expedientes correctly', () => {
-    module.data = [
-      { id: 1, numero: 'EXP-001', materia: 'Civil' },
-      { id: 2, numero: 'EXP-002', materia: 'Penal' }
-    ];
-    
-    const result = module.filterExpedientes({ materia: 'Civil' });
-    expect(result.length).toBe(1);
-    expect(result[0].materia).toBe('Civil');
-  });
-});
-```
-
-### 2. E2E Testing (Cypress)
-
-```javascript
-// cypress/integration/expedientes.spec.js
-describe('Gestión de Expedientes', () => {
-  beforeEach(() => {
-    cy.visit('/expediente-module');
-  });
-  
-  it('should create new expediente', () => {
-    cy.get('#expediente-nuevo').click();
-    cy.get('#form-create-expediente').should('be.visible');
-    
-    cy.get('#numero-expediente').type('EXP-999');
-    cy.get('#descripcion-expediente').type('Caso de prueba');
-    cy.get('#materia-expediente').select('Civil');
-    
-    cy.get('#save-expediente').click();
-    
-    cy.get('.expediente-card').should('contain', 'EXP-999');
-  });
-});
-```
-
-## 📊 Monitoreo y Analytics
-
-### 1. Métricas de Rendimiento
-
-```javascript
-class PerformanceMonitor {
-  static measurePageLoad() {
-    window.addEventListener('load', () => {
-      const perfData = performance.getEntriesByType('navigation')[0];
-      const metrics = {
-        domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
-        loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
-        firstPaint: performance.getEntriesByType('paint')[0]?.startTime
-      };
-      
-      console.log('Page Load Metrics:', metrics);
-      this.sendMetrics(metrics);
-    });
-  }
-  
-  static measureUserInteraction(action) {
-    const start = performance.now();
-    return () => {
-      const duration = performance.now() - start;
-      console.log(`${action} took ${duration.toFixed(2)}ms`);
-      this.sendInteractionMetrics(action, duration);
-    };
-  }
-}
-```
-
-### 2. Error Tracking
-
-```javascript
-class ErrorTracker {
-  static init() {
-    window.addEventListener('error', (event) => {
-      this.logError({
-        message: event.message,
-        filename: event.filename,
-        line: event.lineno,
-        column: event.colno,
-        stack: event.error?.stack
-      });
-    });
-  }
-  
-  static logError(errorData) {
-    console.error('Frontend Error:', errorData);
-    
-    // Enviar a servicio de monitoreo
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon('/api/errors', JSON.stringify(errorData));
-    }
-  }
-}
-```
-
-
-## 🚀 Plan de Migración y Evolución
-
-### 1. De localStorage a Backend
-
-- **Fase 1**: Implementar API client con fallback a localStorage
-- **Fase 2**: Sincronización bidireccional de datos
-- **Fase 3**: Eliminación gradual de localStorage
-- **Fase 4**: Migración completa a base de datos
-
-### 2. Optimizaciones Futuras
-
-- **Code Splitting**: Carga bajo demanda de módulos
-- **Service Workers**: Funcionalidad offline completa
-- **WebSockets**: Actualizaciones en tiempo real
-- **Virtual Scrolling**: Para listas grandes
-- **Lazy Loading**: Imágenes y componentes pesados
-
----
-
-# 🗄️ Estructura de Base de Datos (PostgreSQL)
-
-## 🏛️ Arquitectura de Base de Datos
+## Arquitectura de Base de Datos
 
 ### Tecnologías Recomendadas
 
@@ -721,7 +107,7 @@ graph TD
     Cal -.->|Opcional| Term
 ```
 
-## 🔗 Matriz de Relaciones del Sistema (Detallada)
+## Matriz de Relaciones del Sistema (Detallada)
 
 A continuación se detalla la integridad referencial y la lógica de negocio aplicada a cada relación.
 
@@ -764,7 +150,7 @@ A continuación se detalla la integridad referencial y la lógica de negocio apl
 | eventos_calendario | termino_id | terminos | 1:1 | CASCADE | Sincronización: Si el término se cumple/borra, debe desaparecer o actualizarse en el calendario. |
 | recordatorios | usuario_id | usuarios | N:1 | CASCADE | Recordatorios personales (notas adhesivas digitales). |
 
-## 📊 Esquema de Tablas (DDL)
+## Esquema de Tablas (DDL)
 
 ### 1. usuarios
 
@@ -952,7 +338,7 @@ CREATE TABLE recordatorios (
 );
 ```
 
-## 📝 Consultas SQL Clave
+## Consultas SQL Clave
 
 ### 1. Dashboard de Dirección (Carga de Trabajo)
 
@@ -985,7 +371,8 @@ AND n.leida = FALSE
 AND n.event_type IN ('audiencia', 'termino');
 ```
 
-## 🚀 Plan de Migración de Base de Datos
+
+## Plan de Migración de Base de Datos
 
 - **Limpieza de Datos (LocalStorage)**: Asegurar que los campos de texto libre (como nombres de abogados en audiencias) se normalicen para coincidir con los usuarios registrados.
 - **Schema Setup**: Ejecutar el DDL de PostgreSQL presentado arriba.
@@ -994,7 +381,14 @@ AND n.event_type IN ('audiencia', 'termino');
 - **Migración Transaccional**: Mover Expedientes -> Audiencias -> Términos.
 - **Validación**: Verificar que las notificaciones de prueba lleguen al rol DIRECCION.
 
-## 📅 Estado: Consolidado (Enero 2025)
-## 🔒 Seguridad Frontend: Validación de entrada, sanitización, gestión de sesión segura
-## 🔒 Seguridad Base de Datos: Hash bcrypt, Roles (RBAC), Logs de auditoría en Timeline
-## 📈 Escalabilidad: Arquitectura modular frontend, base de datos relacional PostgreSQL, componentes reutilizables, patrones de diseño establecidos
+## Consideraciones para Gestión de Documentos (Futuro)
+
+**Nota Importante**: Actualmente el sistema maneja documentos como campos VARCHAR en la base de datos. En una fase futura del backend se implementará una lógica de gestión de archivos que incluya:
+
+- **Estructura de Carpetas**: Creación automática de una carpeta por cada expediente creado
+- **Organización Interna**: Subcarpetas dentro de cada expediente para "Términos" y "Audiencias"
+- **Tipos de Archivo**: Principalmente documentos PDF
+- **Visualización**: Sistema integrado para visualizar PDFs directamente en la interfaz
+
+Esta funcionalidad está considerada para el desarrollo del backend y no forma parte del scope actual del frontend.
+

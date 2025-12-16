@@ -37,16 +37,14 @@ function getSemaforoStatusAudiencia(fecha, hora) {
   if (diffDays <= 3) return { class: 'bg-yellow-400', tooltip: `En ${diffDays} días` };
   return { class: 'bg-green-500', tooltip: `En ${diffDays} días` };
 }
-// -------------------------------
-// Guardar audiencia concluida en Agenda General
-// -------------------------------
+
 function guardarAudienciaEnAgendaGeneral(audienciaData) {
-    // Obtener audiencias desahogadas existentes
+    // Lista de la Directora (Agenda General)
     let audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
     
-    // Crear registro para la agenda general
+    // Crear registro para la agenda general (usando los datos actualizados)
     const registroAgenda = {
-        id: Date.now(),
+        id: audienciaData.id, // Reusamos el ID original
         fechaAudiencia: audienciaData.fecha,
         horaAudiencia: audienciaData.hora,
         expediente: audienciaData.expediente,
@@ -55,20 +53,26 @@ function guardarAudienciaEnAgendaGeneral(audienciaData) {
         abogado: audienciaData.abogadoComparece,
         actaDocumento: audienciaData.actaDocumento || '',
         atendida: true,
-        fechaDesahogo: new Date().toISOString().split('T')[0], // Fecha actual
+        // **IMPORTANTE**: Usamos el valor que se asignó en initModalFinalizar
+        fechaDesahogo: audienciaData.fechaDesahogo, 
         observaciones: audienciaData.observaciones || '',
         fechaCreacion: new Date().toISOString()
     };
     
-    // Agregar al inicio del array
-    audienciasDesahogadas.unshift(registroAgenda);
+    // Verificar si ya existe (para evitar duplicados en la Agenda General si se edita)
+    const indexExistente = audienciasDesahogadas.findIndex(a => String(a.id) === String(registroAgenda.id));
+
+    if (indexExistente === -1) {
+        audienciasDesahogadas.unshift(registroAgenda);
+    } else {
+        // Si ya existe (lo cual no debería pasar si se elimina de la lista principal), lo actualizamos
+        audienciasDesahogadas[indexExistente] = registroAgenda;
+    }
     
-    // Guardar en localStorage
     localStorage.setItem('audienciasDesahogadas', JSON.stringify(audienciasDesahogadas));
     
-    console.log('✅ Audiencia guardada en Agenda General:', registroAgenda);
+    console.log('✅ Audiencia guardada/actualizada en Agenda General:', registroAgenda);
     
-    // RETORNAR EL REGISTRO CREADO PARA PODER USARLO DESPUÉS
     return registroAgenda;
 }
 // -------------------------------
@@ -632,34 +636,46 @@ function guardarAudiencia() {
     mostrarMensajeGlobal('Audiencia guardada', 'success');
 }
 
+
 function initModalFinalizarAudiencia() {
     const modal = document.getElementById('modal-finalizar-audiencia');
     document.getElementById('close-modal-finalizar').onclick = () => modal.style.display='none';
     document.getElementById('cancel-finalizar').onclick = () => modal.style.display='none';
+    
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
-         if(idx !== -1) {
-            // Guardar observaciones
-            AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
-            AUDIENCIAS[idx].atendida = true;
+         
+        if(idx !== -1) {
+            const audienciaAConcluir = AUDIENCIAS[idx];
+
+            // 1. Marcar como Concluida y agregar observaciones
+            audienciaAConcluir.observaciones = document.getElementById('observaciones-finales').value;
+            audienciaAConcluir.atendida = true;
+            audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; // Añadir fecha de conclusión
+
+            // 2. REGISTRO EN AGENDA GENERAL (Función ya existente)
+            const registroAgenda = guardarAudienciaEnAgendaGeneral(audienciaAConcluir);
             
-            // GUARDAR EN AGENDA GENERAL Y OBTENER EL REGISTRO
-            const registroAgenda = guardarAudienciaEnAgendaGeneral(AUDIENCIAS[idx]);
-            
-            // ELIMINAR DE LA TABLA PRINCIPAL DE AUDIENCIAS
+            // 3. ELIMINAR DE LA TABLA PRINCIPAL
+            // Filtramos la audiencia concluida de la lista AUDIENCIAS
             AUDIENCIAS = AUDIENCIAS.filter(a => a.id != id);
             
-            // Guardar cambios en audiencias (sin la audiencia desahogada)
+            // 4. Guardar cambios en la lista principal (ahora sin la audiencia desahogada)
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             
-            // Cargar tabla actualizada
+            // 5. Registro de Actividad en el Expediente
+            registrarActividadExpediente(
+                audienciaAConcluir.asuntoId,
+                'Audiencia Concluida',
+                `Se desahogó la audiencia tipo ${audienciaAConcluir.tipo} con resultado: ${audienciaAConcluir.observaciones.substring(0, 50)}...`,
+                'status'
+            );
+
+            // 6. Cargar tabla actualizada
             loadAudiencias();
             
-            // Mostrar mensaje de éxito
             mostrarMensajeGlobal('Audiencia desahogada y movida a Agenda General.', 'success');
-            
-            console.log(`🗑️ Audiencia ${id} eliminada de la tabla principal y movida a agenda general`);
         }
         
         modal.style.display='none';

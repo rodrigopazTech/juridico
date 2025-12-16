@@ -299,9 +299,70 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// 5. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
+// 5. SINCRONIZACIÓN CON AGENDA GENERAL (Solo Concluido)
 // ===============================================
+function sincronizarConAgendaGeneral(termino) {
+    if (termino.estatus !== 'Concluido') return;    
+    
+    let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+    const existe = terminosPresentados.some(t => 
+        t.id === termino.id || 
+        (t.terminoIdOriginal && t.terminoIdOriginal === termino.id)
+    );
+    
+    if (!existe) {
+        const terminoAgenda = {
+            id: Date.now(), 
+            fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
+            fechaVencimiento: termino.fechaVencimiento || '',
+            fechaPresentacion: new Date().toISOString().split('T')[0], 
+            expediente: termino.expediente || 'S/N',
+            actuacion: termino.asunto || termino.actuacion || '',
+            partes: termino.actor || '',
+            abogado: termino.abogado || 'Sin asignar',
+            acuseDocumento: termino.acuseDocumento || '',
+            etapaRevision: termino.estatus,
+            estatus: termino.estatus,
+            observaciones: termino.observaciones || 'Término concluido y finalizado',
+            fechaCreacion: new Date().toISOString(),
+            terminoIdOriginal: termino.id 
+        };
+        
+        terminosPresentados.unshift(terminoAgenda);
+        
+        localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
+        
+        console.log('✅ Término sincronizado con Agenda General:', terminoAgenda);
+        
+        // ** ELIMINAR EL TÉRMINO DE LA TABLA PRINCIPAL **
+        eliminarTerminoDeTablaPrincipal(termino.id);
+        
+        mostrarMensajeGlobal(`Término concluido y movido a Agenda General`, 'success');
+    }
+}
 
+function eliminarTerminoDeTablaPrincipal(id) {
+    const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
+    if (indice !== -1) {
+        const terminoEliminado = TERMINOS[indice];
+        
+        TERMINOS.splice(indice, 1);
+        
+        guardarYRecargar(); 
+        
+        console.log(`🗑️ Término ${id} eliminado de la tabla principal`);
+        
+        // guardarEnHistoricoTerminos(terminoEliminado); // Opcional, si tienes esta función activa
+        
+        return true;
+    }
+    return false;
+}
+
+
+// ===============================================
+// 6. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
+// ===============================================
 function avanzarEtapa(id) {
     const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
     if (idx === -1) return;
@@ -560,7 +621,7 @@ function initModalPresentar() {
             if(idx !== -1) {
                 let nuevoEstatus = '';
                 if (TERMINOS[idx].estatus === 'Presentado') {
-                    nuevoEstatus = 'Concluido';
+                    nuevoEstatus = 'Concluido'; // ESTADO OBJETIVO
                 } else if (TERMINOS[idx].estatus === 'Dirección') {
                     nuevoEstatus = 'Liberado';
                 } else {
@@ -575,7 +636,7 @@ function initModalPresentar() {
                         TERMINOS[idx].observaciones = observaciones;
                     }
                     
-                    // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CONCLUIDO) ---
+                    // --- PUNTO DE SINCRONIZACIÓN ---
                     if (nuevoEstatus === 'Concluido') {
                         registrarActividadExpediente(
                             TERMINOS[idx].asuntoId,
@@ -583,15 +644,25 @@ function initModalPresentar() {
                             `El término "${TERMINOS[idx].asunto}" ha sido presentado y finalizado.`,
                             'status'
                         );
+                        
+                        // Guardar los cambios ANTES de moverlo
+                        guardarYRecargar(); 
+                        
+                        // LLAMADA CLAVE: Sincronizar y eliminar de la tabla principal
+                        sincronizarConAgendaGeneral(TERMINOS[idx]);
+                        
+                    } else {
+                        // Si no es Concluido, solo guardamos el nuevo estatus (Ej: Liberado)
+                        guardarYRecargar();
                     }
-                    // -----------------------------------------------------
-
-                    guardarYRecargar();
+                    // -------------------------------
+                    
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
+                    
+                    modal.classList.remove('flex'); 
+                    modal.classList.add('hidden');
                 }
-                
-                modal.classList.remove('flex'); 
-                modal.classList.add('hidden');
+             
             }
         };
     }
@@ -620,7 +691,7 @@ function abrirModalPresentar(id, titulo, mensaje) {
 }
 
 // ===============================================
-// 7. HELPERS Y UTILIDADES
+// 8. HELPERS Y UTILIDADES
 // ===============================================
 function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;

@@ -103,9 +103,7 @@ class AgendaGeneralManager {
         }
 
         // 2. CARGAR TÉRMINOS (Simulando Vencimientos Futuros)
-        const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
-        this.terminosPresentados = todosTerminos.filter(termino => termino.estatus === 'Presentado' || termino.estatus === 'Concluido');
-        
+        this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
         if (this.terminosPresentados.length === 0) {
             this.terminosPresentados = [
                 {
@@ -435,4 +433,61 @@ function showModule(moduleName) {
         agendaGeneral.pestañaActiva = moduleName === 'audiencias' ? 'audiencias-desahogadas' : 'terminos-presentados';
         agendaGeneral.actualizarVista();
     }
+}
+
+
+function sincronizarConAgendaGeneral(termino) {
+    if (termino.estatus !== 'Concluido') return;    
+    
+    let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+    
+    // Verificación para evitar duplicados, usando el ID original del término
+    const existe = terminosPresentados.some(t => t.terminoIdOriginal && String(t.terminoIdOriginal) === String(termino.id));
+    
+    if (!existe) {
+        const terminoAgenda = {
+            id: Date.now(), 
+            fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
+            fechaVencimiento: termino.fechaVencimiento || '',
+            fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha de presentación (hoy)
+            expediente: termino.expediente || 'S/N',
+            actuacion: termino.asunto || termino.actuacion || '',
+            partes: termino.actor || '',
+            abogado: termino.abogado || 'Sin asignar',
+            acuseDocumento: termino.acuseDocumento || '',
+            estatus: termino.estatus, // 'Concluido'
+            observaciones: termino.observaciones || 'Término concluido y finalizado',
+            fechaCreacion: new Date().toISOString(),
+            terminoIdOriginal: termino.id // ID del término original
+        };
+        
+        terminosPresentados.unshift(terminoAgenda);
+        
+        localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
+        
+        console.log('✅ Término sincronizado con Agenda General:', terminoAgenda);
+        
+        // ** ELIMINAR EL TÉRMINO DE LA TABLA PRINCIPAL **
+        eliminarTerminoDeTablaPrincipal(termino.id);
+        
+        // La tabla principal se recarga dentro de eliminarTerminoDeTablaPrincipal
+        mostrarMensajeGlobal(`Término concluido y movido a Agenda General`, 'success');
+    }
+}
+
+function eliminarTerminoDeTablaPrincipal(id) {
+    const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
+    if (indice !== -1) {
+        // Se extrae el termino si quieres guardarlo en un histórico
+        // const terminoEliminado = TERMINOS[indice]; 
+        
+        TERMINOS.splice(indice, 1);
+        
+        // CORRECCIÓN: Llamada clave para actualizar la UI y localStorage
+        guardarYRecargar(); 
+        
+        console.log(`🗑️ Término ${id} eliminado de la tabla principal`);
+        return true;
+    }
+    return false;
 }

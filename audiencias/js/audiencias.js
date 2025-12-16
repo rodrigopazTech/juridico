@@ -38,13 +38,14 @@ function getSemaforoStatusAudiencia(fecha, hora) {
   return { class: 'bg-green-500', tooltip: `En ${diffDays} días` };
 }
 
+// -------------------------------
+// LÓGICA DE SINCRONIZACIÓN A AGENDA GENERAL
+// -------------------------------
 function guardarAudienciaEnAgendaGeneral(audienciaData) {
-    // Lista de la Directora (Agenda General)
     let audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
     
-    // Crear registro para la agenda general (usando los datos actualizados)
-    const registroAgenda = {
-        id: audienciaData.id, // Reusamos el ID original
+    const audienciaAgenda = {
+        id: audienciaData.id, 
         fechaAudiencia: audienciaData.fecha,
         horaAudiencia: audienciaData.hora,
         expediente: audienciaData.expediente,
@@ -53,28 +54,26 @@ function guardarAudienciaEnAgendaGeneral(audienciaData) {
         abogado: audienciaData.abogadoComparece,
         actaDocumento: audienciaData.actaDocumento || '',
         atendida: true,
-        // **IMPORTANTE**: Usamos el valor que se asignó en initModalFinalizar
         fechaDesahogo: audienciaData.fechaDesahogo, 
         observaciones: audienciaData.observaciones || '',
+        esEnLinea: audienciaData.esEnLinea,
+        urlReunion: audienciaData.urlReunion,
+        sala: audienciaData.sala,
         fechaCreacion: new Date().toISOString()
     };
     
-    // Verificar si ya existe (para evitar duplicados en la Agenda General si se edita)
-    const indexExistente = audienciasDesahogadas.findIndex(a => String(a.id) === String(registroAgenda.id));
+    const indexExistente = audienciasDesahogadas.findIndex(a => String(a.id) === String(audienciaAgenda.id));
 
     if (indexExistente === -1) {
-        audienciasDesahogadas.unshift(registroAgenda);
+        audienciasDesahogadas.unshift(audienciaAgenda);
     } else {
-        // Si ya existe (lo cual no debería pasar si se elimina de la lista principal), lo actualizamos
-        audienciasDesahogadas[indexExistente] = registroAgenda;
+        audienciasDesahogadas[indexExistente] = audienciaAgenda;
     }
     
     localStorage.setItem('audienciasDesahogadas', JSON.stringify(audienciasDesahogadas));
-    
-    console.log('✅ Audiencia guardada/actualizada en Agenda General:', registroAgenda);
-    
-    return registroAgenda;
+    console.log('✅ Audiencia guardada/actualizada en Agenda General:', audienciaAgenda);
 }
+
 // -------------------------------
 // Inicialización
 // -------------------------------
@@ -98,10 +97,38 @@ function initAudiencias() {
 
     const searchInput = document.getElementById('search-audiencias');
     if(searchInput) searchInput.addEventListener('input', loadAudiencias);
+
+    // NUEVO: Inicializar la lógica del selector de ubicación segmentado
+    const ubicacionGroup = document.getElementById('ubicacion-selector-group');
+    if (ubicacionGroup) {
+        ubicacionGroup.addEventListener('change', updateUbicacionInputs);
+        updateUbicacionInputs(); 
+    }
 }
 
+// NUEVA FUNCIÓN: Maneja la visibilidad de los campos según la selección
+function updateUbicacionInputs() {
+    // 🛑 CLAVE: Leer el estado del radio button
+    const isOnline = document.getElementById('radio-online')?.checked;
+    const inputSala = document.getElementById('input-sala');
+    const inputUrl = document.getElementById('input-url');
+
+    if (isOnline) {
+        inputUrl?.classList.remove('hidden');
+        inputSala?.classList.add('hidden');
+        // Limpiar campo no usado para evitar errores de validación
+        document.getElementById('sala-audiencia').value = ''; 
+    } else {
+        inputSala?.classList.remove('hidden');
+        inputUrl?.classList.add('hidden');
+        // Limpiar campo no usado
+        document.getElementById('url-audiencia').value = ''; 
+    }
+}
+
+
 // -------------------------------
-// Lógica de Tipos de Audiencia
+// Lógica de Tipos de Audiencia (Se mantiene igual)
 // -------------------------------
 function getTiposAudiencia() {
     return JSON.parse(localStorage.getItem('tiposAudiencia')) || DEFAULT_TIPOS_AUDIENCIA;
@@ -222,17 +249,16 @@ function renderListaTipos() {
 }
 
 // -------------------------------
-// Renderizado Principal
+// Renderizado Principal (Actualizado para mostrar ubicación)
 // -------------------------------
 function loadAudiencias() {
-  const tbody = document.getElementById('audiencias-body');
+const tbody = document.getElementById('audiencias-body');
   if(!tbody) return;
 
-  // 1. Cargar Audiencias
+  // 1. Cargar Audiencias (mantiene la lógica de carga y cruce de datos)
   let ls = [];
   try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
-  // 2. Cargar Expedientes para hacer el "cruce" de datos si falta información
   const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
   const NOMBRES_GERENCIAS = {
       1: 'Civil, Mercantil, Fiscal y Administrativo',
@@ -240,7 +266,6 @@ function loadAudiencias() {
       3: 'Transparencia y Amparo'
   };
 
-  // Datos de prueba si está vacío
   if (!ls || ls.length === 0) {
       ls = [ ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
@@ -249,7 +274,7 @@ function loadAudiencias() {
 
   const filtroTipo = document.getElementById('filter-tipo')?.value || '';
   const filtroGerencia = (document.getElementById('filter-gerencia')?.value || '').toLowerCase();
-  const filtroMateria = document.getElementById('filter-materia')?.value || '';
+  const filtroMateria = (document.getElementById('filter-materia')?.value || '').toLowerCase(); 
   const busqueda = (document.getElementById('search-audiencias')?.value || '').toLowerCase();
 
   let html = '';
@@ -276,11 +301,11 @@ function loadAudiencias() {
     materiaMostrar = materiaMostrar || 'S/D';
     gerenciaMostrar = gerenciaMostrar || '-';
 
-    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece}`.toLowerCase();
+    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece} ${materiaMostrar} ${gerenciaMostrar}`.toLowerCase();
     
     if (filtroTipo && a.tipo !== filtroTipo) return;
     if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
-    if (filtroMateria && materiaMostrar !== filtroMateria) return;
+    if (filtroMateria && !materiaMostrar.toLowerCase().includes(filtroMateria)) return; 
     if (busqueda && !textoFila.includes(busqueda)) return;
 
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
@@ -293,44 +318,65 @@ function loadAudiencias() {
     } else {
         estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
     }
-      
-    html += `
+  // NUEVO: Ícono y Tooltip para ubicación
+    let ubicacionIcono = '';
+    let ubicacionTooltip = '';
+    if (a.esEnLinea) {
+        ubicacionIcono = `<i class="fas fa-video text-blue-600"></i>`;
+        ubicacionTooltip = a.urlReunion || 'En Línea';
+    } else {
+        ubicacionIcono = `<i class="fas fa-map-marker-alt text-gray-500"></i>`;
+        ubicacionTooltip = a.sala || 'Presencial';
+    }
+ html += `
       <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
+        
         <td class="px-4 py-3 text-center">
             <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}"><i class="fas fa-chevron-down"></i></button>
         </td>
+        
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center">
             <div class="w-2.5 h-2.5 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
             <div class="flex flex-col">
                 <span class="text-sm font-bold text-gray-900">${formatDate(a.fecha)}</span>
                 <span class="text-xs text-gray-500">${a.hora} hrs</span>
-                <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded mt-0.5 w-fit">${escapeHTML(a.tipo)}</span>
             </div>
           </div>
         </td>
+        
         <td class="px-4 py-3 text-sm font-bold text-gob-guinda whitespace-nowrap">
             ${escapeHTML(a.expediente)}
         </td>
+        
         <td class="px-4 py-3">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-700">${escapeHTML(materiaMostrar)}</span>
                 <span class="text-[10px] text-gray-500 truncate max-w-[120px]" title="${escapeHTML(gerenciaMostrar)}">${escapeHTML(gerenciaMostrar)}</span>
             </div>
         </td>
+        
+        <td class="px-4 py-3">
+            <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded w-fit font-semibold">${escapeHTML(a.tipo)}</span>
+            <div class="flex items-center gap-1 mt-0.5 text-xs text-gray-700" title="${ubicacionTooltip}">
+                 ${ubicacionIcono}
+                <span>${a.esEnLinea ? 'En Línea' : 'Presencial'}</span>
+            </div>
+        </td>
+        
         <td class="px-4 py-3 text-sm text-gray-700">
              <div class="flex items-center gap-1" title="Comparece">
                 <i class="fas fa-user-tie text-gray-400 text-xs"></i>
                 <span>${escapeHTML(a.abogadoComparece || 'Por asignar')}</span>
              </div>
         </td>
+        
         <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">
             ${escapeHTML(a.actor)}
         </td>
-        <td class="px-4 py-3 text-xs text-gray-500 truncate max-w-[120px]" title="${escapeHTML(a.tribunal)}">
-            ${escapeHTML(a.tribunal)}
-        </td>
+        
         <td class="px-4 py-3">${estadoBadge}</td> 
+        
         <td class="px-4 py-3 text-right whitespace-nowrap relative">
             <div class="flex items-center justify-end gap-2">
                 ${!a.atendida ? 
@@ -347,10 +393,20 @@ function loadAudiencias() {
             </div>
         </td>
       </tr>
+      
       <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
         <td colspan="9" class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div><span class="block text-xs font-bold text-gray-400 uppercase">Sala / Ubicación Detallada</span><span class="font-medium text-gray-800">${escapeHTML(a.sala || 'No especificada')}</span></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Tribunal / Órgano</span>
+                    <span class="font-medium text-gray-800">${escapeHTML(a.tribunal || 'No especificado')}</span>
+                </div>
+
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Ubicación Detallada</span>
+                    <span class="font-medium text-gray-800">${escapeHTML(a.sala || a.urlReunion || 'No especificada')}</span>
+                </div>
+
                 ${a.observaciones ? `<div><span class="block text-xs font-bold text-gray-400 uppercase">Resultado / Observaciones</span><span class="font-medium text-gray-800">${escapeHTML(a.observaciones)}</span></div>` : ''}
             </div>
         </td>
@@ -361,12 +417,16 @@ function loadAudiencias() {
   tbody.innerHTML = html || `<tr><td colspan="9" class="text-center py-8 text-gray-500">No hay datos registrados.</td></tr>`;
 }
 
-
 function generarAccionesRapidasAudiencia(audiencia, rol) {
     let html = '';
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
 
     html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
+    
+    // ** CLAVE: El botón 'Unirse a reunión' solo aparece si NO está atendida (!audiencia.atendida) **
+    if (audiencia.esEnLinea && !audiencia.atendida && audiencia.urlReunion && !audiencia.actaDocumento) {
+        html += `<a href="${audiencia.urlReunion}" target="_blank" class="${itemClass} action-join-online text-blue-700 font-bold"><i class="fas fa-sign-in-alt"></i> Unirse a reunión</a>`;
+    }
 
    if (!audiencia.atendida) {
         if (audiencia.actaDocumento) {
@@ -378,19 +438,26 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
             html += `<button class="${itemClass} action-upload-acta"><i class="fas fa-cloud-upload-alt text-gob-oro"></i> <strong>Subir Acta</strong></button>`;
         }
     } else {
+        // Acciones para Audiencia Concluida (atendida: true)
         if(audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-eye text-blue-600"></i> Previsualizar Acta</button>`; // Nuevo botón visible/re-usado
+            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-eye text-blue-600"></i> Previsualizar Acta</button>`; 
             html += `<button class="${itemClass} action-download-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
         }
     }
+    
     html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
-    if (rol === 'Direccion' || rol === 'Gerente') {
+
+    const canReasignar = (rol === 'Direccion' || rol === 'Gerente') && !audiencia.actaDocumento;
+    const canEliminar = rol === 'Direccion';
+    if (canReasignar || canEliminar) {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-reasignar-audiencia"><i class="fas fa-user-friends text-gob-oro"></i> Reasignar Abogado</button>`;
-        if (rol === 'Direccion') {
-            html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
-        }
     }
+    if (canReasignar) {
+        html += `<button class="${itemClass} action-reasignar-audiencia"><i class="fas fa-user-friends text-gob-oro"></i> Reasignar Abogado</button>`;
+    }
+    if (canEliminar) {
+        html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
+    }  
     return html;
 }
 
@@ -528,6 +595,16 @@ function openAudienciaModal(audiencia = null) {
     cargarAsuntosEnSelectorAudiencia();
     cargarTiposAudienciaSelect();
 
+    // NUEVO: Resetear y Cargar estado del selector
+    const radioPresencial = document.getElementById('radio-presencial');
+    const radioOnline = document.getElementById('radio-online');
+    
+    if (radioPresencial) radioPresencial.checked = true;
+    if (radioOnline) radioOnline.checked = false;
+
+    document.getElementById('sala-audiencia').value = '';
+    document.getElementById('url-audiencia').value = '';
+
     if(audiencia) {
         title.textContent = 'Editar Audiencia';
         document.getElementById('audiencia-id').value = audiencia.id;
@@ -537,10 +614,23 @@ function openAudienciaModal(audiencia = null) {
 
         if(document.getElementById('fecha-audiencia')) document.getElementById('fecha-audiencia').value = audiencia.fecha || '';
         if(document.getElementById('hora-audiencia')) document.getElementById('hora-audiencia').value = audiencia.hora || '';
-        if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = audiencia.sala || '';
+        
+        // NUEVO: Cargar estado del radio button
+        if (audiencia.esEnLinea) {
+            if (radioOnline) radioOnline.checked = true;
+        } else {
+            if (radioPresencial) radioPresencial.checked = true;
+        }
+
+        document.getElementById('sala-audiencia').value = audiencia.sala || '';
+        document.getElementById('url-audiencia').value = audiencia.urlReunion || '';
+        
+        updateUbicacionInputs(); 
+
         if(document.getElementById('tipo-audiencia')) document.getElementById('tipo-audiencia').value = audiencia.tipo || '';
-        if(document.getElementById('abogado-comparece')) {
-             const selAbogado = document.getElementById('abogado-comparece');
+        
+        const selAbogado = document.getElementById('abogado-comparece');
+        if(selAbogado) {
              if(audiencia.abogadoComparece && ![...selAbogado.options].some(o => o.value === audiencia.abogadoComparece)){
                  const opt = document.createElement('option'); opt.value = audiencia.abogadoComparece; opt.text = audiencia.abogadoComparece; selAbogado.appendChild(opt);
              }
@@ -550,6 +640,7 @@ function openAudienciaModal(audiencia = null) {
     } else {
         title.textContent = 'Nueva Audiencia';
         document.getElementById('audiencia-id').value = '';
+        updateUbicacionInputs();
     }
     
     modal.style.display = 'flex';
@@ -561,7 +652,16 @@ function guardarAudiencia() {
     const hora = document.getElementById('hora-audiencia').value;
     const asuntoId = document.getElementById('asunto-selector-audiencia').value;
 
+    // NUEVO: Leer el estado del radio button
+    const esEnLinea = document.getElementById('radio-online')?.checked || false;
+    const sala = document.getElementById('sala-audiencia')?.value || '';
+    const urlReunion = document.getElementById('url-audiencia')?.value || '';
+    
     if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
+
+    // Validación de campo requerido condicional
+    if (!esEnLinea && !sala) return alert('Debes especificar la Sala o Ubicación si la audiencia es Presencial.');
+    if (esEnLinea && !urlReunion) return alert('Debes especificar la URL de la reunión si la audiencia es En Línea.');
 
     const fechaBase = new Date(fecha + 'T' + hora);
     const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
@@ -603,11 +703,13 @@ function guardarAudiencia() {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
         tipo: tipoAudiencia || 'General',
-        sala: document.getElementById('sala-audiencia').value,
+        esEnLinea, urlReunion, sala, // NUEVOS CAMPOS
         abogadoComparece: document.getElementById('abogado-comparece').value,
         expediente: exp,
         tribunal: document.getElementById('organo-auto-audiencia').value,
         actor: document.getElementById('partes-auto-audiencia').value,
+        materia: document.getElementById('materia-auto-audiencia').value, 
+        gerencia: document.getElementById('gerencia-auto-audiencia').value, 
         atendida: false,
         actaDocumento: ''
     };
@@ -619,17 +721,14 @@ function guardarAudiencia() {
         nueva.comentarios = AUDIENCIAS[idx].comentarios; 
         AUDIENCIAS[idx] = nueva;
     } else {
-        // === NUEVA AUDIENCIA ===
         AUDIENCIAS.push(nueva);
 
-        // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CREACIÓN) ---
         registrarActividadExpediente(
             asuntoId,
             'Nueva Audiencia Programada',
-            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora} hrs.`,
+            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora} hrs. Lugar: ${esEnLinea ? 'En Línea' : nueva.sala}.`,
             'edit'
         );
-        // -----------------------------------------------------
     }
     
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
@@ -646,27 +745,22 @@ function initModalFinalizarAudiencia() {
     
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
-        const idx = AUDIENCIAS.findIndex(a => a.id == id);
-         
+        const observaciones = document.getElementById('observaciones-finales').value; 
+        const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));   
+        
         if(idx !== -1) {
             const audienciaAConcluir = AUDIENCIAS[idx];
 
-            // 1. Marcar como Concluida y agregar observaciones
-            audienciaAConcluir.observaciones = document.getElementById('observaciones-finales').value;
+            audienciaAConcluir.observaciones = observaciones; 
             audienciaAConcluir.atendida = true;
-            audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; // Añadir fecha de conclusión
+            audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; 
 
-            // 2. REGISTRO EN AGENDA GENERAL (Función ya existente)
-            const registroAgenda = guardarAudienciaEnAgendaGeneral(audienciaAConcluir);
+            guardarAudienciaEnAgendaGeneral(audienciaAConcluir);
             
-            // 3. ELIMINAR DE LA TABLA PRINCIPAL
-            // Filtramos la audiencia concluida de la lista AUDIENCIAS
-            AUDIENCIAS = AUDIENCIAS.filter(a => a.id != id);
+            AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
             
-            // 4. Guardar cambios en la lista principal (ahora sin la audiencia desahogada)
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             
-            // 5. Registro de Actividad en el Expediente
             registrarActividadExpediente(
                 audienciaAConcluir.asuntoId,
                 'Audiencia Concluida',
@@ -674,7 +768,6 @@ function initModalFinalizarAudiencia() {
                 'status'
             );
 
-            // 6. Cargar tabla actualizada
             loadAudiencias();
             
             mostrarMensajeGlobal('Audiencia desahogada y movida a Agenda General.', 'success');

@@ -95,6 +95,9 @@ function loadTerminos() {
     const listaFiltrada = TERMINOS.filter(t => {
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
         
+        // ** CLAVE: Ocultar si ya está Concluido **
+        if (t.estatus === 'Concluido') return false; 
+        
         if (filtros.search && !textoCompleto.includes(filtros.search)) return false;
         if (filtros.estatus && !filtros.estatus.includes('Todos') && t.estatus !== filtros.estatus) return false;
         if (filtros.prioridad && !filtros.prioridad.includes('Todas') && t.prioridad !== filtros.prioridad) return false;
@@ -179,6 +182,7 @@ function generarAccionesRapidas(termino, rol) {
     
     if (etapa === 'Concluido') {
         if (termino.acuseDocumento) {
+            html += `<button class="${itemClass} action-preview-acuse text-gob-oro"><i class="fas fa-eye"></i> Previsualizar Acuse</button>`; 
             html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
         }
         if (rol === 'Direccion' || rol === 'Subdireccion') {
@@ -190,13 +194,12 @@ function generarAccionesRapidas(termino, rol) {
 
     if (etapa === 'Presentado') {
         html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
-
+        
         if (termino.acuseDocumento) {
             html += `<button class="${itemClass} action-preview-acuse text-gob-oro"><i class="fas fa-eye"></i> Previsualizar Acuse</button>`; 
+            html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
         }
-
-        html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
+        
         if (puedeActuar) {
             html += `<button class="${itemClass} action-conclude text-green-600 font-bold"><i class="fas fa-flag-checkered"></i> <strong>Concluir</strong></button>`;
         }
@@ -275,9 +278,7 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
         else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
-        else if (target.classList.contains('action-preview-acuse')) {
-            mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
-        }
+        else if (target.classList.contains('action-preview-acuse')) mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
         }
@@ -315,22 +316,21 @@ function sincronizarConAgendaGeneral(termino) {
     let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
     const existe = terminosPresentados.some(t => 
         t.id === termino.id || 
-        (t.terminoIdOriginal && t.terminoIdOriginal === termino.id)
+        (t.terminoIdOriginal && String(t.terminoIdOriginal) === String(termino.id))
     );
     
     if (!existe) {
         const terminoAgenda = {
-            id: Date.now(), 
+            id: termino.id, // Usar el ID original para referencia
             fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
             fechaVencimiento: termino.fechaVencimiento || '',
-            fechaPresentacion: new Date().toISOString().split('T')[0], 
+            fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha de conclusión
             expediente: termino.expediente || 'S/N',
             actuacion: termino.asunto || termino.actuacion || '',
             partes: termino.actor || '',
             abogado: termino.abogado || 'Sin asignar',
             acuseDocumento: termino.acuseDocumento || '',
-            etapaRevision: termino.estatus,
-            estatus: termino.estatus,
+            estatus: termino.estatus, // 'Concluido'
             observaciones: termino.observaciones || 'Término concluido y finalizado',
             fechaCreacion: new Date().toISOString(),
             terminoIdOriginal: termino.id 
@@ -352,16 +352,12 @@ function sincronizarConAgendaGeneral(termino) {
 function eliminarTerminoDeTablaPrincipal(id) {
     const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
     if (indice !== -1) {
-        const terminoEliminado = TERMINOS[indice];
         
         TERMINOS.splice(indice, 1);
         
         guardarYRecargar(); 
         
         console.log(`🗑️ Término ${id} eliminado de la tabla principal`);
-        
-        // guardarEnHistoricoTerminos(terminoEliminado); // Opcional, si tienes esta función activa
-        
         return true;
     }
     return false;
@@ -379,14 +375,11 @@ function avanzarEtapa(id) {
     
     if(config && config.siguiente) {
         
-        // 1. CASO ESPECIAL: DIRECCIÓN -> LIBERADO (QUITAR COMENTARIO)
         if (actual === 'Dirección') { 
             mostrarConfirmacion('Liberar Término', '¿Confirmar la liberación? Esto cambia el estado a "Liberado".', () => {
-                TERMINOS[idx].estatus = config.siguiente; // 'Liberado'
-                // Opcional: Limpiar observación si se cambia a Liberado
+                TERMINOS[idx].estatus = config.siguiente; 
                 TERMINOS[idx].observaciones = ''; 
                 
-                // Registro de Actividad
                 registrarActividadExpediente(
                     TERMINOS[idx].asuntoId,
                     'Término Liberado',
@@ -629,7 +622,7 @@ function initModalPresentar() {
             if(idx !== -1) {
                 let nuevoEstatus = '';
                 if (TERMINOS[idx].estatus === 'Presentado') {
-                    nuevoEstatus = 'Concluido'; // ESTADO OBJETIVO
+                    nuevoEstatus = 'Concluido'; 
                 } else if (TERMINOS[idx].estatus === 'Dirección') {
                     nuevoEstatus = 'Liberado';
                 } else {
@@ -653,14 +646,11 @@ function initModalPresentar() {
                             'status'
                         );
                         
-                        // Guardar los cambios ANTES de moverlo
                         guardarYRecargar(); 
                         
-                        // LLAMADA CLAVE: Sincronizar y eliminar de la tabla principal
                         sincronizarConAgendaGeneral(TERMINOS[idx]);
                         
                     } else {
-                        // Si no es Concluido, solo guardamos el nuevo estatus (Ej: Liberado)
                         guardarYRecargar();
                     }
                     // -------------------------------
@@ -899,5 +889,25 @@ function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono =
         expedientes[index].actividad.unshift(nuevaActividad);
         localStorage.setItem('expedientesData', JSON.stringify(expedientes));
         console.log(`Actividad registrada en expediente ${asuntoId}: ${titulo}`);
+    }
+}
+
+// ===============================================
+// 10. FUNCIÓN ADICIONAL PARA SINCRONIZACIÓN MANUAL
+// ===============================================
+function sincronizarTerminosConcluidos() {
+    
+    const terminosAEnviar = TERMINOS.filter(t => t.estatus === 'Concluido');
+    let sincronizados = 0;
+    
+    terminosAEnviar.forEach(termino => {
+        sincronizarConAgendaGeneral(termino);
+        sincronizados++;
+    });
+    
+    if (sincronizados > 0) {
+        mostrarMensajeGlobal(`${sincronizados} términos Concluidos movidos a Agenda General`, 'success');
+    } else {
+        mostrarMensajeGlobal('No hay términos en estado Concluido para sincronizar', 'info');
     }
 }

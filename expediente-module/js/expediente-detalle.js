@@ -295,10 +295,10 @@ export class ExpedienteDetalleModule {
           row.className = 'bg-white border-b hover:bg-gray-50 transition-colors group';
           
           let iconClass = 'fa-file-alt text-gray-400';
-          if(doc.nombre.endsWith('.pdf')) iconClass = 'fa-file-pdf text-red-500';
-          else if(doc.nombre.endsWith('.doc') || doc.nombre.endsWith('.docx')) iconClass = 'fa-file-word text-blue-600';
+          if(doc.nombre.endsWith('.pdf')) iconClass = 'fa-light fa-file text-red-500';
+          else if(doc.nombre.endsWith('.doc') || doc.nombre.endsWith('.docx') || doc.nombre.endsWith('.odt')) iconClass = 'fa-file-word text-blue-600';
           else if(doc.nombre.endsWith('.jpg') || doc.nombre.endsWith('.png')) iconClass = 'fa-file-image text-purple-500';
-          else if(doc.nombre.endsWith('.xls') || doc.nombre.endsWith('.xlsx')) iconClass = 'fa-file-excel text-green-600';
+          else if(doc.nombre.endsWith('.xls') || doc.nombre.endsWith('.xlsx') || doc.nombre.endsWith('.csv') || doc.nombre.endsWith('.ods')) iconClass = 'fa-file-excel text-green-600';
 
           row.innerHTML = `
             <td class="px-6 py-4">

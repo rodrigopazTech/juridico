@@ -24,22 +24,99 @@ class AgendaGeneralManager {
         console.log('✅ Agenda General Manager iniciado');
     }
 
-    cargarDatos() {
-        // 1. CARGAR AUDIENCIAS DESAHOGADAS
-        // Leemos la llave específica donde 'audiencias.js' guarda las concluidas
-        this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
-        
-        // Normalización de fechas por seguridad (asegurar que fechaDesahogo exista)
-        this.audienciasDesahogadas = this.audienciasDesahogadas.map(a => ({
-            ...a,
-            fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
-        }));
+    // js/agenda-general-module.js -> Función cargarDatos()
 
-        // 2. CARGAR TÉRMINOS PRESENTADOS
-        this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
-        
-        // NOTA: Se han eliminado los bloques de datos de ejemplo (Dummy Data)
+cargarDatos() {
+    // Helper para fechas dinámicas (Hoy)
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // 1. CARGAR AUDIENCIAS DESAHOGADAS
+    this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+    
+    // Si la lista está vacía, agregamos ejemplos para la presentación
+    if (this.audienciasDesahogadas.length === 0) {
+        this.audienciasDesahogadas = [
+            {
+                id: "aud-ex-1",
+                fechaAudiencia: hoy, // Para que aparezca en el filtro "Hoy"
+                horaAudiencia: '09:00',
+                expediente: '2375/2025',
+                tipoAudiencia: 'Conciliación',
+                partes: 'Juan Pérez vs Inmobiliaria Global S.A.',
+                abogado: 'Lic. Martínez',
+                actaDocumento: 'acta_conciliacion_final.pdf',
+                fechaDesahogo: hoy,
+                observaciones: 'Se logró convenio parcial entre las partes. Pendiente ratificación.'
+            },
+            {
+                id: "aud-ex-2",
+                fechaAudiencia: '2025-12-15',
+                horaAudiencia: '11:30',
+                expediente: '1090/2024',
+                tipoAudiencia: 'Constitucional',
+                partes: 'Comercializadora del Norte vs SAT',
+                abogado: 'Lic. González',
+                actaDocumento: 'audiencia_constitucional_amparo.pdf',
+                fechaDesahogo: '2025-12-15',
+                observaciones: 'Audiencia celebrada sin incidentes. Se turnó el expediente para sentencia.'
+            },
+            {
+                id: "aud-ex-3",
+                fechaAudiencia: '2025-12-10',
+                horaAudiencia: '10:00',
+                expediente: '552/2025',
+                tipoAudiencia: 'Juicio Oral',
+                partes: 'Roberto Casillas vs Refresquera del Sur',
+                abogado: 'Lic. Gómez',
+                actaDocumento: 'acta_juicio_oral_laboral.pdf',
+                fechaDesahogo: '2025-12-10',
+                observaciones: 'Desahogo de pruebas testimoniales completado exitosamente.'
+            }
+        ];
+        // Opcional: Guardar en localStorage para que persistan
+        localStorage.setItem('audienciasDesahogadas', JSON.stringify(this.audienciasDesahogadas));
     }
+
+    // 2. CARGAR TÉRMINOS PRESENTADOS
+    this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+    
+    if (this.terminosPresentados.length === 0) {
+        this.terminosPresentados = [
+            {
+                id: "term-ex-1",
+                fechaPresentacion: hoy, // Para que aparezca en el filtro "Hoy"
+                fechaVencimiento: hoy,
+                expediente: '2189/2025',
+                actuacion: 'Contestación de Reconvención',
+                partes: 'Logística S.A. vs Transportes Unidos',
+                acuseDocumento: 'acuse_reconvencion_sellado.pdf',
+                observaciones: 'Presentado físicamente en oficialía de partes a las 09:45 AM.'
+            },
+            {
+                id: "term-ex-2",
+                fechaPresentacion: '2025-12-16',
+                fechaVencimiento: '2025-12-17',
+                expediente: '344/2024',
+                actuacion: 'Recurso de Queja',
+                partes: 'Sindicato de Mineros vs Junta Local',
+                acuseDocumento: 'acuse_queja_amparo.pdf',
+                observaciones: 'Interpuesto contra el auto que desechó la prueba pericial.'
+            },
+            {
+                id: "term-ex-3",
+                fechaPresentacion: '2025-12-01',
+                fechaVencimiento: '2025-12-01',
+                expediente: '102/2025',
+                actuacion: 'Alegatos de Clausura',
+                partes: 'Estado de México vs Constructora X',
+                acuseDocumento: 'alegatos_clausura_final.pdf',
+                observaciones: 'Alegatos presentados de manera electrónica. Folio: 88291-B.'
+            }
+        ];
+        // Opcional: Guardar en localStorage
+        localStorage.setItem('terminosPresentados', JSON.stringify(this.terminosPresentados));
+    }
+}
 
     configurarPestañas() {
         const tabButtons = document.querySelectorAll('.tab-button');

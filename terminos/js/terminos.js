@@ -67,7 +67,120 @@ function cargarDatosIniciales() {
         if (localData && Array.isArray(localData) && localData.length > 0) {
             TERMINOS = localData;
         } else {
-            TERMINOS = [];
+            TERMINOS = [
+    {
+        id: "term-001",
+        asuntoId: "exp-103",
+        asunto: "Contestación de Demanda Laboral",
+        expediente: "552/2025",
+        actor: "Roberto Casillas vs Refresquera del Sur",
+        prestacion: "Reinstalación",
+        abogado: "Lic. Gómez",
+        fechaIngreso: "2025-12-10",
+        fechaVencimiento: "2025-12-19", 
+        estatus: "Proyectista",
+        prioridad: "Alta",
+        linkDocumento: "https://docs.google.com/document/d/1EjemploBorradorDrive",
+        acuseDocumento: "",
+        observaciones: ""
+    },
+    {
+        id: "term-002",
+        asuntoId: "exp-101",
+        asunto: "Recurso de Apelación",
+        expediente: "2375/2025",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+        prestacion: "Nulidad de escritura",
+        abogado: "Lic. Martínez",
+        fechaIngreso: "2025-12-05",
+        fechaVencimiento: "2025-12-22",
+        estatus: "Dirección", // LISTO PARA LIBERAR POR LA DIRECTORA
+        prioridad: "Media",
+        linkDocumento: "https://docs.google.com/document/d/2EjemploBorradorRevision",
+        acuseDocumento: "",
+        observaciones: "Borrador validado por el Jefe de Departamento."
+    },
+    {
+        id: "term-003",
+        asuntoId: "exp-102",
+        asunto: "Ampliación de Demanda de Amparo",
+        expediente: "1090/2024",
+        actor: "Comercializadora del Norte vs SAT",
+        prestacion: "Nulidad de acto",
+        abogado: "Lic. González",
+        fechaIngreso: "2025-12-12",
+        fechaVencimiento: "2025-12-18", // Vence Mañana (Semaforo Rojo)
+        estatus: "Gerencia", // Etapa intermedia del flujo
+        prioridad: "Alta",
+        linkDocumento: "https://docs.google.com/document/d/3EjemploAmpliacion",
+        acuseDocumento: "",
+        observaciones: "Se requiere revisión urgente de los nuevos conceptos de violación."
+    },
+    {
+        id: "term-004",
+        asuntoId: "exp-101",
+        asunto: "Ofrecimiento de Pruebas Supervenientes",
+        expediente: "2375/2025",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+        prestacion: "Reivindicatoria",
+        abogado: "Lic. Martínez",
+        fechaIngreso: "2025-12-15",
+        fechaVencimiento: "2025-12-23", // Semaforo Amarillo
+        estatus: "Revisión", 
+        prioridad: "Media",
+        linkDocumento: "https://docs.google.com/document/d/4EjemploPruebas",
+        acuseDocumento: "",
+        observaciones: ""
+    },
+    {
+        id: "term-005",
+        asuntoId: "exp-103",
+        asunto: "Pliego de Posiciones",
+        expediente: "552/2025",
+        actor: "Roberto Casillas vs Refresquera del Sur",
+        prestacion: "Pago de Horas Extras",
+        abogado: "Lic. Gómez",
+        fechaIngreso: "2025-12-14",
+        fechaVencimiento: "2025-12-19",
+        estatus: "Liberado", // Ya fue aprobado por Dirección, falta subir Acuse
+        prioridad: "Alta",
+        linkDocumento: "https://docs.google.com/document/d/5EjemploPosiciones",
+        acuseDocumento: "",
+        observaciones: "Documento listo para impresión y sellado."
+    },
+    {
+        id: "term-006",
+        asuntoId: "exp-102",
+        asunto: "Recurso de Queja",
+        expediente: "1090/2024",
+        actor: "Comercializadora del Norte vs SAT",
+        prestacion: "Amparo Indirecto",
+        abogado: "Lic. González",
+        fechaIngreso: "2025-12-10",
+        fechaVencimiento: "2025-12-28", // Semaforo Verde
+        estatus: "Proyectista",
+        prioridad: "Media",
+        linkDocumento: "https://docs.google.com/document/d/6EjemploQueja",
+        acuseDocumento: "",
+        observaciones: "En proceso de elaboración de agravios."
+    },
+    {
+        id: "term-007",
+        asuntoId: "exp-101",
+        asunto: "Contestación de Reconvención",
+        expediente: "2375/2025",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+        prestacion: "Acción Reivindicatoria",
+        abogado: "Lic. Martínez",
+        fechaIngreso: "2025-12-01",
+        fechaVencimiento: "2025-12-18", // VENCE HOY (Semaforo Rojo con Pulso)
+        estatus: "Presentado", // Ya tiene acuse, listo para ser Concluido
+        prioridad: "Alta",
+        linkDocumento: "https://docs.google.com/document/d/7EjemploReconvencion",
+        acuseDocumento: "acuse_contestacion_final.pdf",
+        observaciones: "Presentado en oficialía de partes a las 10:00 AM."
+    }
+];
             localStorage.setItem('terminos', JSON.stringify(TERMINOS));
         }
     } catch (e) {
@@ -138,7 +251,7 @@ function loadTerminos() {
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
             <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>
-                ${iconoObservacion}
+               
             </td>
             <td class="px-4 py-3 text-right whitespace-nowrap relative">
                 <div class="flex items-center justify-end gap-2">

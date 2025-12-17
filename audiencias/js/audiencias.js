@@ -1,6 +1,6 @@
 // js/audiencias.js
 
-const USER_ROLE = 'Gerente'; 
+const USER_ROLE = 'Direccion'; 
 
 // Lista base de tipos de audiencia
 const DEFAULT_TIPOS_AUDIENCIA = ['Inicial', 'Intermedia', 'Juicio Oral', 'Constitucional', 'Incidental', 'Conciliación'];
@@ -255,7 +255,7 @@ function loadAudiencias() {
 const tbody = document.getElementById('audiencias-body');
   if(!tbody) return;
 
-  // 1. Cargar Audiencias (mantiene la lógica de carga y cruce de datos)
+  // 1. Cargar Audiencias mantiene la lógica de carga y cruce de datos)
   let ls = [];
   try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
@@ -267,7 +267,136 @@ const tbody = document.getElementById('audiencias-body');
   };
 
   if (!ls || ls.length === 0) {
-      ls = [ ];
+      ls = [ 
+
+    {
+        id: "aud-001",
+        fecha: "2025-12-19", 
+        hora: "09:30",
+        asuntoId: "exp-101",
+        tipo: "Conciliación",
+        esEnLinea: false,
+        sala: "Sala 4 - Planta Baja, Edificio Central",
+        urlReunion: "",
+        abogadoComparece: "Lic. Martínez",
+        expediente: "2375/2025",
+        tribunal: "Juzgado Primero de Distrito",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+         materia: "Amparo",
+        gerencia: "Transparencia y Amparo",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-002",
+        fecha: "2025-12-20",
+        hora: "11:00",
+        asuntoId: "exp-102",
+        tipo: "Constitucional",
+        esEnLinea: true,
+        sala: "",
+        urlReunion: "https://meet.google.com/abc-defg-hij",
+        abogadoComparece: "Lic. González",
+        expediente: "1090/2024",
+        tribunal: "Tribunal Colegiado en Materia Administrativa",
+        actor: "Comercializadora del Norte",
+         materia: "Amparo",
+        gerencia: "Transparencia y Amparo",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-003",
+        fecha: "2025-12-19", // Próxima (Semáforo Amarillo/Naranja)
+        hora: "10:00",
+        asuntoId: "exp-103",
+        tipo: "Juicio Oral",
+        esEnLinea: false,
+        sala: "Sala de Juicios Orales - 2do Piso",
+        urlReunion: "",
+        abogadoComparece: "Lic. Gómez",
+        expediente: "552/2025",
+        tribunal: "Junta Local de Conciliación y Arbitraje No. 3",
+        actor: "Roberto Casillas vs Refresquera del Sur",
+        materia: "Laboral",
+        gerencia: "Laboral y Penal",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-004",
+        fecha: "2025-12-17", // HOY (Semáforo Rojo/Pulso)
+        hora: "12:30",
+        asuntoId: "exp-102",
+        tipo: "Incidental",
+        esEnLinea: true,
+        sala: "",
+        urlReunion: "https://zoom.us/j/987654321",
+        abogadoComparece: "Lic. González",
+        expediente: "1090/2024",
+        tribunal: "Tribunal Colegiado en Materia Administrativa",
+        actor: "Comercializadora del Norte vs SAT",
+        materia: "Amparo",
+        gerencia: "Transparencia y Amparo",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-005",
+        fecha: "2025-12-22",
+        hora: "09:00",
+        asuntoId: "exp-101",
+        tipo: "Intermedia",
+        esEnLinea: false,
+        sala: "Sala 2 - Juzgados Civiles",
+        urlReunion: "",
+        abogadoComparece: "Lic. Martínez",
+        expediente: "2375/2025",
+        tribunal: "Juzgado Primero de Distrito",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+        materia: "Civil",
+        gerencia: "Civil, Mercantil, Fiscal y Administrativo",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-006",
+        fecha: "2026-01-05", // Futura (Semáforo Verde)
+        hora: "11:30",
+        asuntoId: "exp-101",
+        tipo: "Pericial",
+        esEnLinea: true,
+        sala: "",
+        urlReunion: "https://teams.microsoft.com/l/meetup-join/example",
+        abogadoComparece: "Lic. Martínez",
+        expediente: "2375/2025",
+        tribunal: "Juzgado Primero de Distrito",
+        actor: "Juan Pérez vs Inmobiliaria Global",
+        materia: "Civil",
+        gerencia: "Civil, Mercantil, Fiscal y Administrativo",
+        atendida: false,
+        actaDocumento: ""
+    },
+    {
+        id: "aud-007",
+        fecha: "2025-12-19",
+        hora: "14:00",
+        asuntoId: "exp-103",
+        tipo: "Testimonial",
+        esEnLinea: false,
+        sala: "Sala A - Área de Desahogos",
+        urlReunion: "",
+        abogadoComparece: "Lic. Gómez",
+        expediente: "552/2025",
+        tribunal: "Junta Local de Conciliación y Arbitraje No. 3",
+        actor: "Roberto Casillas vs Refresquera del Sur",
+        materia: "Laboral",
+        gerencia: "Laboral y Penal",
+        atendida: false,
+        actaDocumento: ""
+    }
+
+      ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
   AUDIENCIAS = ls;

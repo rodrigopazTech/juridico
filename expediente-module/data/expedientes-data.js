@@ -2,56 +2,57 @@ const EXPEDIENTES_STORAGE_KEY = 'expedientesData';
 
 function seedExpedientes() {
   if (!localStorage.getItem(EXPEDIENTES_STORAGE_KEY)) {
-    const seed = [
-      {
-        id: crypto.randomUUID(),
-        numero: 'EXP-0001',
-        descripcion: 'Conflicto contractual con proveedor estratégico.',
-        materia: 'Civil',
-        prioridad: 'Alta',
-        estado: 'TRAMITE',
-        abogado: 'Lic. González',
-        gerenciaId: "1", 
-        gerencia: 'Civil, Mercantil, Fiscal y Administrativo',
-        sede: 'CDMX',
-        organo: 'Juzgado 4to Civil',
-        partes: 'Empresa A vs Proveedor B',
-        ultimaActividad: '15 ene 2025',
-        actualizaciones: 3
-      },
-      {
-        id: crypto.randomUUID(),
-        numero: 'EXP-0002',
-        descripcion: 'Demanda por despido injustificado y reclamo de prestaciones de ley.',
-        materia: 'Laboral',
-        prioridad: 'Media',
-        estado: 'LAUDO',
-        abogado: 'Lic. Sofía Martínez',
-        gerenciaId: "2", 
-        gerencia: 'Laboral y Penal',
-        sede: 'Jalisco',
-        organo: 'Junta Local de Conciliación y Arbitraje No. 3',
-        partes: 'Roberto Méndez vs Sucursal Guadalajara',
-        ultimaActividad: '22 feb 2025',
-        actualizaciones: 5
-      },
-      {
-        id: crypto.randomUUID(),
-        numero: 'EXP-0003',
-        descripcion: 'Juicio de nulidad contra determinación de crédito fiscal SAT.',
-        materia: 'Administrativo',
-        prioridad: 'Alta',
-        estado: 'TRAMITE',
-        abogado: 'Lic. Fernando Ruiz',
-        gerenciaId: "1", 
-        gerencia: 'Civil, Mercantil, Fiscal y Administrativo',
-        sede: 'Nuevo León',
-        organo: 'Sala Regional del Noreste (TFJA)',
-        partes: 'Corporativo Industrial vs SAT',
-        ultimaActividad: '05 mar 2025',
-        actualizaciones: 1
-      }
-    ];
+    // En expedientes-data.js, dentro de la función seedExpedientes()
+  const seed = [
+    {
+      id: "exp-101",
+      numero: '2375/2025',
+      descripcion: 'Juicio Ordinario Civil - Acción Reivindicatoria de inmueble en zona centro.',
+      materia: 'Civil',
+      prioridad: 'Alta',
+      estado: 'TRAMITE',
+      abogado: 'Lic. Martínez',
+      gerenciaId: "1", 
+      gerencia: 'Civil, Mercantil, Fiscal y Administrativo',
+      sede: 'CDMX',
+      organo: 'Juzgado Primero de Distrito',
+      partes: 'Juan Pérez vs Inmobiliaria Global S.A.',
+      ultimaActividad: '17 dic 2025',
+      actualizaciones: 1
+    },
+    {
+      id: "exp-102",
+      numero: '1090/2024',
+      descripcion: 'Amparo Indirecto contra leyes fiscales (Reforma al Código Fiscal).',
+      materia: 'Amparo',
+      prioridad: 'Media',
+      estado: 'TRAMITE',
+      abogado: 'Lic. González',
+      gerenciaId: "3", 
+      gerencia: 'Transparencia y Amparo',
+      sede: 'CDMX',
+      organo: 'Tribunal Colegiado en Materia Administrativa',
+      partes: 'Comercializadora del Norte vs SAT',
+      ultimaActividad: '10 dic 2025',
+      actualizaciones: 4
+    },
+    {
+      id: "exp-103",
+      numero: '552/2025',
+      descripcion: 'Demanda Laboral por despido injustificado y pago de horas extras.',
+      materia: 'Laboral',
+      prioridad: 'Alta',
+      estado: 'LAUDO',
+      abogado: 'Lic. Gómez',
+      gerenciaId: "2", 
+      gerencia: 'Laboral y Penal',
+      sede: 'Jalisco',
+      organo: 'Junta Local de Conciliación y Arbitraje No. 3',
+      partes: 'Roberto Casillas vs Refresquera del Sur',
+      ultimaActividad: '15 dic 2025',
+      actualizaciones: 2
+    }
+  ];
     localStorage.setItem(EXPEDIENTES_STORAGE_KEY, JSON.stringify(seed));
   }
 }

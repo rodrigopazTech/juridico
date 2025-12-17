@@ -138,7 +138,7 @@ function loadTerminos() {
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
             <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>
-                ${iconoObservacion}
+     
             </td>
             <td class="px-4 py-3 text-right whitespace-nowrap relative">
                 <div class="flex items-center justify-end gap-2">

@@ -177,7 +177,9 @@ function generarAccionesRapidas(termino, rol) {
     const puedeActuar = rolesPermitidos.includes(rol);
 
     const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
-
+    if (termino.linkDocumento) {
+        html += `<a href="${termino.linkDocumento}" target="_blank" class="${itemClass} action-open-doc text-gob-guinda font-bold"><i class="fas fa-link"></i> Acceder a Documento</a>`;
+    }
     html += `<button class="${itemClass} action-view-expediente"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
     
     if (etapa === 'Concluido') {
@@ -471,6 +473,7 @@ function openTerminoModalJS(termino = null) {
         if(document.getElementById('fecha-ingreso')) document.getElementById('fecha-ingreso').value = termino.fechaIngreso || '';
         if(document.getElementById('fecha-vencimiento')) document.getElementById('fecha-vencimiento').value = termino.fechaVencimiento || '';
         if(document.getElementById('actuacion')) document.getElementById('actuacion').value = termino.asunto || '';
+        if(document.getElementById('link-documento')) document.getElementById('link-documento').value = termino.linkDocumento || '';
         
         if(termino.asuntoId) cargarDatosAsuntoEnModalJS(termino.asuntoId);
     } else {
@@ -489,6 +492,7 @@ function guardarTermino() {
         fechaIngreso: document.getElementById('fecha-ingreso')?.value,
         fechaVencimiento: document.getElementById('fecha-vencimiento')?.value,
         asunto: document.getElementById('actuacion')?.value,
+        linkDocumento: document.getElementById('link-documento')?.value.trim() || '',
     };
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');

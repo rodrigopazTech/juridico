@@ -418,49 +418,93 @@ const tbody = document.getElementById('audiencias-body');
 }
 
 function generarAccionesRapidasAudiencia(audiencia, rol) {
-    let html = '';
-    const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
+    let html = '<div class="py-1">'; // Contenedor con padding vertical suave
 
-    html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
-    
-    // ** CLAVE: El botón 'Unirse a reunión' solo aparece si NO está atendida (!audiencia.atendida) **
+    // --- HELPER PARA BOTONES ---
+    // Esto asegura que todos los botones tengan el mismo estilo base sin repetir código
+    const crearBoton = (claseAccion, icono, texto, color = "text-gray-700", extra = "") => {
+        return `
+        <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${color} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group ${extra}">
+            <div class="w-6 flex justify-center items-center text-opacity-70 group-hover:text-opacity-100 transition-opacity">
+                <i class="${icono}"></i>
+            </div>
+            <span class="font-medium">${texto}</span>
+        </button>`;
+    };
+
+    // --- HELPER PARA SEPARADORES ---
+    const crearSeparador = (titulo = "") => {
+        return `<div class="my-1 border-t border-gray-100">
+                    ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
+                </div>`;
+    };
+
+    // 1. SECCIÓN: NAVEGACIÓN Y ACCESO
+    html += crearBoton(
+        'action-view-asunto-audiencia', 
+        'fas fa-folder-open', 
+        'Ir al Expediente', 
+        'text-gray-700'
+    );
+
+    // Botón especial para reunión en línea (Resaltado)
     if (audiencia.esEnLinea && !audiencia.atendida && audiencia.urlReunion && !audiencia.actaDocumento) {
-        html += `<a href="${audiencia.urlReunion}" target="_blank" class="${itemClass} action-join-online text-blue-700 font-bold"><i class="fas fa-sign-in-alt"></i> Unirse a reunión</a>`;
+        html += `<a href="${audiencia.urlReunion}" target="_blank" class="w-full text-left px-4 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-3 font-bold border-l-4 border-blue-600">
+                    <div class="w-6 flex justify-center"><i class="fas fa-video"></i></div>
+                    <span>Unirse a Reunión</span>
+                 </a>`;
     }
 
-   if (!audiencia.atendida) {
+    // 2. SECCIÓN: GESTIÓN DE AUDIENCIA
+    // Solo mostramos separador si hay acciones de gestión
+    let tieneAccionesGestion = false;
+    let htmlGestion = "";
+
+    if (!audiencia.atendida) {
+        tieneAccionesGestion = true;
         if (audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-blue-600"></i> Previsualizar Acta</button>`;
-            html += `<button class="${itemClass} action-desahogar"><i class="fas fa-flag-checkered text-green-600"></i> <strong>Concluir</strong></button>`;
-            html += `<button class="${itemClass} action-download-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
-            html += `<button class="${itemClass} action-remove-acta"><i class="fas fa-times-circle text-red-500"></i> Quitar Acta</button>`;
+            htmlGestion += crearBoton('action-view-acta', 'fas fa-eye', 'Ver Acta Prev.', 'text-blue-600');
+            htmlGestion += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
+            htmlGestion += crearBoton('action-remove-acta', 'fas fa-times-circle', 'Quitar Acta', 'text-red-500');
         } else {
-            html += `<button class="${itemClass} action-upload-acta"><i class="fas fa-cloud-upload-alt text-gob-oro"></i> <strong>Subir Acta</strong></button>`;
+            htmlGestion += crearBoton('action-upload-acta', 'fas fa-cloud-upload-alt', 'Subir Acta', 'text-gob-oro font-bold');
         }
     } else {
-        // Acciones para Audiencia Concluida (atendida: true)
+        // Audiencia Concluida
         if(audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-eye text-blue-600"></i> Previsualizar Acta</button>`; 
-            html += `<button class="${itemClass} action-download-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
+            tieneAccionesGestion = true;
+            htmlGestion += crearBoton('action-view-acta', 'fas fa-file-pdf', 'Ver Acta Final', 'text-gob-guinda');
+            htmlGestion += crearBoton('action-download-acta', 'fas fa-download', 'Descargar', 'text-gray-500');
         }
     }
-    
-    html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
 
+    if (tieneAccionesGestion) {
+        html += crearSeparador("Gestión");
+        html += htmlGestion;
+    }
+
+    // 3. SECCIÓN: COLABORACIÓN
+    html += crearSeparador();
+    html += crearBoton('action-comment-audiencia', 'far fa-comment-dots', 'Comentarios', 'text-gray-600');
+
+    // 4. SECCIÓN: ADMINISTRACIÓN (Solo roles altos)
     const canReasignar = (rol === 'Direccion' || rol === 'Gerente') && !audiencia.actaDocumento;
     const canEliminar = rol === 'Direccion';
+
     if (canReasignar || canEliminar) {
-        html += `<div class="border-t border-gray-100 my-1"></div>`;
+        html += crearSeparador("Admin");
+        
+        if (canReasignar) {
+            html += crearBoton('action-reasignar-audiencia', 'fas fa-user-friends', 'Reasignar Abogado', 'text-orange-600');
+        }
+        if (canEliminar) {
+            html += crearBoton('action-delete-audiencia', 'fas fa-trash-alt', 'Eliminar Registro', 'text-red-600 hover:bg-red-50');
+        }
     }
-    if (canReasignar) {
-        html += `<button class="${itemClass} action-reasignar-audiencia"><i class="fas fa-user-friends text-gob-oro"></i> Reasignar Abogado</button>`;
-    }
-    if (canEliminar) {
-        html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
-    }  
+
+    html += '</div>';
     return html;
 }
-
 function setupActionMenuListenerAudiencia() {
     const tbody = document.getElementById('audiencias-body');
     if (!tbody) return;

@@ -17,14 +17,14 @@ export class ExpedienteDetalleModule {
     // Renderizado inicial
     this.populateVista360();
     
-    // CAMBIO: Aumentado a 500ms para asegurar que los modales existan
     setTimeout(() => { 
         this.renderTimeline();
         this.setupModals(); 
         this.setupDocumentsModule();
         this.setupObservacionesModule();
         
-        // Inicializar Manager de Órganos
+        this.setupHistoricoLegalModule(); 
+    
         const manager = new OrganosManager();
         manager.init();
     }, 500);
@@ -573,4 +573,166 @@ export class ExpedienteDetalleModule {
   }
 
   renderError(msg){ console.error(msg); }
+
+// ==========================================
+  // MÓDULO: HISTÓRICO LEGAL (CORREGIDO)
+  // ==========================================
+  setupHistoricoLegalModule() {
+    const container = document.getElementById('historico-legal-container');
+    if (!container) return;
+
+    // 1. Obtener TODAS las listas (Activas e Históricas)
+    const audienciasActivas = JSON.parse(localStorage.getItem('audiencias')) || [];
+    const audienciasHistoricas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+    const terminosActivos = JSON.parse(localStorage.getItem('terminos')) || [];
+    const terminosHistoricos = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+
+    // Unificar listas para búsqueda global
+    const todasAudiencias = [...audienciasActivas, ...audienciasHistoricas];
+    const todosTerminos = [...terminosActivos, ...terminosHistoricos];
+
+    // Función de filtrado robusta (por ID o por Número de Expediente)
+    const esDeEsteExpediente = (item) => {
+        // Coincidencia directa por ID de base de datos (asuntoId)
+        if (item.asuntoId && String(item.asuntoId) === String(this.id)) return true;
+        
+        // Coincidencia por Texto del Expediente (Respaldo por si el ID se pierde en históricos)
+        if (item.expediente && this.expediente.numero && 
+            item.expediente.trim() === this.expediente.numero.trim()) return true;
+        
+        return false;
+    };
+
+    // 2. Procesar Audiencias (Activas + Concluidas)
+    const actas = todasAudiencias
+        .filter(a => esDeEsteExpediente(a) && a.actaDocumento)
+        .map(a => ({
+            tipo: 'Audiencia',
+            subtipo: a.tipo || a.tipoAudiencia || 'General',
+            nombreDoc: a.actaDocumento,
+            fecha: a.fecha || a.fechaAudiencia,
+            icono: 'fa-gavel',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+            idRef: a.id
+        }));
+
+    // 3. Procesar Términos (Activos + Presentados)
+    const acuses = todosTerminos
+        .filter(t => esDeEsteExpediente(t) && t.acuseDocumento)
+        .map(t => ({
+            tipo: 'Término',
+            subtipo: 'Acuse Recibido',
+            nombreDoc: t.acuseDocumento,
+            fecha: t.fechaVencimiento || t.fechaPresentacion,
+            icono: 'fa-clock',
+            color: 'text-orange-600',
+            bg: 'bg-orange-50',
+            idRef: t.id
+        }));
+
+    // 4. Unificar y Ordenar (Más reciente primero)
+    const documentos = [...actas, ...acuses].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // 5. Renderizar
+    container.innerHTML = '';
+
+    if (documentos.length === 0) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-8 text-gray-400">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                    <i class="fas fa-folder-open text-xl"></i>
+                </div>
+                <p class="text-xs italic">Sin actas ni acuses registrados.</p>
+            </div>`;
+        return;
+    }
+
+    const lista = document.createElement('ul');
+    lista.className = 'divide-y divide-gray-100';
+
+    documentos.forEach(doc => {
+        const li = document.createElement('li');
+        li.className = 'p-3 hover:bg-gray-50 transition-colors group flex items-center gap-3';
+        
+        li.innerHTML = `
+            <div class="flex-shrink-0 w-8 h-8 rounded-lg ${doc.bg} flex items-center justify-center">
+                <i class="fas ${doc.icono} ${doc.color} text-xs"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start">
+                    <p class="text-xs font-bold text-gray-700 truncate cursor-help" title="${doc.nombreDoc}">
+                        ${doc.nombreDoc}
+                    </p>
+                    <span class="text-[10px] text-gray-400 ml-2 whitespace-nowrap">${this.formatDateShort(doc.fecha)}</span>
+                </div>
+                <p class="text-[10px] text-gray-500 flex items-center gap-1">
+                    <span class="font-semibold ${doc.color}">${doc.tipo}</span> 
+                    <span class="text-gray-300">•</span> 
+                    ${doc.subtipo}
+                </p>
+            </div>
+            <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <button class="btn-preview-historico w-7 h-7 rounded border border-gray-200 bg-white text-gray-500 hover:text-gob-guinda hover:border-gob-guinda flex items-center justify-center transition-all shadow-sm" 
+                        data-doc="${doc.nombreDoc}" title="Previsualizar">
+                    <i class="fas fa-eye text-xs"></i>
+                </button>
+                <button class="btn-download-historico w-7 h-7 rounded border border-gray-200 bg-white text-gray-500 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center transition-all shadow-sm" 
+                        data-doc="${doc.nombreDoc}" title="Descargar">
+                    <i class="fas fa-download text-xs"></i>
+                </button>
+            </div>
+        `;
+        lista.appendChild(li);
+    });
+
+    container.appendChild(lista);
+
+    // Listeners
+    container.querySelectorAll('.btn-preview-historico').forEach(btn => {
+        btn.addEventListener('click', (e) => this.previewHistorico(e.currentTarget.dataset.doc));
+    });
+    container.querySelectorAll('.btn-download-historico').forEach(btn => {
+        btn.addEventListener('click', (e) => this.downloadHistorico(e.currentTarget.dataset.doc));
+    });
+}
+
+// Helpers para el módulo histórico
+formatDateShort(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    // Retorna formato: 12 Dic 2024
+    return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+previewHistorico(nombreDoc) {
+    Swal.fire({
+        title: '<span class="text-sm font-bold text-gray-700">Vista Previa</span>',
+        html: `
+            <div class="flex flex-col items-center gap-4 py-4">
+                <i class="fas fa-file-pdf text-5xl text-red-500"></i>
+                <p class="text-gob-guinda font-bold text-lg">${nombreDoc}</p>
+                <p class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Simulación de visor PDF</p>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '400px'
+    });
+}
+
+downloadHistorico(nombreDoc) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+    Toast.fire({
+        icon: 'success',
+        title: 'Descargando...',
+        text: nombreDoc
+    });
+}
 }

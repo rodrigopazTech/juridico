@@ -171,69 +171,104 @@ function setupSearchAndFilters() {
 // 4. ACCIONES Y MENÚ
 // ===============================================
 function generarAccionesRapidas(termino, rol) {
-    let html = '';
+    let html = '<div class="py-1">'; 
+
+    // --- HELPER CON ICONOS A COLOR ---
+    // colorIcono: Clase de color para el icono (ej. text-green-600)
+    // colorTexto: Clase para el texto (por defecto gris oscuro)
+    const crearBoton = (claseAccion, claseIcono, texto, colorIcono = "text-gray-400", colorTexto = "text-gray-700") => {
+        return `
+        <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${colorTexto} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group">
+            <div class="w-6 flex justify-center items-center ${colorIcono} group-hover:text-gob-guinda transition-colors text-base">
+                <i class="${claseIcono}"></i>
+            </div>
+            <span class="font-medium">${texto}</span>
+        </button>`;
+    };
+
+    const crearSeparador = (titulo = "") => {
+        return `<div class="my-1 border-t border-gray-100">
+                    ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
+                </div>`;
+    };
+
+    // 1. SECCIÓN: NAVEGACIÓN
+    // Link externo destacado
+    if (termino.linkDocumento) {
+        html += `<a href="${termino.linkDocumento}" target="_blank" class="w-full text-left px-4 py-2 text-sm text-gob-guinda bg-red-50/10 hover:bg-gray-50 transition-colors flex items-center gap-3 font-bold border-l-4 border-gob-guinda">
+                    <div class="w-6 flex justify-center text-gob-guinda"><i class="fas fa-link"></i></div>
+                    <span>Abrir Documento</span>
+                 </a>`;
+    }
+
+    html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-500');
+
+    // 2. SECCIÓN: GESTIÓN
     const etapa = termino.estatus;
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
-
-    const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
-    if (termino.linkDocumento) {
-        html += `<a href="${termino.linkDocumento}" target="_blank" class="${itemClass} action-open-doc text-gob-guinda font-bold"><i class="fas fa-link"></i> Acceder a Documento</a>`;
-    }
-    html += `<button class="${itemClass} action-view-expediente"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
     
+    let htmlGestion = "";
+    let hayAccionesGestion = false;
+
+    // A) CASO: CONCLUIDO
     if (etapa === 'Concluido') {
         if (termino.acuseDocumento) {
-            html += `<button class="${itemClass} action-preview-acuse text-gob-oro"><i class="fas fa-eye"></i> Previsualizar Acuse</button>`; 
-            html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
+            hayAccionesGestion = true;
+            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
+            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
         }
-        if (rol === 'Direccion' || rol === 'Subdireccion') {
-             html += `<div class="border-t border-gray-100 my-1"></div>`;
-             html += `<button class="${itemClass} action-delete text-red-600 font-bold"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
-        }
-        return html; 
     }
-
-    if (etapa === 'Presentado') {
-        html += `<div class="border-t border-gray-100 my-1"></div>`;
+    // B) CASO: PRESENTADO
+    else if (etapa === 'Presentado') {
+        hayAccionesGestion = true;
         
         if (termino.acuseDocumento) {
-            html += `<button class="${itemClass} action-preview-acuse text-gob-oro"><i class="fas fa-eye"></i> Previsualizar Acuse</button>`; 
-            html += `<button class="${itemClass} action-download-acuse text-blue-600"><i class="fas fa-file-download"></i> Descargar Acuse</button>`;
+            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
+            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
+            htmlGestion += crearBoton('action-remove-acuse', 'fas fa-times-circle', 'Quitar Acuse', 'text-red-500');
         }
-        
-        if (puedeActuar) {
-            html += `<button class="${itemClass} action-conclude text-green-600 font-bold"><i class="fas fa-flag-checkered"></i> <strong>Concluir</strong></button>`;
-        }
-        html += `<button class="${itemClass} action-remove-acuse text-red-500"><i class="fas fa-times-circle"></i> Quitar Acuse</button>`;
-        return html;
-    }
 
-    if (puedeActuar) {
-        html += `<div class="border-t border-gray-100 my-1"></div>`;
+        if (puedeActuar) {
+            htmlGestion += `<div class="my-1"></div>`; 
+            // Botón de Concluir con icono verde vibrante
+            htmlGestion += crearBoton('action-conclude', 'fas fa-flag-checkered', 'Concluir Término', 'text-green-600', 'text-green-800 font-bold');
+        }
+    }
+    // C) CASO: FLUJO ACTIVO
+    else if (puedeActuar) {
         const config = FLUJO_ETAPAS[etapa];
         if (config) {
+            hayAccionesGestion = true;
+            
             if (config.accion === 'enviarRevision' || config.accion === 'aprobar') {
-                html += `<button class="${itemClass} action-advance text-green-700"><i class="fas fa-check"></i> <strong>${config.label}</strong></button>`;
+                htmlGestion += crearBoton('action-advance', 'fas fa-check-circle', config.label, 'text-green-600', 'text-gray-800 font-medium');
             }
             if (config.accion === 'subirAcuse') {
-                html += `<button class="${itemClass} action-upload-acuse text-blue-700"><i class="fas fa-file-upload"></i> <strong>${config.label}</strong></button>`;
+                htmlGestion += crearBoton('action-upload-acuse', 'fas fa-cloud-upload-alt', config.label, 'text-blue-600 font-bold');
             }
             if (config.anterior) {
-                html += `<button class="${itemClass} action-reject text-red-600"><i class="fas fa-times"></i> Rechazar</button>`;
+                htmlGestion += crearBoton('action-reject', 'fas fa-reply', 'Rechazar / Regresar', 'text-red-500');
             }
         }
     }
 
-    if (rol === 'Gerente' || rol === 'Direccion' || rol === 'Subdireccion') {
-        html += `<div class="border-t border-gray-100 my-1"></div>`;
-        if (rol === 'Direccion' || rol === 'Subdireccion') {
-            html += `<button class="${itemClass} action-delete text-red-600 font-bold hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
-        }
+    if (hayAccionesGestion) {
+        html += crearSeparador("Gestión");
+        html += htmlGestion;
     }
+
+    // 3. SECCIÓN: ADMINISTRACIÓN
+    const puedeEliminar = rol === 'Direccion' || rol === 'Subdireccion';
+    
+    if (puedeEliminar) {
+        html += crearSeparador("Admin");
+        html += crearBoton('action-delete', 'fas fa-trash-alt', 'Eliminar Registro', 'text-red-600', 'text-red-700');
+    }
+
+    html += '</div>';
     return html;
 }
-
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;

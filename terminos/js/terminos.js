@@ -171,104 +171,65 @@ function setupSearchAndFilters() {
 // 4. ACCIONES Y MENÚ
 // ===============================================
 function generarAccionesRapidas(termino, rol) {
-    let html = '<div class="py-1">'; 
-
-    // --- HELPER CON ICONOS A COLOR ---
-    // colorIcono: Clase de color para el icono (ej. text-green-600)
-    // colorTexto: Clase para el texto (por defecto gris oscuro)
-    const crearBoton = (claseAccion, claseIcono, texto, colorIcono = "text-gray-400", colorTexto = "text-gray-700") => {
-        return `
-        <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${colorTexto} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group">
-            <div class="w-6 flex justify-center items-center ${colorIcono} group-hover:text-gob-guinda transition-colors text-base">
-                <i class="${claseIcono}"></i>
-            </div>
-            <span class="font-medium">${texto}</span>
-        </button>`;
-    };
-
-    const crearSeparador = (titulo = "") => {
-        return `<div class="my-1 border-t border-gray-100">
-                    ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
-                </div>`;
-    };
-
-    // 1. SECCIÓN: NAVEGACIÓN
-    // Link externo destacado
-    if (termino.linkDocumento) {
-        html += `<a href="${termino.linkDocumento}" target="_blank" class="w-full text-left px-4 py-2 text-sm text-gob-guinda bg-red-50/10 hover:bg-gray-50 transition-colors flex items-center gap-3 font-bold border-l-4 border-gob-guinda">
-                    <div class="w-6 flex justify-center text-gob-guinda"><i class="fas fa-link"></i></div>
-                    <span>Abrir Documento</span>
-                 </a>`;
-    }
-
-    html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-500');
-
-    // 2. SECCIÓN: GESTIÓN
+    let html = '<div class="py-1">';
     const etapa = termino.estatus;
+    const tieneDocumento = !!termino.archivoWord;
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
-    
-    let htmlGestion = "";
-    let hayAccionesGestion = false;
 
-    // A) CASO: CONCLUIDO
-    if (etapa === 'Concluido') {
-        if (termino.acuseDocumento) {
-            hayAccionesGestion = true;
-            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
+    // 1. Acciones de Documento (Borrador Word)
+    if (etapa !== 'Concluido' && etapa !== 'Presentado') {
+        if (tieneDocumento) {
+            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
+            html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
+        } else {
+            html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Borrador Word', 'text-gob-oro font-bold');
         }
     }
-    // B) CASO: PRESENTADO
-    else if (etapa === 'Presentado') {
-        hayAccionesGestion = true;
-        
-        if (termino.acuseDocumento) {
-            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
-            htmlGestion += crearBoton('action-remove-acuse', 'fas fa-times-circle', 'Quitar Acuse', 'text-red-500');
-        }
 
-        if (puedeActuar) {
-            htmlGestion += `<div class="my-1"></div>`; 
-            // Botón de Concluir con icono verde vibrante
-            htmlGestion += crearBoton('action-conclude', 'fas fa-flag-checkered', 'Concluir Término', 'text-green-600', 'text-green-800 font-bold');
-        }
-    }
-    // C) CASO: FLUJO ACTIVO
-    else if (puedeActuar) {
+    html += crearSeparador("Navegación");
+    html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-500');
+
+    // 2. Gestión de Flujo (SOLO AVANCE)
+    if (puedeActuar) {
+        html += crearSeparador("Flujo");
         const config = FLUJO_ETAPAS[etapa];
+        
         if (config) {
-            hayAccionesGestion = true;
-            
-            if (config.accion === 'enviarRevision' || config.accion === 'aprobar') {
-                htmlGestion += crearBoton('action-advance', 'fas fa-check-circle', config.label, 'text-green-600', 'text-gray-800 font-medium');
-            }
-            if (config.accion === 'subirAcuse') {
-                htmlGestion += crearBoton('action-upload-acuse', 'fas fa-cloud-upload-alt', config.label, 'text-blue-600 font-bold');
-            }
-            if (config.anterior) {
-                htmlGestion += crearBoton('action-reject', 'fas fa-reply', 'Rechazar / Regresar', 'text-red-500');
+            if (etapa === 'Liberado') {
+                // En Liberado pedimos el Acuse
+                html += crearBoton('action-upload-acuse', 'fas fa-file-import', 'Subir Acuse Final', 'text-blue-600 font-bold');
+            } else if (etapa === 'Presentado') {
+                html += crearBoton('action-conclude', 'fas fa-flag-checkered', 'Concluir Término', 'text-green-600 font-bold');
+            } else {
+                // Para Proyectista, Revisión, Gerencia, Dirección
+                // BLOQUEO VISUAL: Si no hay documento, el botón se ve diferente o avisamos
+                const colorBoton = tieneDocumento ? 'text-green-600' : 'text-gray-300 cursor-not-allowed';
+                html += crearBoton('action-advance', 'fas fa-arrow-right', config.label, colorBoton);
             }
         }
     }
 
-    if (hayAccionesGestion) {
-        html += crearSeparador("Gestión");
-        html += htmlGestion;
-    }
-
-    // 3. SECCIÓN: ADMINISTRACIÓN
-    const puedeEliminar = rol === 'Direccion' || rol === 'Subdireccion';
-    
-    if (puedeEliminar) {
-        html += crearSeparador("Admin");
-        html += crearBoton('action-delete', 'fas fa-trash-alt', 'Eliminar Registro', 'text-red-600', 'text-red-700');
-    }
-
-    html += '</div>';
-    return html;
+    // Eliminamos la lógica de "Anterior" o "Reject" según la instrucción de los abogados
+    return html + '</div>';
 }
+
+function crearBoton(claseAccion, icono, texto, color = "text-gray-700", extra = "") {
+    return `
+    <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${color} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group ${extra}">
+        <div class="w-6 flex justify-center items-center text-opacity-70 group-hover:text-opacity-100 transition-opacity">
+            <i class="${icono}"></i>
+        </div>
+        <span class="font-medium">${texto}</span>
+    </button>`;
+}
+
+function crearSeparador(titulo = "") {
+    return `<div class="my-1 border-t border-gray-100">
+                ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
+            </div>`;
+}
+
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
@@ -310,6 +271,32 @@ function setupActionMenuListener() {
             } else {
                 mostrarMensajeGlobal("Este término no está vinculado a un expediente digital.", "warning");
             }
+        }
+        else if (target.classList.contains('action-upload-word')) {
+        // Usamos un input file global
+        const fileInput = document.getElementById('input-word-termino');
+        fileInput.onchange = (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
+                TERMINOS[tIdx].archivoWord = file.name; // Guardamos el nombre
+                
+                registrarActividadExpediente(
+                    TERMINOS[tIdx].asuntoId,
+                    'Borrador Actualizado',
+                    `Se cargó el archivo: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`,
+                    'upload'
+                );
+                
+                guardarYRecargar();
+                mostrarMensajeGlobal("Archivo cargado correctamente", "success");
+            }
+        };
+        fileInput.click();
+        }
+        else if (target.classList.contains('action-download-word')) {
+            mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
+            // Aquí iría la lógica real de descarga
         }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
         else if (target.classList.contains('action-reject')) regresarEtapa(id);
@@ -407,10 +394,16 @@ function eliminarTerminoDeTablaPrincipal(id) {
 function avanzarEtapa(id) {
     const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
     if (idx === -1) return;
-    const actual = TERMINOS[idx].estatus;
+    const termino = TERMINOS[idx];
+    const actual = termino.estatus;
+
+    if (!termino.archivoWord && actual !== 'Liberado' && actual !== 'Presentado') {
+        mostrarMensajeGlobal("No puede avanzar sin subir el borrador Word primero.", "danger");
+        return;
+    }
+
     const config = FLUJO_ETAPAS[actual];
-    
-    if(config && config.siguiente) {
+    if(config && config.siguiente){
         
         if (actual === 'Dirección') { 
             mostrarConfirmacion('Liberar Término', '¿Confirmar la liberación? Esto cambia el estado a "Liberado".', () => {

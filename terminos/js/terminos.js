@@ -104,6 +104,7 @@ function loadTerminos() {
         
         return true;
     });
+    
 
     let html = '';
     listaFiltrada.forEach(t => {
@@ -122,6 +123,28 @@ function loadTerminos() {
             ? `<i class="fas fa-comment-alt text-blue-500 ml-2 cursor-pointer" title="Observación Final: ${t.observaciones}"></i>` 
             : '';   
 
+        const prioridad = t.prioridad || 'Media';
+        let dotColor = '';
+        let textColor = '';
+        let borderColor = '';
+
+        switch(prioridad) {
+            case 'Alta': 
+                dotColor = 'bg-red-500'; 
+                textColor = 'text-red-600'; 
+                borderColor = 'border-red-200';
+                break;
+            case 'Baja': 
+                dotColor = 'bg-gray-400'; 
+                textColor = 'text-gray-500'; 
+                borderColor = 'border-gray-200';
+                break;
+            default: // Media
+                dotColor = 'bg-orange-400'; 
+                textColor = 'text-orange-600'; 
+                borderColor = 'border-orange-200';
+        }
+
         html += `
         <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
             <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -131,15 +154,25 @@ function loadTerminos() {
                 </div>
             </td>
             <td class="px-4 py-3 text-sm text-gray-500 font-bold">${formatDate(t.fechaVencimiento)}</td>
-            <td class="px-4 py-3 text-sm font-bold text-gob-guinda">${t.expediente || 'S/N'}</td>
+           <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-gob-guinda leading-none">${t.expediente || 'S/N'}</span>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
+                        <span class="text-[9px] font-bold uppercase tracking-tight ${textColor}">
+                            ${prioridad}
+                        </span>
+                    </div>
+                </div>
+            </td>
             <td class="px-4 py-3 text-sm text-gray-700 max-w-[150px] truncate" title="${t.actor}">${t.actor || ''}</td>
             <td class="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title="${t.asunto}">${t.asunto || ''}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.prestacion || 'N/A'}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
             <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>
-     
-            </td>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>    
+            </td>           
+            
             <td class="px-4 py-3 text-right whitespace-nowrap relative">
                 <div class="flex items-center justify-end gap-2">
                     ${botonEditar}
@@ -178,7 +211,7 @@ function generarAccionesRapidas(termino, rol) {
     const puedeActuar = rolesPermitidos.includes(rol);
 
     // 1. Acciones de Documento (Borrador Word)
-    if (etapa !== 'Concluido' && etapa !== 'Presentado') {
+    if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa != 'Liberado') {
         if (tieneDocumento) {
             html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
             html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
@@ -208,6 +241,15 @@ function generarAccionesRapidas(termino, rol) {
                 html += crearBoton('action-advance', 'fas fa-arrow-right', config.label, colorBoton);
             }
         }
+    }
+    if (rol === 'Direccion') {
+        html += crearSeparador("Admin");
+        html += crearBoton(
+            'action-delete', 
+            'fas fa-trash-alt', 
+            'Eliminar Término', 
+            'text-red-600 hover:bg-red-50 font-bold'
+        );
     }
 
     // Eliminamos la lógica de "Anterior" o "Reject" según la instrucción de los abogados
@@ -736,9 +778,7 @@ function calcularDiasRestantes(fechaVencimiento) {
 function getSemaforoColor(fecha) {
   const dias = calcularDiasRestantes(fecha);
     if (dias === null) return 'bg-gray-300';
-    if (dias < 0) return 'bg-red-700';      
-    if (dias === 0) return 'bg-red-500 animate-pulse'; 
-    if (dias <= 3) return 'bg-orange-500';  
+    if (dias < 3) return 'bg-red-700';      
     if (dias <= 7) return 'bg-yellow-400';  
     return 'bg-green-500';
 }

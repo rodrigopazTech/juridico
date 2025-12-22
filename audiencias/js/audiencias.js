@@ -696,16 +696,13 @@ function guardarAudiencia() {
     const hora = document.getElementById('hora-audiencia').value;
     const asuntoId = document.getElementById('asunto-selector-audiencia').value;
 
-    // NUEVO: Leer el estado del radio button
     const esEnLinea = document.getElementById('radio-online')?.checked || false;
     const sala = document.getElementById('sala-audiencia')?.value || '';
     const urlReunion = document.getElementById('url-audiencia')?.value || '';
     
     if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
-
-    // Validación de campo requerido condicional
-    if (!esEnLinea && !sala) return alert('Debes especificar la Sala o Ubicación si la audiencia es Presencial.');
-    if (esEnLinea && !urlReunion) return alert('Debes especificar la URL de la reunión si la audiencia es En Línea.');
+    if (!esEnLinea && !sala) return alert('Especifique Sala/Lugar.');
+    if (esEnLinea && !urlReunion) return alert('Especifique URL.');
 
     const fechaBase = new Date(fecha + 'T' + hora);
     const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
@@ -721,33 +718,30 @@ function guardarAudiencia() {
     if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
     if (!textoAnticipacion) textoAnticipacion = "el momento";
 
-    const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
     const tipoAudiencia = document.getElementById('tipo-audiencia').value;
     const exp = document.getElementById('expediente-auto-audiencia').value;
     
-    const nuevoRecordatorio = {
-        id: Date.now() + 1,
-        titulo: `Audiencia: ${tipoAudiencia}`,
+    // Notificación de Recordatorio
+    crearNotificacionGlobal({
+        eventType: 'recordatorio',
+        title: `Recordatorio: Audiencia ${tipoAudiencia}`,
+        expediente: exp,
+        status: 'Activo',
+        notifyAt: fechaNotificacion.toISOString(),
+        detalles: { descripcion: notaRec || `Audiencia programada para el expediente ${exp}` },
         meta: {
             tipoOrigen: 'audiencia',
             expediente: exp,
             anticipacion: textoAnticipacion,
             fechaEvento: fechaBase.toISOString()
-        },
-        detalles: notaRec || `Recordatorio de audiencia programada para el expediente ${exp}.`,
-        fecha: fechaNotificacion.toISOString().split('T')[0],
-        hora: fechaNotificacion.toTimeString().substring(0,5),
-        prioridad: 'urgent',
-        completado: false
-    };
-    recordatorios.unshift(nuevoRecordatorio);
-    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+        }
+    });
 
     const nueva = {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
         tipo: tipoAudiencia || 'General',
-        esEnLinea, urlReunion, sala, // NUEVOS CAMPOS
+        esEnLinea, urlReunion, sala,
         abogadoComparece: document.getElementById('abogado-comparece').value,
         expediente: exp,
         tribunal: document.getElementById('organo-auto-audiencia').value,
@@ -766,6 +760,16 @@ function guardarAudiencia() {
         AUDIENCIAS[idx] = nueva;
     } else {
         AUDIENCIAS.push(nueva);
+        
+        // Notificación de Creación (Solo Tipo, sin "Nueva Audiencia:")
+        crearNotificacionGlobal({
+            eventType: 'audiencia',
+            title: nueva.tipo, 
+            expediente: exp,
+            status: 'Pendiente',
+            detalles: { juzgado: nueva.tribunal || 'Por asignar' },
+            notifyAt: new Date().toISOString()
+        });
 
         registrarActividadExpediente(
             asuntoId,
@@ -780,8 +784,6 @@ function guardarAudiencia() {
     loadAudiencias();
     mostrarMensajeGlobal('Audiencia guardada', 'success');
 }
-
-
 function initModalFinalizarAudiencia() {
     const modal = document.getElementById('modal-finalizar-audiencia');
     document.getElementById('close-modal-finalizar').onclick = () => modal.style.display='none';
@@ -799,10 +801,23 @@ function initModalFinalizarAudiencia() {
             audienciaAConcluir.atendida = true;
             audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; 
 
-            guardarAudienciaEnAgendaGeneral(audienciaAConcluir);
+            // Notificación de Conclusión (Solo Tipo)
+            crearNotificacionGlobal({
+                eventType: 'audiencia',
+                title: audienciaAConcluir.tipo,
+                expediente: audienciaAConcluir.expediente,
+                status: 'Concluida',
+                detalles: { juzgado: 'Desahogada exitosamente' },
+                notifyAt: new Date().toISOString()
+            });
+
+            // Mover a Agenda General
+            const historico = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+            historico.push(audienciaAConcluir);
+            localStorage.setItem('audienciasDesahogadas', JSON.stringify(historico));
             
+            // Eliminar de pendientes
             AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
-            
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             
             registrarActividadExpediente(
@@ -813,7 +828,6 @@ function initModalFinalizarAudiencia() {
             );
 
             loadAudiencias();
-            
             mostrarMensajeGlobal('Audiencia desahogada y movida a Agenda General.', 'success');
         }
         
@@ -1080,4 +1094,24 @@ function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono =
         expedientes[index].actividad.unshift(nuevaActividad);
         localStorage.setItem('expedientesData', JSON.stringify(expedientes));
     }
+}
+
+// === HELPER PARA GENERAR NOTIFICACIONES DINÁMICAS ===
+function crearNotificacionGlobal(datos) {
+    const KEY = 'jl_notifications_v4';
+    const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];
+    
+    const nuevaNotif = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        eventType: datos.eventType,
+        title: datos.title,
+        expediente: datos.expediente,
+        status: datos.status,
+        detalles: datos.detalles || {},
+        notifyAt: datos.notifyAt || new Date().toISOString(),
+        meta: datos.meta || {}
+    };
+    
+    notificaciones.push(nuevaNotif);
+    localStorage.setItem(KEY, JSON.stringify(notificaciones));
 }

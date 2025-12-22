@@ -145,6 +145,7 @@ function loadTerminos() {
                 borderColor = 'border-orange-200';
         }
 
+   
         html += `
         <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
             <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -154,36 +155,42 @@ function loadTerminos() {
                 </div>
             </td>
             <td class="px-4 py-3 text-sm text-gray-500 font-bold">${formatDate(t.fechaVencimiento)}</td>
-           <td class="px-4 py-3 whitespace-nowrap">
+
+            <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex flex-col">
                     <span class="text-sm font-bold text-gob-guinda leading-none">${t.expediente || 'S/N'}</span>
                     <div class="flex items-center gap-1.5 mt-1">
                         <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
-                        <span class="text-[9px] font-bold uppercase tracking-tight ${textColor}">
-                            ${prioridad}
-                        </span>
+                        <span class="text-[9px] font-bold uppercase tracking-tight ${textColor}">${prioridad}</span>
                     </div>
                 </div>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-700 max-w-[150px] truncate" title="${t.actor}">${t.actor || ''}</td>
+
+            <td class="px-4 py-3 text-sm text-gray-700 max-w-[150px] truncate" title="${t.actor}">
+                <div class="flex flex-col">
+                    <span class="font-medium truncate">${t.actor || 'Sin Actor'}</span>
+                    <span class="text-[9px] text-gray-400 italic mt-0.5 leading-none">
+                        <i class="fas fa-university scale-75 mr-0.5"></i>${t.organo || 'No asignado'}
+                    </span>
+                </div>
+            </td>
+
             <td class="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title="${t.asunto}">${t.asunto || ''}</td> 
-            <td class="px-4 py-3 text-sm text-gray-500">${t.prestacion || 'N/A'}</td> 
             <td class="px-4 py-3 text-sm text-gray-500">${t.abogado || 'Sin asignar'}</td>
+            
             <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${badgeClass}">${t.estatus}</span>    
             </td>           
-            
             <td class="px-4 py-3 text-right whitespace-nowrap relative">
                 <div class="flex items-center justify-end gap-2">
                     ${botonEditar}
-                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Más Acciones">
+                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    
-                     <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
+                    <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 shadow-xl">
                         ${generarAccionesRapidas(t, USER_ROLE)}
+                        <input type="file" class="input-acuse-hidden hidden" data-id="${t.id}" accept=".pdf,.jpg,.jpeg,.png">
                     </div>
-                    <input type="file" class="input-acuse-hidden hidden" data-id="${t.id}">
                 </div>
             </td>
         </tr>`;
@@ -210,8 +217,13 @@ function generarAccionesRapidas(termino, rol) {
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
 
-    // 1. Acciones de Documento (Borrador Word)
-    if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa != 'Liberado') {
+    // 1. NAVEGACIÓN (Siempre visible)
+    html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-700');
+    html += crearSeparador();
+
+    // 2. ACCIONES DE DOCUMENTO (BORRADOR WORD)
+    // Se muestra en etapas previas a la liberación final
+    if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa !== 'Liberado') {
         if (tieneDocumento) {
             html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
             html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
@@ -220,39 +232,36 @@ function generarAccionesRapidas(termino, rol) {
         }
     }
 
-    html += crearSeparador("Navegación");
-    html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-500');
 
-    // 2. Gestión de Flujo (SOLO AVANCE)
+    // 4. GESTIÓN DE FLUJO (AVANCE DE ETAPAS)
     if (puedeActuar) {
-        html += crearSeparador("Flujo");
         const config = FLUJO_ETAPAS[etapa];
         
         if (config) {
+            html += crearSeparador("Flujo");
+            
             if (etapa === 'Liberado') {
-                // En Liberado pedimos el Acuse
+                // REINSTALADO: Botón para subir el acuse y pasar a 'Presentado'
                 html += crearBoton('action-upload-acuse', 'fas fa-file-import', 'Subir Acuse Final', 'text-blue-600 font-bold');
             } else if (etapa === 'Presentado') {
+                // Botón final para mover a Agenda General
                 html += crearBoton('action-conclude', 'fas fa-flag-checkered', 'Concluir Término', 'text-green-600 font-bold');
+                 html += crearBoton('action-remove-acuse', 'fas fa-undo', 'Quitar Acuse / Corregir', 'text-red-500');
             } else {
-                // Para Proyectista, Revisión, Gerencia, Dirección
-                // BLOQUEO VISUAL: Si no hay documento, el botón se ve diferente o avisamos
+                // Botones de avance para Proyectista, Revisión, Gerencia y Dirección
                 const colorBoton = tieneDocumento ? 'text-green-600' : 'text-gray-300 cursor-not-allowed';
-                html += crearBoton('action-advance', 'fas fa-arrow-right', config.label, colorBoton);
+                const labelAvance = config.label || 'Avanzar Etapa';
+                html += crearBoton('action-advance', 'fas fa-arrow-right', labelAvance, colorBoton);
             }
         }
     }
+
+    // 5. ADMINISTRACIÓN (SOLO DIRECCIÓN)
     if (rol === 'Direccion') {
         html += crearSeparador("Admin");
-        html += crearBoton(
-            'action-delete', 
-            'fas fa-trash-alt', 
-            'Eliminar Término', 
-            'text-red-600 hover:bg-red-50 font-bold'
-        );
+        html += crearBoton('action-delete', 'fas fa-trash-alt', 'Eliminar Término', 'text-red-600 hover:bg-red-50 font-bold');
     }
 
-    // Eliminamos la lógica de "Anterior" o "Reject" según la instrucción de los abogados
     return html + '</div>';
 }
 
@@ -345,15 +354,38 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
         else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
         else if (target.classList.contains('action-preview-acuse')) mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
+        
+        else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
         }
-        else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
         else if (target.classList.contains('action-delete')) {
             mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); guardarYRecargar(); mostrarMensajeGlobal('Término eliminado.', 'success'); });
         }
+        else if (target.classList.contains('action-remove-acuse')) {
+            mostrarConfirmacion(
+                'Quitar Acuse / Corregir', 
+                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.', 
+                () => {
+                    const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
+                    if (tIdx !== -1) {
+                        TERMINOS[tIdx].acuseDocumento = '';
+                        TERMINOS[tIdx].estatus = 'Liberado'; 
+                        registrarActividadExpediente(
+                            TERMINOS[tIdx].asuntoId,
+                            'Acuse Removido',
+                            `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}" para corrección.`,
+                            'delete'
+                        );  
+                        guardarYRecargar();
+                        mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
+                    }
+                }
+            );
+        }
         
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    
     });
     
     document.addEventListener('click', e => { if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) { document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); } });
@@ -577,7 +609,8 @@ function guardarTermino() {
         fechaIngreso: document.getElementById('fecha-ingreso')?.value,
         fechaVencimiento: document.getElementById('fecha-vencimiento')?.value,
         asunto: document.getElementById('actuacion')?.value,
-        prioridad: prioridadReal 
+        prioridad: prioridadReal, 
+        organo: document.getElementById('termino-organo')?.value || 'No asignado'
     };
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
@@ -892,8 +925,9 @@ function cargarAsuntosEnSelectorJS() {
         setVal('termino-abogado', '');
         setVal('termino-partes', '');
         setVal('termino-prioridad', '');
-        setVal('termino-organo', ''); 
-        setVal('termino-organo-visual', ''); 
+        const organoDato = e.organo || e.organoJurisdiccional || 'Por asignar';
+        setVal('termino-organo', organoDato);          
+        setVal('termino-organo-visual', organoDato);
     };
 
     sel.onchange = () => {

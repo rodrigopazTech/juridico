@@ -1,7 +1,6 @@
 export class RecordatoriosModule {
     constructor() {
         this.data = [];
-        // Eliminamos this.filter ya que no filtraremos por estado
     }
 
     init() {
@@ -57,11 +56,9 @@ export class RecordatoriosModule {
         container.innerHTML = ''; 
         const searchTerm = document.getElementById('search-recordatorios')?.value.toLowerCase() || '';
         
-        // Filtrar y Ordenar (Solo por texto y fecha, ya no por estado)
         let filtered = this.data.filter(item => {
             return item.titulo.toLowerCase().includes(searchTerm) || (item.detalles || '').toLowerCase().includes(searchTerm);
         }).sort((a, b) => {
-            // Ordenar por fecha: Más reciente primero o más próximo
             return new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora);
         });
 
@@ -83,21 +80,15 @@ export class RecordatoriosModule {
         const card = clone.querySelector('.reminder-card');
         card.dataset.id = item.id;
 
-        // 1. Estilos de Borde (Mantenemos distinción de urgencia solo en el borde izquierdo)
         const isUrgent = item.prioridad === 'urgent';
-        // Si es urgente borde Guinda, si no, borde Oro (Normal)
         card.classList.add(isUrgent ? 'reminder-urgent' : 'reminder-normal');
         
-        // 2. Estilos del Icono (SIEMPRE ORO/AMBER, según tu requerimiento)
         const iconBox = clone.querySelector('.js-icon-box');
-        // Usamos la clase personalizada o utilidades directas de Tailwind para Oro
         iconBox.className = 'js-icon-box w-12 h-12 rounded-lg flex items-center justify-center text-xl flex-shrink-0 bg-amber-100 text-amber-600';
         
         const icon = clone.querySelector('.js-icon');
-        // Cambiamos el icono según prioridad, pero el color ya es oro por el contenedor
         icon.className = `js-icon fas ${isUrgent ? 'fa-exclamation' : 'fa-bell'}`;
 
-        // 3. Rellenar Textos
         clone.querySelector('.js-title').textContent = item.titulo;
         clone.querySelector('.js-details').textContent = item.detalles || 'Sin detalles.';
         
@@ -105,7 +96,6 @@ export class RecordatoriosModule {
         const fechaStr = this.formatDateRelative(fechaObj);
         clone.querySelector('.js-date-text').textContent = `${fechaStr} • ${item.hora}`;
 
-        // 4. Asignar Eventos
         clone.querySelector('.js-btn-delete').onclick = () => this.deleteItem(item.id);
         clone.querySelector('.js-btn-edit').onclick = () => this.openModal(item.id);
     }
@@ -143,13 +133,21 @@ export class RecordatoriosModule {
 
     saveRecordatorio() {
         const id = document.getElementById('rec-id').value;
+        const titulo = document.getElementById('rec-titulo').value;
+        const fecha = document.getElementById('rec-fecha').value;
+        const hora = document.getElementById('rec-hora').value;
+        const prioridad = document.getElementById('rec-prioridad').value;
+        const detalles = document.getElementById('rec-detalles').value;
+
+        if(!titulo || !fecha || !hora) return alert("Faltan datos obligatorios");
+
+        // === GENERAR NOTIFICACIONES AUTOMÁTICAS ===
+        this.programarNotificaciones(titulo, fecha, hora, detalles);
+        // ==========================================
+
         const nuevo = {
             id: id ? parseInt(id) : Date.now(),
-            titulo: document.getElementById('rec-titulo').value,
-            fecha: document.getElementById('rec-fecha').value,
-            hora: document.getElementById('rec-hora').value,
-            prioridad: document.getElementById('rec-prioridad').value,
-            detalles: document.getElementById('rec-detalles').value
+            titulo, fecha, hora, prioridad, detalles
         };
 
         if (id) {
@@ -164,6 +162,53 @@ export class RecordatoriosModule {
         const modal = document.getElementById('modal-recordatorio');
         modal.classList.add('hidden'); modal.classList.remove('flex');
     }
+
+    // === LÓGICA DE NOTIFICACIONES ===
+    programarNotificaciones(titulo, fecha, hora, detalles) {
+        const eventoDate = new Date(`${fecha}T${hora}`);
+        const fechaEventoStr = eventoDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        const now = new Date(); // Hora actual para validar
+
+        // 1. Notificación 1 Día Antes
+        const unDiaAntes = new Date(eventoDate);
+        unDiaAntes.setDate(eventoDate.getDate() - 1);
+        
+        // CORRECCIÓN: Solo programar si el momento del aviso está en el futuro
+        if (unDiaAntes > now) {
+            crearNotificacionGlobal({
+                eventType: 'recordatorio',
+                title: `Recordatorio: ${titulo}`,
+                status: 'Pendiente',
+                expediente: '', 
+                notifyAt: unDiaAntes.toISOString(),
+                detalles: { descripcion: detalles || 'Recordatorio programado' },
+                meta: {
+                    anticipacion: `mañana ${fechaEventoStr}`, // "es en mañana 23 oct"
+                    fechaEvento: eventoDate.toISOString()
+                }
+            });
+        }
+
+        // 2. Notificación 1 Hora Antes
+        const unaHoraAntes = new Date(eventoDate);
+        unaHoraAntes.setHours(eventoDate.getHours() - 1);
+
+        // CORRECCIÓN: Solo programar si aún no ha pasado la hora del aviso
+        if (unaHoraAntes > now) {
+            crearNotificacionGlobal({
+                eventType: 'recordatorio',
+                title: `Recordatorio: ${titulo}`,
+                status: 'Pendiente',
+                expediente: '', 
+                notifyAt: unaHoraAntes.toISOString(),
+                detalles: { descripcion: detalles || 'Recordatorio programado' },
+                meta: {
+                    anticipacion: `una hora`, // "es en una hora"
+                    fechaEvento: eventoDate.toISOString()
+                }
+            });
+        }
+    }
     
     updateStats() {
         const hoyStr = new Date().toISOString().split('T')[0];
@@ -171,7 +216,6 @@ export class RecordatoriosModule {
         const urgentesCount = this.data.filter(i => i.prioridad === 'urgent').length;
         const totalCount = this.data.length;
 
-        // Actualizamos los IDs que existen en el HTML
         if(document.getElementById('stat-hoy')) document.getElementById('stat-hoy').textContent = hoyCount;
         if(document.getElementById('stat-urgentes')) document.getElementById('stat-urgentes').textContent = urgentesCount;
         if(document.getElementById('stat-total')) document.getElementById('stat-total').textContent = totalCount;
@@ -190,4 +234,25 @@ export class RecordatoriosModule {
         const tStr = today.toISOString().split('T')[0];
         return dStr === tStr ? 'Hoy' : date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
     }
+}
+
+// === HELPER PARA CREAR NOTIFICACIONES (Igual que en otros módulos) ===
+function crearNotificacionGlobal(datos) {
+    const KEY = 'jl_notifications_v4';
+    const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];
+    
+    const nuevaNotif = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        eventType: datos.eventType,
+        title: datos.title,
+        expediente: datos.expediente,
+        status: datos.status,
+        detalles: datos.detalles || {},
+        notifyAt: datos.notifyAt || new Date().toISOString(),
+        meta: datos.meta || {},
+        read: false
+    };
+    
+    notificaciones.push(nuevaNotif);
+    localStorage.setItem(KEY, JSON.stringify(notificaciones));
 }

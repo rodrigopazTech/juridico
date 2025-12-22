@@ -412,33 +412,42 @@ function avanzarEtapa(id) {
     
     if(config && config.siguiente) {
         
-        if (actual === 'Dirección') { 
-            mostrarConfirmacion('Liberar Término', '¿Confirmar la liberación? Esto cambia el estado a "Liberado".', () => {
-                TERMINOS[idx].estatus = config.siguiente; 
+        const ejecutarAvance = (nuevoEstado) => {
+            TERMINOS[idx].estatus = nuevoEstado; 
+            
+            // Generar Notificación de Cambio
+            crearNotificacionGlobal({
+                eventType: 'termino',
+                title: TERMINOS[idx].asunto,
+                expediente: TERMINOS[idx].expediente,
+                status: nuevoEstado,
+                detalles: { actuacion: `Cambio de fase: ${actual} → ${nuevoEstado}` },
+                notifyAt: new Date().toISOString()
+            });
+
+            if (nuevoEstado === 'Liberado') {
                 TERMINOS[idx].observaciones = ''; 
-                
                 registrarActividadExpediente(
                     TERMINOS[idx].asuntoId,
                     'Término Liberado',
                     `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
                     'status'
                 );
+            }
+            guardarYRecargar(); 
+            mostrarMensajeGlobal(`Avanzado a ${nuevoEstado}`, 'success'); 
+        };
 
-                guardarYRecargar(); 
-                mostrarMensajeGlobal(`Término avanzado a ${config.siguiente}`, 'success'); 
-            });
+        if (actual === 'Dirección') { 
+            mostrarConfirmacion('Liberar Término', '¿Confirmar la liberación? Esto cambia el estado a "Liberado".', () => ejecutarAvance(config.siguiente));
             return;
         }
         if (actual === 'Presentado') {
-             abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado y se registrará la observación final.');
+             abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
              return;
         }
 
-        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => { 
-            TERMINOS[idx].estatus = config.siguiente; 
-            guardarYRecargar(); 
-            mostrarMensajeGlobal(`Avanzado a ${config.siguiente}`, 'success'); 
-        });
+        mostrarConfirmacion('Avanzar Etapa', `¿Avanzar de "${actual}" a "${config.siguiente}"?`, () => ejecutarAvance(config.siguiente));
     }
 }
 
@@ -492,9 +501,12 @@ function openTerminoModalJS(termino = null) {
     
     if(form) form.reset();
     
-    document.getElementById('dias-antes-recordatorio').value = "3";
-    document.getElementById('horas-antes-recordatorio').value = "0";
-    document.getElementById('nota-recordatorio').value = "";
+    const inputDias = document.getElementById('dias-antes-recordatorio');
+    if(inputDias) inputDias.value = "3";
+    
+    
+    const inputNota = document.getElementById('nota-recordatorio');
+    if(inputNota) inputNota.value = "";
 
     cargarAsuntosEnSelectorJS();
     
@@ -519,7 +531,6 @@ function openTerminoModalJS(termino = null) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
-
 function guardarTermino() {
     const id = document.getElementById('termino-id').value;
     const data = {
@@ -532,47 +543,46 @@ function guardarTermino() {
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
 
+    // === LÓGICA DE RECORDATORIO ===
     const fechaBaseStr = document.getElementById('fecha-vencimiento').value;
     const fechaBase = new Date(fechaBaseStr + 'T09:00:00');
 
     const diasAntes = parseInt(document.getElementById('dias-antes-recordatorio').value) || 0;
-    const horasAntes = parseInt(document.getElementById('horas-antes-recordatorio').value) || 0;
+    
+    // CAMBIO: Forzamos 0 horas porque eliminamos el input
+    const horasAntes = 0; 
+    
     const notaRec = document.getElementById('nota-recordatorio').value;
 
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
-    fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
+    // No restamos horas
 
     let textoAnticipacion = "";
     if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
-    if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
-    if (!textoAnticipacion) textoAnticipacion = "el momento";
+    if (!textoAnticipacion) textoAnticipacion = "el mismo día";
 
-    const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
-    const nuevoRecordatorio = {
-        id: Date.now() + 1,
-        titulo: `Vencimiento: ${data.asunto}`,
+    // Notificación de Recordatorio
+    crearNotificacionGlobal({
+        eventType: 'recordatorio',
+        title: `Recordatorio: ${data.asunto}`,
+        expediente: document.getElementById('termino-expediente')?.value || 'S/N',
+        status: 'Activo',
+        notifyAt: fechaNotificacion.toISOString(),
+        detalles: { descripcion: notaRec || 'Recordatorio automático de término' },
         meta: {
             tipoOrigen: 'termino',
             expediente: document.getElementById('termino-expediente')?.value,
             anticipacion: textoAnticipacion,
             fechaEvento: fechaBase.toISOString()
-        },
-        detalles: notaRec || `Recordatorio asociado al término del expediente ${document.getElementById('termino-expediente')?.value}`,
-        fecha: fechaNotificacion.toISOString().split('T')[0],
-        hora: fechaNotificacion.toTimeString().substring(0,5),
-        prioridad: 'urgent',
-        completado: false
-    };
-    
-    recordatorios.unshift(nuevoRecordatorio);
-    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
+        }
+    });
 
     if(id) {
         const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
         if(idx !== -1) TERMINOS[idx] = { ...TERMINOS[idx], ...data };
     } else {
-        // === NUEVO TÉRMINO ===
+        // Nuevo Término
         TERMINOS.push({
             id: Date.now(),
             estatus: 'Proyectista',
@@ -584,14 +594,22 @@ function guardarTermino() {
             prioridad: 'Media'
         });
 
-        // --- REGISTRO DE ACTIVIDAD EN EXPEDIENTE (CREACIÓN) ---
+        // Notificación de Creación (Título limpio)
+        crearNotificacionGlobal({
+            eventType: 'termino',
+            title: data.asunto,
+            expediente: document.getElementById('termino-expediente')?.value || '',
+            status: 'Proyectista',
+            detalles: { actuacion: 'Nuevo término asignado' },
+            notifyAt: new Date().toISOString()
+        });
+
         registrarActividadExpediente(
             data.asuntoId, 
             'Nuevo Término Asignado', 
             `Se agregó el término: "${data.asunto}" con vencimiento al ${formatDate(data.fechaVencimiento)}.`, 
             'edit'
         );
-        // -----------------------------------------------------
     }
     
     guardarYRecargar();
@@ -949,4 +967,23 @@ function sincronizarTerminosConcluidos() {
     } else {
         mostrarMensajeGlobal('No hay términos en estado Concluido para sincronizar', 'info');
     }
+}
+
+function crearNotificacionGlobal(datos) {
+    const KEY = 'jl_notifications_v4';
+    const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];
+    
+    const nuevaNotif = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        eventType: datos.eventType,
+        title: datos.title,
+        expediente: datos.expediente,
+        status: datos.status,
+        detalles: datos.detalles || {},
+        notifyAt: datos.notifyAt || new Date().toISOString(),
+        meta: datos.meta || {}
+    };
+    
+    notificaciones.push(nuevaNotif);
+    localStorage.setItem(KEY, JSON.stringify(notificaciones));
 }

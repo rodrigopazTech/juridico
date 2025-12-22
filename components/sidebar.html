@@ -23,10 +23,14 @@
                     <span class="ms-3">Agenda General</span>
                 </a>
             </li>
+            
             <li>
-                <a href="../notificaciones-module/index.html" data-page="notificaciones" class="nav-item flex items-center p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
-                    <i class="fas fa-bell w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
-                    <span class="ms-3">Notificaciones</span>
+                <a href="../notificaciones-module/index.html" data-page="notificaciones" class="nav-item flex items-center justify-between p-2 text-gray-300 rounded-lg hover:bg-gob-verdeDark hover:text-white group transition-all duration-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-bell w-5 h-5 text-center transition duration-75 group-hover:text-gob-oro"></i>
+                        <span class="ms-3">Notificaciones</span>
+                    </div>
+                    <span id="sidebar-badge-count" class="hidden bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">0</span>
                 </a>
             </li>
         </ul>
@@ -57,7 +61,6 @@
                     <span class="ms-3">Recordatorios</span>
                 </a>
             </li>
-
         </ul>
   
         <div class="px-3 mb-2 text-xs font-bold text-gob-oroLight uppercase tracking-wider font-headings">Admin</div>

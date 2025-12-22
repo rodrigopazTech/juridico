@@ -566,14 +566,18 @@ function openTerminoModalJS(termino = null) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
+
 function guardarTermino() {
     const id = document.getElementById('termino-id').value;
+    
+    const prioridadReal = document.getElementById('termino-prioridad')?.value || 'Media';
+
     const data = {
         asuntoId: document.getElementById('asunto-selector')?.value,
         fechaIngreso: document.getElementById('fecha-ingreso')?.value,
         fechaVencimiento: document.getElementById('fecha-vencimiento')?.value,
         asunto: document.getElementById('actuacion')?.value,
-        linkDocumento: document.getElementById('link-documento')?.value.trim() || '',
+        prioridad: prioridadReal 
     };
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
@@ -581,21 +585,12 @@ function guardarTermino() {
     // === LÓGICA DE RECORDATORIO ===
     const fechaBaseStr = document.getElementById('fecha-vencimiento').value;
     const fechaBase = new Date(fechaBaseStr + 'T09:00:00');
-
     const diasAntes = parseInt(document.getElementById('dias-antes-recordatorio').value) || 0;
-    
-    // CAMBIO: Forzamos 0 horas porque eliminamos el input
-    const horasAntes = 0; 
-    
     const notaRec = document.getElementById('nota-recordatorio').value;
-
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
-    // No restamos horas
 
-    let textoAnticipacion = "";
-    if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
-    if (!textoAnticipacion) textoAnticipacion = "el mismo día";
+    let textoAnticipacion = diasAntes > 0 ? `${diasAntes} días` : "el mismo día";
 
     // Notificación de Recordatorio
     crearNotificacionGlobal({
@@ -617,19 +612,18 @@ function guardarTermino() {
         const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
         if(idx !== -1) TERMINOS[idx] = { ...TERMINOS[idx], ...data };
     } else {
-        // Nuevo Término
+        // NUEVO TÉRMINO
         TERMINOS.push({
             id: Date.now(),
             estatus: 'Proyectista',
             ...data,
             acuseDocumento: '',
+            archivoWord: '', 
             expediente: document.getElementById('termino-expediente')?.value || '',
             actor: document.getElementById('termino-partes')?.value || '',
             abogado: document.getElementById('termino-abogado')?.value || '',
-            prioridad: 'Media'
         });
 
-        // Notificación de Creación (Título limpio)
         crearNotificacionGlobal({
             eventType: 'termino',
             title: data.asunto,
@@ -642,17 +636,15 @@ function guardarTermino() {
         registrarActividadExpediente(
             data.asuntoId, 
             'Nuevo Término Asignado', 
-            `Se agregó el término: "${data.asunto}" con vencimiento al ${formatDate(data.fechaVencimiento)}.`, 
+            `Se agregó el término: "${data.asunto}" con vencimiento al ${data.fechaVencimiento}.`, 
             'edit'
         );
     }
     
     guardarYRecargar();
-    
     const modal = document.getElementById('modal-termino');
     modal.classList.remove('flex');
     modal.classList.add('hidden');
-    
     mostrarMensajeGlobal('Término guardado correctamente', 'success');
 }
 
@@ -899,7 +891,7 @@ function cargarAsuntosEnSelectorJS() {
         setVal('termino-gerencia', '');
         setVal('termino-abogado', '');
         setVal('termino-partes', '');
-        
+        setVal('termino-prioridad', '');
         setVal('termino-organo', ''); 
         setVal('termino-organo-visual', ''); 
     };
@@ -915,7 +907,7 @@ function cargarAsuntosEnSelectorJS() {
             setVal('termino-materia', e.materia || 'S/D');
             setVal('termino-abogado', e.abogado || 'S/D');
             setVal('termino-partes', e.partes || 'Actor vs Demandado');
-            
+            setVal('termino-prioridad', e.prioridad || 'Media');            
             let nombreGerencia = e.gerencia;
             if (!nombreGerencia && e.gerenciaId) {
                 nombreGerencia = NOMBRES_GERENCIAS[e.gerenciaId];

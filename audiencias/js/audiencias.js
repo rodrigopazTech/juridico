@@ -255,7 +255,6 @@ function loadAudiencias() {
 const tbody = document.getElementById('audiencias-body');
   if(!tbody) return;
 
-  // 1. Cargar Audiencias (mantiene la lógica de carga y cruce de datos)
   let ls = [];
   try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
@@ -309,16 +308,19 @@ const tbody = document.getElementById('audiencias-body');
     if (busqueda && !textoFila.includes(busqueda)) return;
 
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
-    
     let estadoBadge = '';
     if (a.atendida) {
         estadoBadge = '<span class="inline-flex items-center bg-gray-800 text-white text-xs font-bold px-2.5 py-0.5 rounded border border-gray-600"><i class="fas fa-flag-checkered mr-1"></i> Concluida</span>';
     } else if (a.actaDocumento) {
-        estadoBadge = '<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200"><i class="fas fa-file-signature mr-1"></i> Con Acta</span>';
+        if (a.tipoDocumentoSubido === 'Alegatos Amparo') {
+            estadoBadge = '<span class="inline-flex items-center bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded border border-indigo-200"><i class="fas fa-file-invoice mr-1"></i> Con Alegatos</span>';
+        } else {
+            estadoBadge = '<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200"><i class="fas fa-file-signature mr-1"></i> Con Acta</span>';
+        }
     } else {
         estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
     }
-  // NUEVO: Ícono y Tooltip para ubicación
+  
     let ubicacionIcono = '';
     let ubicacionTooltip = '';
     if (a.esEnLinea) {
@@ -418,10 +420,9 @@ const tbody = document.getElementById('audiencias-body');
 }
 
 function generarAccionesRapidasAudiencia(audiencia, rol) {
-    let html = '<div class="py-1">'; // Contenedor con padding vertical suave
+    let html = '<div class="py-1">'; 
+    const itemClass = "w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group";
 
-    // --- HELPER PARA BOTONES ---
-    // Esto asegura que todos los botones tengan el mismo estilo base sin repetir código
     const crearBoton = (claseAccion, icono, texto, color = "text-gray-700", extra = "") => {
         return `
         <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${color} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group ${extra}">
@@ -432,22 +433,15 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
         </button>`;
     };
 
-    // --- HELPER PARA SEPARADORES ---
     const crearSeparador = (titulo = "") => {
         return `<div class="my-1 border-t border-gray-100">
                     ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
                 </div>`;
     };
 
-    // 1. SECCIÓN: NAVEGACIÓN Y ACCESO
-    html += crearBoton(
-        'action-view-asunto-audiencia', 
-        'fas fa-folder-open', 
-        'Ir al Expediente', 
-        'text-gray-700'
-    );
+    // 1. NAVEGACIÓN
+    html += crearBoton('action-view-asunto-audiencia', 'fas fa-folder-open', 'Ir al Expediente');
 
-    // Botón especial para reunión en línea (Resaltado)
     if (audiencia.esEnLinea && !audiencia.atendida && audiencia.urlReunion && !audiencia.actaDocumento) {
         html += `<a href="${audiencia.urlReunion}" target="_blank" class="w-full text-left px-4 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-3 font-bold border-l-4 border-blue-600">
                     <div class="w-6 flex justify-center"><i class="fas fa-video"></i></div>
@@ -455,56 +449,35 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
                  </a>`;
     }
 
-    // 2. SECCIÓN: GESTIÓN DE AUDIENCIA
-    // Solo mostramos separador si hay acciones de gestión
-    let tieneAccionesGestion = false;
-    let htmlGestion = "";
-
+    // 2. GESTIÓN DE ARCHIVOS
     if (!audiencia.atendida) {
-        tieneAccionesGestion = true;
         if (audiencia.actaDocumento) {
-            htmlGestion += crearBoton('action-view-acta', 'fas fa-eye', 'Ver Acta Prev.', 'text-blue-600');
-            htmlGestion += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
-            htmlGestion += crearBoton('action-remove-acta', 'fas fa-times-circle', 'Quitar Acta', 'text-red-500');
+            const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Acta';
+            html += crearSeparador("Gestión");
+            html += crearBoton('action-view-acta', 'fas fa-eye', `Ver ${labelDoc} Prev.`, 'text-blue-600');
+            html += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
+            html += crearBoton('action-remove-acta', 'fas fa-times-circle', `Quitar ${labelDoc}`, 'text-red-500');
         } else {
-            htmlGestion += crearBoton('action-upload-acta', 'fas fa-cloud-upload-alt', 'Subir Acta', 'text-gob-oro font-bold');
+            html += crearSeparador("Subir Archivo");
+            html += crearBoton('action-upload-generic-acta', 'fas fa-file-signature', 'Subir Acta', 'text-gob-oro font-bold');
+            html += crearBoton('action-upload-generic-alegatos', 'fas fa-file-invoice', 'Subir Alegatos Amparo', 'text-indigo-600 font-bold');
         }
-    } else {
-        // Audiencia Concluida
-        if(audiencia.actaDocumento) {
-            tieneAccionesGestion = true;
-            htmlGestion += crearBoton('action-view-acta', 'fas fa-file-pdf', 'Ver Acta Final', 'text-gob-guinda');
-            htmlGestion += crearBoton('action-download-acta', 'fas fa-download', 'Descargar', 'text-gray-500');
-        }
+    } else if (audiencia.actaDocumento) {
+        const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Acta';
+        html += crearSeparador("Archivo Final");
+        html += crearBoton('action-view-acta', 'fas fa-file-pdf', `Descargar ${labelDoc}`, 'text-gob-guinda');
     }
 
-    if (tieneAccionesGestion) {
-        html += crearSeparador("Gestión");
-        html += htmlGestion;
-    }
-
-    // 3. SECCIÓN: COLABORACIÓN
     html += crearSeparador();
-    html += crearBoton('action-comment-audiencia', 'far fa-comment-dots', 'Comentarios', 'text-gray-600');
-
-    // 4. SECCIÓN: ADMINISTRACIÓN (Solo roles altos)
-    const canReasignar = (rol === 'Direccion' || rol === 'Gerente') && !audiencia.actaDocumento;
-    const canEliminar = rol === 'Direccion';
-
-    if (canReasignar || canEliminar) {
-        html += crearSeparador("Admin");
-        
-        if (canReasignar) {
-            html += crearBoton('action-reasignar-audiencia', 'fas fa-user-friends', 'Reasignar Abogado', 'text-orange-600');
-        }
-        if (canEliminar) {
-            html += crearBoton('action-delete-audiencia', 'fas fa-trash-alt', 'Eliminar Registro', 'text-red-600 hover:bg-red-50');
-        }
+    html += crearBoton('action-comment-audiencia', 'far fa-comment-dots', 'Comentarios', 'text-gray-500');
+    
+    if ((rol === 'Direccion' || rol === 'Gerente') && !audiencia.atendida && !audiencia.actaDocumento) {
+        html += crearBoton('action-reasignar-audiencia', 'fas fa-user-friends', 'Reasignar Abogado', 'text-orange-600');
     }
 
-    html += '</div>';
-    return html;
+    return html + '</div>';
 }
+
 function setupActionMenuListenerAudiencia() {
     const tbody = document.getElementById('audiencias-body');
     if (!tbody) return;
@@ -562,15 +535,40 @@ function setupActionMenuListenerAudiencia() {
                 }
                 return;
             }
-            else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
-            else if (target.classList.contains('action-remove-acta')) mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
-            else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
-            else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia(`Previsualizando Acta (Simulación): ${audiencia.actaDocumento}`);
-            else if (target.classList.contains('action-download-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
-            else if (target.classList.contains('action-reasignar-audiencia')) abrirModalReasignarAudiencia(id);
-            else if (target.classList.contains('action-comment-audiencia')) openComentariosModal(id);
+            else if (target.classList.contains('action-upload-generic-acta')) {
+                const input = row.querySelector('.input-acta-hidden');
+                input.dataset.tipoDoc = "Acta"; 
+                input.click();
+            }
+            else if (target.classList.contains('action-upload-generic-alegatos')) {
+                const input = row.querySelector('.input-acta-hidden');
+                input.dataset.tipoDoc = "Alegatos Amparo";
+                input.click();
+            }
+            else if (target.classList.contains('action-remove-acta')) {
+                const tipoActual = audiencia.tipoDocumentoSubido || "Documento";
+                mostrarConfirmacionAudiencia(`Quitar ${tipoActual}`, '¿Estás seguro de eliminar el archivo cargado?', () => quitarActa(id));
+            }
+            else if (target.classList.contains('action-desahogar')) {
+                openFinalizarAudienciaModal(id);
+            }
+            else if (target.classList.contains('action-view-acta')) {
+                const nombreDoc = audiencia.actaDocumento;
+                const tipoDoc = audiencia.tipoDocumentoSubido || "Documento";
+                mostrarAlertaAudiencia(`Previsualizando ${tipoDoc} (Simulación): ${nombreDoc}`);
+            }
+            else if (target.classList.contains('action-download-acta')) {
+                const nombreDoc = audiencia.actaDocumento;
+                mostrarAlertaAudiencia(`Descargando archivo: ${nombreDoc}`);
+            }
+            else if (target.classList.contains('action-reasignar-audiencia')) {
+                abrirModalReasignarAudiencia(id);
+            }
+            else if (target.classList.contains('action-comment-audiencia')) {
+                openComentariosModal(id);
+            }
             else if (target.classList.contains('action-delete-audiencia')) {
-                mostrarConfirmacionAudiencia('Eliminar', '¿Eliminar permanente?', () => {
+                mostrarConfirmacionAudiencia('Eliminar Audiencia', '¿Deseas eliminar permanentemente este registro?', () => {
                     AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
                     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
                     loadAudiencias();
@@ -584,9 +582,14 @@ function setupActionMenuListenerAudiencia() {
     window.addEventListener('scroll', () => { document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => m.classList.add('hidden')); }, true);
     
     tbody.addEventListener('change', function(e) {
-        if (e.target.classList.contains('input-acta-hidden') && e.target.files.length) subirActa(e.target.getAttribute('data-id'), e.target.files[0]);
+        if (e.target.classList.contains('input-acta-hidden') && e.target.files.length) {
+            const tipo = e.target.dataset.tipoDoc || "Acta";
+            subirActa(e.target.getAttribute('data-id'), e.target.files[0], tipo);
+        }
     });
 }
+
+
 
 function setupFilters() {
     ['filter-tipo','filter-gerencia','filter-materia','filter-prioridad'].forEach(id => {
@@ -596,26 +599,26 @@ function setupFilters() {
     });
 }
 
-function subirActa(id, file) {
-    const idx = AUDIENCIAS.findIndex(a => a.id == id);
+function subirActa(id, file, tipoElegido = "Acta") {
+    const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
     if (idx !== -1) {
         AUDIENCIAS[idx].actaDocumento = file.name;
+        AUDIENCIAS[idx].tipoDocumentoSubido = tipoElegido; // <--- GUARDAR TIPO
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        mostrarMensajeGlobal('Acta subida correctamente.', 'success');
+        mostrarMensajeGlobal(`${tipoElegido} cargado correctamente.`, 'success');
     }
 }
-
 function quitarActa(id) {
-    const idx = AUDIENCIAS.findIndex(a => a.id == id);
+    const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
     if (idx !== -1) {
         AUDIENCIAS[idx].actaDocumento = '';
+        AUDIENCIAS[idx].tipoDocumentoSubido = ''; // <--- LIMPIAR TIPO
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        mostrarMensajeGlobal('Acta eliminada.', 'warning');
+        mostrarMensajeGlobal('Archivo eliminado.', 'warning');
     }
 }
-
 function initModalAudiencias() {
     const modal = document.getElementById('modal-audiencia');
     const btnAdd = document.getElementById('add-audiencia');

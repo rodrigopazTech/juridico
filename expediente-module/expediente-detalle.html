@@ -27,12 +27,14 @@
 
       <div class="space-y-6">
         <div data-include="./components/detalle-timeline.html"></div>
+        <div data-include="./components/historico-documentos.html"></div>
       </div>
     </div>
   </div>
 
   <div data-include="./components/modal-edit.html"></div>
   <div data-include="./components/modal-observaciones.html"></div>
+  <div data-include="./components/modal-manage-organos.html"></div>
   <div id="modal-cambio-estado" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
       <div class="relative w-full max-w-md bg-white rounded-lg shadow-2xl border-t-4 border-gob-oro animate-fade-in-down">
           <div class="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
@@ -87,5 +89,6 @@
       detalle.init();
     });
   </script>
+  <script src="../components/system-badge.js"></script>
 </body>
 </html>

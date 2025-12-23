@@ -54,9 +54,18 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-gob-gris mb-1">Órgano Jurisdiccional</label>
-                        <input type="text" id="edit-organo" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">
+                        <div class="flex gap-2">
+                            <input type="text" id="edit-organo" list="datalist-organos-edit"
+                                   class="flex-1 bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro" autocomplete="off">
+                            
+                            <button type="button" id="btn-manage-organos-edit" 
+                                    class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gob-gris rounded-lg border border-gray-300 transition-colors" 
+                                    title="Administrar Órganos">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                        <datalist id="datalist-organos-edit"></datalist>
                     </div>
-
                     <div>
                         <label class="block text-sm font-bold text-gob-gris mb-1">Prioridad</label>
                         <select id="edit-prioridad" class="w-full bg-white border border-gray-300 rounded p-2.5 text-sm focus:ring-gob-oro focus:border-gob-oro">

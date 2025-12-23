@@ -37,41 +37,6 @@ function getSemaforoStatusAudiencia(fecha, hora) {
 }
 
 // -------------------------------
-// Guardar audiencia concluida en Agenda General
-// -------------------------------
-function guardarAudienciaEnAgendaGeneral(audienciaData) {
-    // Obtener audiencias desahogadas existentes
-    let audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
-    
-    // Crear registro para la agenda general
-    const registroAgenda = {
-        id: Date.now(),
-        fechaAudiencia: audienciaData.fecha,
-        horaAudiencia: audienciaData.hora,
-        expediente: audienciaData.expediente,
-        tipoAudiencia: audienciaData.tipo,
-        partes: audienciaData.actor,
-        abogado: audienciaData.abogadoComparece,
-        actaDocumento: audienciaData.actaDocumento || '',
-        atendida: true,
-        fechaDesahogo: new Date().toISOString().split('T')[0], // Fecha actual
-        observaciones: audienciaData.observaciones || '',
-        fechaCreacion: new Date().toISOString()
-    };
-    
-    // Agregar al inicio del array
-    audienciasDesahogadas.unshift(registroAgenda);
-    
-    // Guardar en localStorage
-    localStorage.setItem('audienciasDesahogadas', JSON.stringify(audienciasDesahogadas));
-    
-    console.log('✅ Audiencia guardada en Agenda General:', registroAgenda);
-    
-    // RETORNAR EL REGISTRO CREADO PARA PODER USARLO DESPUÉS
-    return registroAgenda;
-}
-
-// -------------------------------
 // Inicialización
 // -------------------------------
 function initAudiencias() {
@@ -94,10 +59,38 @@ function initAudiencias() {
 
     const searchInput = document.getElementById('search-audiencias');
     if(searchInput) searchInput.addEventListener('input', loadAudiencias);
+
+    // NUEVO: Inicializar la lógica del selector de ubicación segmentado
+    const ubicacionGroup = document.getElementById('ubicacion-selector-group');
+    if (ubicacionGroup) {
+        ubicacionGroup.addEventListener('change', updateUbicacionInputs);
+        updateUbicacionInputs(); 
+    }
 }
 
+// NUEVA FUNCIÓN: Maneja la visibilidad de los campos según la selección
+function updateUbicacionInputs() {
+    // 🛑 CLAVE: Leer el estado del radio button
+    const isOnline = document.getElementById('radio-online')?.checked;
+    const inputSala = document.getElementById('input-sala');
+    const inputUrl = document.getElementById('input-url');
+
+    if (isOnline) {
+        inputUrl?.classList.remove('hidden');
+        inputSala?.classList.add('hidden');
+        // Limpiar campo no usado para evitar errores de validación
+        document.getElementById('sala-audiencia').value = ''; 
+    } else {
+        inputSala?.classList.remove('hidden');
+        inputUrl?.classList.add('hidden');
+        // Limpiar campo no usado
+        document.getElementById('url-audiencia').value = ''; 
+    }
+}
+
+
 // -------------------------------
-// Lógica de Tipos de Audiencia
+// Lógica de Tipos de Audiencia (Se mantiene igual)
 // -------------------------------
 function getTiposAudiencia() {
     return JSON.parse(localStorage.getItem('tiposAudiencia')) || DEFAULT_TIPOS_AUDIENCIA;
@@ -218,17 +211,16 @@ function renderListaTipos() {
 }
 
 // -------------------------------
-// Renderizado Principal
+// Renderizado Principal (Actualizado para mostrar ubicación)
 // -------------------------------
 function loadAudiencias() {
-  const tbody = document.getElementById('audiencias-body');
+const tbody = document.getElementById('audiencias-body');
   if(!tbody) return;
 
-  // 1. Cargar Audiencias
+  // 1. Cargar Audiencias (mantiene la lógica de carga y cruce de datos)
   let ls = [];
   try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
-  // 2. Cargar Expedientes para hacer el "cruce" de datos si falta información
   const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
   const NOMBRES_GERENCIAS = {
       1: 'Civil, Mercantil, Fiscal y Administrativo',
@@ -236,29 +228,24 @@ function loadAudiencias() {
       3: 'Transparencia y Amparo'
   };
 
-  // Datos de prueba si está vacío
   if (!ls || ls.length === 0) {
-      ls = [ { id: '1', expediente: 'EXP-0001', tipo: 'Inicial', fecha: '2025-12-01', hora: '10:00', tribunal: 'Juzgado 1 Civil', actor: 'Juan Perez', atendida: false, actaDocumento: '', abogadoComparece: 'Lic. Demo', asuntoId: 1 } ];
+      ls = [ ];
       localStorage.setItem('audiencias', JSON.stringify(ls));
   }
   AUDIENCIAS = ls;
 
   const filtroTipo = document.getElementById('filter-tipo')?.value || '';
   const filtroGerencia = (document.getElementById('filter-gerencia')?.value || '').toLowerCase();
-  const filtroMateria = document.getElementById('filter-materia')?.value || '';
-  const filtroPrioridad = document.getElementById('filter-prioridad')?.value || '';
+  const filtroMateria = (document.getElementById('filter-materia')?.value || '').toLowerCase(); 
   const busqueda = (document.getElementById('search-audiencias')?.value || '').toLowerCase();
 
   let html = '';
   
   AUDIENCIAS.forEach(a => {
-    // --- LÓGICA DE RECUPERACIÓN DE DATOS FALTANTES ---
-    // Si la audiencia no tiene materia o gerencia guardada, la buscamos en el expediente original
     let materiaMostrar = a.materia;
     let gerenciaMostrar = a.gerencia;
 
     if (!materiaMostrar || !gerenciaMostrar || materiaMostrar === 'S/D') {
-        // Intentamos encontrar el expediente por ID (asuntoId) o por Texto (expediente)
         const expRelacionado = expedientes.find(e => 
             (a.asuntoId && String(e.id) === String(a.asuntoId)) || 
             (e.numero === a.expediente) ||
@@ -268,23 +255,19 @@ function loadAudiencias() {
         if (expRelacionado) {
             if (!materiaMostrar) materiaMostrar = expRelacionado.materia;
             if (!gerenciaMostrar) {
-                // Si tiene nombre directo úsalo, si tiene ID conviértelo
                 gerenciaMostrar = expRelacionado.gerencia || NOMBRES_GERENCIAS[expRelacionado.gerenciaId] || '';
             }
         }
     }
     
-    // Valores por defecto si aun así falla
     materiaMostrar = materiaMostrar || 'S/D';
     gerenciaMostrar = gerenciaMostrar || '-';
-    // ---------------------------------------------------
 
-    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece}`.toLowerCase();
+    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece} ${materiaMostrar} ${gerenciaMostrar}`.toLowerCase();
     
-    // Filtros (Usamos las variables calculadas)
     if (filtroTipo && a.tipo !== filtroTipo) return;
     if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
-    if (filtroMateria && materiaMostrar !== filtroMateria) return;
+    if (filtroMateria && !materiaMostrar.toLowerCase().includes(filtroMateria)) return; 
     if (busqueda && !textoFila.includes(busqueda)) return;
 
     const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
@@ -297,44 +280,65 @@ function loadAudiencias() {
     } else {
         estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
     }
-      
-    html += `
+  // NUEVO: Ícono y Tooltip para ubicación
+    let ubicacionIcono = '';
+    let ubicacionTooltip = '';
+    if (a.esEnLinea) {
+        ubicacionIcono = `<i class="fas fa-video text-blue-600"></i>`;
+        ubicacionTooltip = a.urlReunion || 'En Línea';
+    } else {
+        ubicacionIcono = `<i class="fas fa-map-marker-alt text-gray-500"></i>`;
+        ubicacionTooltip = a.sala || 'Presencial';
+    }
+ html += `
       <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
+        
         <td class="px-4 py-3 text-center">
             <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}"><i class="fas fa-chevron-down"></i></button>
         </td>
+        
         <td class="px-4 py-3 whitespace-nowrap">
           <div class="flex items-center">
             <div class="w-2.5 h-2.5 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
             <div class="flex flex-col">
                 <span class="text-sm font-bold text-gray-900">${formatDate(a.fecha)}</span>
                 <span class="text-xs text-gray-500">${a.hora} hrs</span>
-                <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded mt-0.5 w-fit">${escapeHTML(a.tipo)}</span>
             </div>
           </div>
         </td>
+        
         <td class="px-4 py-3 text-sm font-bold text-gob-guinda whitespace-nowrap">
             ${escapeHTML(a.expediente)}
         </td>
+        
         <td class="px-4 py-3">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-700">${escapeHTML(materiaMostrar)}</span>
                 <span class="text-[10px] text-gray-500 truncate max-w-[120px]" title="${escapeHTML(gerenciaMostrar)}">${escapeHTML(gerenciaMostrar)}</span>
             </div>
         </td>
+        
+        <td class="px-4 py-3">
+            <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded w-fit font-semibold">${escapeHTML(a.tipo)}</span>
+            <div class="flex items-center gap-1 mt-0.5 text-xs text-gray-700" title="${ubicacionTooltip}">
+                 ${ubicacionIcono}
+                <span>${a.esEnLinea ? 'En Línea' : 'Presencial'}</span>
+            </div>
+        </td>
+        
         <td class="px-4 py-3 text-sm text-gray-700">
              <div class="flex items-center gap-1" title="Comparece">
                 <i class="fas fa-user-tie text-gray-400 text-xs"></i>
                 <span>${escapeHTML(a.abogadoComparece || 'Por asignar')}</span>
              </div>
         </td>
+        
         <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">
             ${escapeHTML(a.actor)}
         </td>
-        <td class="px-4 py-3 text-xs text-gray-500 truncate max-w-[120px]" title="${escapeHTML(a.tribunal)}">
-            ${escapeHTML(a.tribunal)}
-        </td>
+        
         <td class="px-4 py-3">${estadoBadge}</td> 
+        
         <td class="px-4 py-3 text-right whitespace-nowrap relative">
             <div class="flex items-center justify-end gap-2">
                 ${!a.atendida ? 
@@ -351,10 +355,20 @@ function loadAudiencias() {
             </div>
         </td>
       </tr>
+      
       <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
         <td colspan="9" class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div><span class="block text-xs font-bold text-gray-400 uppercase">Sala / Ubicación Detallada</span><span class="font-medium text-gray-800">${escapeHTML(a.sala || 'No especificada')}</span></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Tribunal / Órgano</span>
+                    <span class="font-medium text-gray-800">${escapeHTML(a.tribunal || 'No especificado')}</span>
+                </div>
+
+                <div>
+                    <span class="block text-xs font-bold text-gray-400 uppercase">Ubicación Detallada</span>
+                    <span class="font-medium text-gray-800">${escapeHTML(a.sala || a.urlReunion || 'No especificada')}</span>
+                </div>
+
                 ${a.observaciones ? `<div><span class="block text-xs font-bold text-gray-400 uppercase">Resultado / Observaciones</span><span class="font-medium text-gray-800">${escapeHTML(a.observaciones)}</span></div>` : ''}
             </div>
         </td>
@@ -365,38 +379,94 @@ function loadAudiencias() {
   tbody.innerHTML = html || `<tr><td colspan="9" class="text-center py-8 text-gray-500">No hay datos registrados.</td></tr>`;
 }
 
-
 function generarAccionesRapidasAudiencia(audiencia, rol) {
-    let html = '';
-    const itemClass = "w-full text-left px-4 py-3 text-sm text-gob-gris hover:bg-gray-50 hover:text-gob-guinda transition-colors flex items-center gap-3 border-b border-gray-50 last:border-0";
+    let html = '<div class="py-1">'; // Contenedor con padding vertical suave
 
-    html += `<button class="${itemClass} action-view-asunto-audiencia"><i class="fas fa-briefcase text-gray-400"></i> Ver Expediente</button>`;
+    // --- HELPER PARA BOTONES ---
+    // Esto asegura que todos los botones tengan el mismo estilo base sin repetir código
+    const crearBoton = (claseAccion, icono, texto, color = "text-gray-700", extra = "") => {
+        return `
+        <button class="${claseAccion} w-full text-left px-4 py-2 text-sm ${color} hover:bg-gray-50 hover:text-gob-guinda transition-all flex items-center gap-3 group ${extra}">
+            <div class="w-6 flex justify-center items-center text-opacity-70 group-hover:text-opacity-100 transition-opacity">
+                <i class="${icono}"></i>
+            </div>
+            <span class="font-medium">${texto}</span>
+        </button>`;
+    };
+
+    // --- HELPER PARA SEPARADORES ---
+    const crearSeparador = (titulo = "") => {
+        return `<div class="my-1 border-t border-gray-100">
+                    ${titulo ? `<p class="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">${titulo}</p>` : ''}
+                </div>`;
+    };
+
+    // 1. SECCIÓN: NAVEGACIÓN Y ACCESO
+    html += crearBoton(
+        'action-view-asunto-audiencia', 
+        'fas fa-folder-open', 
+        'Ir al Expediente', 
+        'text-gray-700'
+    );
+
+    // Botón especial para reunión en línea (Resaltado)
+    if (audiencia.esEnLinea && !audiencia.atendida && audiencia.urlReunion && !audiencia.actaDocumento) {
+        html += `<a href="${audiencia.urlReunion}" target="_blank" class="w-full text-left px-4 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-3 font-bold border-l-4 border-blue-600">
+                    <div class="w-6 flex justify-center"><i class="fas fa-video"></i></div>
+                    <span>Unirse a Reunión</span>
+                 </a>`;
+    }
+
+    // 2. SECCIÓN: GESTIÓN DE AUDIENCIA
+    // Solo mostramos separador si hay acciones de gestión
+    let tieneAccionesGestion = false;
+    let htmlGestion = "";
 
     if (!audiencia.atendida) {
+        tieneAccionesGestion = true;
         if (audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-file-pdf text-blue-600"></i> Ver Acta</button>`;
-            html += `<button class="${itemClass} action-desahogar"><i class="fas fa-flag-checkered text-green-600"></i> <strong>Concluir</strong></button>`;
-            html += `<button class="${itemClass} action-remove-acta"><i class="fas fa-times-circle text-red-500"></i> Quitar Acta</button>`;
+            htmlGestion += crearBoton('action-view-acta', 'fas fa-eye', 'Ver Acta Prev.', 'text-blue-600');
+            htmlGestion += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
+            htmlGestion += crearBoton('action-remove-acta', 'fas fa-times-circle', 'Quitar Acta', 'text-red-500');
         } else {
-            html += `<button class="${itemClass} action-upload-acta"><i class="fas fa-cloud-upload-alt text-gob-oro"></i> <strong>Subir Acta</strong></button>`;
+            htmlGestion += crearBoton('action-upload-acta', 'fas fa-cloud-upload-alt', 'Subir Acta', 'text-gob-oro font-bold');
         }
     } else {
+        // Audiencia Concluida
         if(audiencia.actaDocumento) {
-            html += `<button class="${itemClass} action-view-acta"><i class="fas fa-download text-gray-400"></i> Descargar Acta</button>`;
+            tieneAccionesGestion = true;
+            htmlGestion += crearBoton('action-view-acta', 'fas fa-file-pdf', 'Ver Acta Final', 'text-gob-guinda');
+            htmlGestion += crearBoton('action-download-acta', 'fas fa-download', 'Descargar', 'text-gray-500');
         }
     }
 
-    html += `<button class="${itemClass} action-comment-audiencia"><i class="fas fa-comment-dots text-gray-400"></i> Comentarios</button>`;
-    if (rol === 'Direccion' || rol === 'Gerente') {
-        html += `<div class="border-t border-gray-100 my-1"></div>`;
-        html += `<button class="${itemClass} action-reasignar-audiencia"><i class="fas fa-user-friends text-gob-oro"></i> Reasignar Abogado</button>`;
-        if (rol === 'Direccion') {
-            html += `<button class="${itemClass} action-delete-audiencia text-red-600 hover:bg-red-50"><i class="fas fa-trash-alt"></i> Eliminar</button>`;
+    if (tieneAccionesGestion) {
+        html += crearSeparador("Gestión");
+        html += htmlGestion;
+    }
+
+    // 3. SECCIÓN: COLABORACIÓN
+    html += crearSeparador();
+    html += crearBoton('action-comment-audiencia', 'far fa-comment-dots', 'Comentarios', 'text-gray-600');
+
+    // 4. SECCIÓN: ADMINISTRACIÓN (Solo roles altos)
+    const canReasignar = (rol === 'Direccion' || rol === 'Gerente') && !audiencia.actaDocumento;
+    const canEliminar = rol === 'Direccion';
+
+    if (canReasignar || canEliminar) {
+        html += crearSeparador("Admin");
+        
+        if (canReasignar) {
+            html += crearBoton('action-reasignar-audiencia', 'fas fa-user-friends', 'Reasignar Abogado', 'text-orange-600');
+        }
+        if (canEliminar) {
+            html += crearBoton('action-delete-audiencia', 'fas fa-trash-alt', 'Eliminar Registro', 'text-red-600 hover:bg-red-50');
         }
     }
+
+    html += '</div>';
     return html;
 }
-
 function setupActionMenuListenerAudiencia() {
     const tbody = document.getElementById('audiencias-body');
     if (!tbody) return;
@@ -447,9 +517,7 @@ function setupActionMenuListenerAudiencia() {
 
         if(audiencia) {
             if (target.classList.contains('action-view-asunto-audiencia')) {
-                // Verificamos que tenga ID, si no, intentamos buscarlo o avisamos
                 if(audiencia.asuntoId) {
-                    // CORRECCIÓN: Apuntar a 'expediente-detalle.html'
                     window.location.href = `../expediente-module/expediente-detalle.html?id=${audiencia.asuntoId}`;
                 } else {
                     alert("Esta audiencia no tiene un expediente vinculado correctamente.");
@@ -459,7 +527,8 @@ function setupActionMenuListenerAudiencia() {
             else if (target.classList.contains('action-upload-acta')) row.querySelector('.input-acta-hidden').click();
             else if (target.classList.contains('action-remove-acta')) mostrarConfirmacionAudiencia('Quitar Acta', '¿Estás seguro?', () => quitarActa(id));
             else if (target.classList.contains('action-desahogar')) openFinalizarAudienciaModal(id);
-            else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
+            else if (target.classList.contains('action-view-acta')) mostrarAlertaAudiencia(`Previsualizando Acta (Simulación): ${audiencia.actaDocumento}`);
+            else if (target.classList.contains('action-download-acta')) mostrarAlertaAudiencia('Descargando documento: ' + audiencia.actaDocumento);
             else if (target.classList.contains('action-reasignar-audiencia')) abrirModalReasignarAudiencia(id);
             else if (target.classList.contains('action-comment-audiencia')) openComentariosModal(id);
             else if (target.classList.contains('action-delete-audiencia')) {
@@ -532,6 +601,16 @@ function openAudienciaModal(audiencia = null) {
     cargarAsuntosEnSelectorAudiencia();
     cargarTiposAudienciaSelect();
 
+    // NUEVO: Resetear y Cargar estado del selector
+    const radioPresencial = document.getElementById('radio-presencial');
+    const radioOnline = document.getElementById('radio-online');
+    
+    if (radioPresencial) radioPresencial.checked = true;
+    if (radioOnline) radioOnline.checked = false;
+
+    document.getElementById('sala-audiencia').value = '';
+    document.getElementById('url-audiencia').value = '';
+
     if(audiencia) {
         title.textContent = 'Editar Audiencia';
         document.getElementById('audiencia-id').value = audiencia.id;
@@ -541,22 +620,33 @@ function openAudienciaModal(audiencia = null) {
 
         if(document.getElementById('fecha-audiencia')) document.getElementById('fecha-audiencia').value = audiencia.fecha || '';
         if(document.getElementById('hora-audiencia')) document.getElementById('hora-audiencia').value = audiencia.hora || '';
-        if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = audiencia.sala || '';
+        
+        // NUEVO: Cargar estado del radio button
+        if (audiencia.esEnLinea) {
+            if (radioOnline) radioOnline.checked = true;
+        } else {
+            if (radioPresencial) radioPresencial.checked = true;
+        }
+
+        document.getElementById('sala-audiencia').value = audiencia.sala || '';
+        document.getElementById('url-audiencia').value = audiencia.urlReunion || '';
+        
+        updateUbicacionInputs(); 
+
         if(document.getElementById('tipo-audiencia')) document.getElementById('tipo-audiencia').value = audiencia.tipo || '';
-        if(document.getElementById('abogado-comparece')) {
-             const selAbogado = document.getElementById('abogado-comparece');
+        
+        const selAbogado = document.getElementById('abogado-comparece');
+        if(selAbogado) {
              if(audiencia.abogadoComparece && ![...selAbogado.options].some(o => o.value === audiencia.abogadoComparece)){
                  const opt = document.createElement('option'); opt.value = audiencia.abogadoComparece; opt.text = audiencia.abogadoComparece; selAbogado.appendChild(opt);
              }
              selAbogado.value = audiencia.abogadoComparece || '';
         }
-        
-        // Cargar valores del recordatorio si existieran (opcional, requeriría guardar esto en el objeto audiencia)
-        // Por simplicidad, se reinicia.
 
     } else {
         title.textContent = 'Nueva Audiencia';
         document.getElementById('audiencia-id').value = '';
+        updateUbicacionInputs();
     }
     
     modal.style.display = 'flex';
@@ -568,59 +658,58 @@ function guardarAudiencia() {
     const hora = document.getElementById('hora-audiencia').value;
     const asuntoId = document.getElementById('asunto-selector-audiencia').value;
 
+    const esEnLinea = document.getElementById('radio-online')?.checked || false;
+    const sala = document.getElementById('sala-audiencia')?.value || '';
+    const urlReunion = document.getElementById('url-audiencia')?.value || '';
+    
     if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
+    if (!esEnLinea && !sala) return alert('Especifique Sala/Lugar.');
+    if (esEnLinea && !urlReunion) return alert('Especifique URL.');
 
-    // === LÓGICA DE RECORDATORIO (NUEVA: TIEMPO RELATIVO) ===
-    // Se ejecuta siempre porque el contenedor de recordatorios siempre está visible (sin checkbox)
     const fechaBase = new Date(fecha + 'T' + hora);
     const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
     const horasAntes = parseInt(document.getElementById('horas-antes-rec-aud').value) || 0;
     const notaRec = document.getElementById('nota-rec-aud').value;
 
-    // Calcular fecha de notificación
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
     fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
 
-    // Texto de anticipación
     let textoAnticipacion = "";
     if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
     if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
     if (!textoAnticipacion) textoAnticipacion = "el momento";
 
-    const recordatorios = JSON.parse(localStorage.getItem('recordatorios')) || [];
     const tipoAudiencia = document.getElementById('tipo-audiencia').value;
     const exp = document.getElementById('expediente-auto-audiencia').value;
     
-    const nuevoRecordatorio = {
-        id: Date.now() + 1,
-        titulo: `Audiencia: ${tipoAudiencia}`,
-        // METADATOS PARA NOTIFICACIONES
+    // Notificación de Recordatorio
+    crearNotificacionGlobal({
+        eventType: 'recordatorio',
+        title: `Recordatorio: Audiencia ${tipoAudiencia}`,
+        expediente: exp,
+        status: 'Activo',
+        notifyAt: fechaNotificacion.toISOString(),
+        detalles: { descripcion: notaRec || `Audiencia programada para el expediente ${exp}` },
         meta: {
             tipoOrigen: 'audiencia',
             expediente: exp,
             anticipacion: textoAnticipacion,
             fechaEvento: fechaBase.toISOString()
-        },
-        detalles: notaRec || `Recordatorio de audiencia programada para el expediente ${exp}.`,
-        fecha: fechaNotificacion.toISOString().split('T')[0],
-        hora: fechaNotificacion.toTimeString().substring(0,5),
-        prioridad: 'urgent',
-        completado: false
-    };
-    recordatorios.unshift(nuevoRecordatorio);
-    localStorage.setItem('recordatorios', JSON.stringify(recordatorios));
-    // ========================================================
+        }
+    });
 
     const nueva = {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
         tipo: tipoAudiencia || 'General',
-        sala: document.getElementById('sala-audiencia').value,
+        esEnLinea, urlReunion, sala,
         abogadoComparece: document.getElementById('abogado-comparece').value,
         expediente: exp,
         tribunal: document.getElementById('organo-auto-audiencia').value,
         actor: document.getElementById('partes-auto-audiencia').value,
+        materia: document.getElementById('materia-auto-audiencia').value, 
+        gerencia: document.getElementById('gerencia-auto-audiencia').value, 
         atendida: false,
         actaDocumento: ''
     };
@@ -629,10 +718,27 @@ function guardarAudiencia() {
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
         nueva.actaDocumento = AUDIENCIAS[idx].actaDocumento;
         nueva.atendida = AUDIENCIAS[idx].atendida;
-        nueva.comentarios = AUDIENCIAS[idx].comentarios; // Importante no perder los comentarios
+        nueva.comentarios = AUDIENCIAS[idx].comentarios; 
         AUDIENCIAS[idx] = nueva;
     } else {
         AUDIENCIAS.push(nueva);
+        
+        // Notificación de Creación (Solo Tipo, sin "Nueva Audiencia:")
+        crearNotificacionGlobal({
+            eventType: 'audiencia',
+            title: nueva.tipo, 
+            expediente: exp,
+            status: 'Pendiente',
+            detalles: { juzgado: nueva.tribunal || 'Por asignar' },
+            notifyAt: new Date().toISOString()
+        });
+
+        registrarActividadExpediente(
+            asuntoId,
+            'Nueva Audiencia Programada',
+            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora} hrs. Lugar: ${esEnLinea ? 'En Línea' : nueva.sala}.`,
+            'edit'
+        );
     }
     
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
@@ -640,36 +746,20 @@ function guardarAudiencia() {
     loadAudiencias();
     mostrarMensajeGlobal('Audiencia guardada', 'success');
 }
-
 function initModalFinalizarAudiencia() {
     const modal = document.getElementById('modal-finalizar-audiencia');
     document.getElementById('close-modal-finalizar').onclick = () => modal.style.display='none';
     document.getElementById('cancel-finalizar').onclick = () => modal.style.display='none';
+    
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
-        
         if(idx !== -1) {
-            // Guardar observaciones
-            AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
             AUDIENCIAS[idx].atendida = true;
-            
-            // GUARDAR EN AGENDA GENERAL Y OBTENER EL REGISTRO
-            const registroAgenda = guardarAudienciaEnAgendaGeneral(AUDIENCIAS[idx]);
-            
-            // ELIMINAR DE LA TABLA PRINCIPAL DE AUDIENCIAS
-            AUDIENCIAS = AUDIENCIAS.filter(a => a.id != id);
-            
-            // Guardar cambios en audiencias (sin la audiencia desahogada)
+            AUDIENCIAS[idx].observaciones = document.getElementById('observaciones-finales').value;
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
-            
-            // Cargar tabla actualizada
             loadAudiencias();
-            
-            // Mostrar mensaje de éxito
-            mostrarMensajeGlobal('Audiencia desahogada y movida a Agenda General.', 'success');
-            
-            console.log(`🗑️ Audiencia ${id} eliminada de la tabla principal y movida a agenda general`);
+            mostrarMensajeGlobal('Audiencia desahogada.', 'success');
         }
         
         modal.style.display='none';
@@ -745,10 +835,8 @@ function cargarAsuntosEnSelectorAudiencia() {
     const sel = document.getElementById('asunto-selector-audiencia');
     if(!sel) return;
     
-    // Obtener expedientes
     const dataToUse = JSON.parse(localStorage.getItem('expedientesData')) || [];
     
-    // Diccionario para convertir ID de gerencia a Texto (Basado en tu Dashboard)
     const NOMBRES_GERENCIAS = {
         1: 'Civil, Mercantil, Fiscal y Administrativo',
         2: 'Laboral y Penal',
@@ -760,39 +848,25 @@ function cargarAsuntosEnSelectorAudiencia() {
     dataToUse.forEach(a => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        // Muestra Numero - Descripción corta
         opt.text = `${a.numero || a.expediente} - ${(a.descripcion || a.asunto || '').substring(0,30)}...`;
         sel.appendChild(opt);
     });
     
-    // Lógica al seleccionar un expediente
     sel.onchange = () => {
         const a = dataToUse.find(x => String(x.id) === String(sel.value));
         if(a) {
-            // 1. Llenar Expediente
             document.getElementById('expediente-auto-audiencia').value = a.numero || a.expediente || '';
-            
-            // 2. Llenar Materia (Aseguramos que no quede vacío)
             document.getElementById('materia-auto-audiencia').value = a.materia || 'Sin Materia';
-            
-            // 3. Llenar Partes / Actor
             document.getElementById('partes-auto-audiencia').value = a.partes || a.actor || 'Actor vs Demandado';
-            
-            // 4. Llenar Órgano Jurisdiccional
             document.getElementById('organo-auto-audiencia').value = a.organo || a.organoJurisdiccional || 'Por asignar';
             
-            // 5. Llenar Gerencia (Aquí estaba el error S/D)
-            // Intentamos leer el nombre directo, si no existe, usamos el ID para buscar el nombre
             let nombreGerencia = a.gerencia || '';
             if (!nombreGerencia && a.gerenciaId) {
                 nombreGerencia = NOMBRES_GERENCIAS[a.gerenciaId] || 'Gerencia General';
             }
             document.getElementById('gerencia-auto-audiencia').value = nombreGerencia || 'Sin Gerencia';
-            
-            // 6. Llenar Abogado
             document.getElementById('abogado-auto-audiencia').value = a.abogado || 'Por asignar';
         } else {
-            // Limpiar si no hay selección
             document.getElementById('materia-auto-audiencia').value = '';
             document.getElementById('gerencia-auto-audiencia').value = '';
         }
@@ -803,11 +877,11 @@ function cargarAbogadosSelects() {
     const sel = document.getElementById('abogado-comparece');
     if(sel) sel.innerHTML += '<option>Lic. Demo</option><option>Lic. Pérez</option>';
 }
+
 // ===============================================
-// LÓGICA DE MODALES FALTANTE (Agrega esto al final)
+// LÓGICA DE MODALES FALTANTE 
 // ===============================================
 
-// --- 1. Reasignar Audiencia ---
 function initModalReasignarAudiencia() {
     const modal = document.getElementById('modal-reasignar-audiencia');
     const btnClose = document.getElementById('close-modal-reasignar-audiencia');
@@ -820,7 +894,6 @@ function initModalReasignarAudiencia() {
         if (btnCancel) btnCancel.onclick = close;
         
         if (btnSave) {
-            // Clonamos para evitar listeners duplicados
             const newBtn = btnSave.cloneNode(true);
             btnSave.parentNode.replaceChild(newBtn, btnSave);
             
@@ -856,11 +929,9 @@ function abrirModalReasignarAudiencia(id) {
     document.getElementById('reasignar-tipo-audiencia').value = audiencia.tipo;
     document.getElementById('reasignar-abogado-actual-audiencia').value = audiencia.abogadoComparece || 'Sin asignar';
 
-    // Llenar select de abogados (simulado o desde localStorage)
     const select = document.getElementById('select-nuevo-abogado-audiencia');
     select.innerHTML = '<option value="">Seleccione...</option>';
     
-    // Intentamos cargar usuarios reales si existen
     const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
     const abogados = usuarios.filter(u => u.rol === 'ABOGADO' && u.activo);
     
@@ -872,7 +943,6 @@ function abrirModalReasignarAudiencia(id) {
             select.appendChild(opt);
         });
     } else {
-        // Fallback si no hay usuarios
         ['Lic. Demo', 'Lic. Pérez', 'Lic. Gómez'].forEach(nombre => {
             const opt = document.createElement('option');
             opt.value = nombre;
@@ -885,11 +955,9 @@ function abrirModalReasignarAudiencia(id) {
     modal.classList.add('flex');
 }
 
-// --- 2. Alertas y Confirmaciones (Usando tus modales HTML) ---
-
 function mostrarAlertaAudiencia(mensaje) {
     const modal = document.getElementById('modal-alerta-audiencia');
-    if(!modal) return alert(mensaje); // Fallback
+    if(!modal) return alert(mensaje); 
 
     document.getElementById('alerta-mensaje-audiencia').textContent = mensaje;
     
@@ -903,13 +971,11 @@ function mostrarAlertaAudiencia(mensaje) {
     modal.classList.add('flex');
 }
 
-// Variable global para guardar la acción pendiente
 let onConfirmActionAudiencia = null;
 
 function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
     const modal = document.getElementById('modal-confirmacion-audiencia');
     if(!modal) {
-        // Si no existe el modal, usar confirm nativo para que no falle
         if(confirm(mensaje)) callback();
         return;
     }
@@ -919,7 +985,6 @@ function mostrarConfirmacionAudiencia(titulo, mensaje, callback) {
     
     onConfirmActionAudiencia = callback;
 
-    // Configurar botones
     document.getElementById('btn-confirm-accept-audiencia').onclick = () => {
         if (onConfirmActionAudiencia) onConfirmActionAudiencia();
         cerrarConfirmacionAudiencia();
@@ -938,4 +1003,46 @@ function cerrarConfirmacionAudiencia() {
         modal.classList.remove('flex');
     }
     onConfirmActionAudiencia = null;
+}
+
+// === FUNCION HELPER PARA VINCULAR CON EXPEDIENTE ===
+function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono = 'info') {
+    if (!asuntoId) return;
+
+    const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    const index = expedientes.findIndex(e => String(e.id) === String(asuntoId));
+
+    if (index !== -1) {
+        if (!expedientes[index].actividad) expedientes[index].actividad = [];
+
+        const nuevaActividad = {
+            fecha: new Date().toISOString(),
+            titulo: titulo,
+            descripcion: descripcion,
+            tipo: tipoIcono
+        };
+
+        expedientes[index].actividad.unshift(nuevaActividad);
+        localStorage.setItem('expedientesData', JSON.stringify(expedientes));
+    }
+}
+
+// === HELPER PARA GENERAR NOTIFICACIONES DINÁMICAS ===
+function crearNotificacionGlobal(datos) {
+    const KEY = 'jl_notifications_v4';
+    const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];
+    
+    const nuevaNotif = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        eventType: datos.eventType,
+        title: datos.title,
+        expediente: datos.expediente,
+        status: datos.status,
+        detalles: datos.detalles || {},
+        notifyAt: datos.notifyAt || new Date().toISOString(),
+        meta: datos.meta || {}
+    };
+    
+    notificaciones.push(nuevaNotif);
+    localStorage.setItem(KEY, JSON.stringify(notificaciones));
 }

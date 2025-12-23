@@ -1,3 +1,5 @@
+// js/agenda-general-module.js
+
 // Lógica para la página de Agenda General
 class AgendaGeneralManager {
     constructor() {
@@ -23,7 +25,7 @@ class AgendaGeneralManager {
     }
 
     // ==========================================
-    // CARGA DE DATOS (MEJORADO: Carga de localStorage)
+    // CARGA DE DATOS (FECHAS FUTURAS Y HOY)
     // ==========================================
     cargarDatos() {
         // Helper: Genera fechas dinámicas a partir de hoy
@@ -34,56 +36,35 @@ class AgendaGeneralManager {
             return d.toISOString().split('T')[0];
         };
 
-        // 1. CARGAR AUDIENCIAS DESAHOGADAS DESDE localStorage
-        this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+        // 1. CARGAR AUDIENCIAS (Simulando Agenda Futura/Presente)
+        const todasAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
         
-        // Si no hay datos en el nuevo almacenamiento, buscamos en audiencias concluidas
-        if (this.audienciasDesahogadas.length === 0) {
-            const todasAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
-            
-            this.audienciasDesahogadas = todasAudiencias
-                .filter(audiencia => audiencia.atendida === true)
-                .map(a => ({
-                    id: a.id,
-                    fechaAudiencia: a.fecha,
-                    horaAudiencia: a.hora,
-                    expediente: a.expediente || 'S/D',
-                    tipoAudiencia: a.tipo || 'General',
-                    partes: a.actor || 'S/D',
-                    abogado: a.abogadoComparece || 'Por asignar',
-                    actaDocumento: a.actaDocumento || '',
-                    atendida: true,
-                    fechaDesahogo: a.fechaDesahogo || new Date().toISOString().split('T')[0],
-                    observaciones: a.observaciones || 'Audiencia concluida',
-                    fechaCreacion: new Date().toISOString()
-                }));
-            
-            // Guardar en el nuevo almacenamiento para futuras cargas
-            if (this.audienciasDesahogadas.length > 0) {
-                localStorage.setItem('audienciasDesahogadas', JSON.stringify(this.audienciasDesahogadas));
-            }
-        }
-        
-        // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
+        this.audienciasDesahogadas = todasAudiencias
+            .filter(audiencia => audiencia.atendida === true)
+            .map(a => ({
+                ...a,
+                // Si falta fechaDesahogo, usamos fechaAudiencia o la fecha genérica para evitar errores
+                fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
+            }));        
+        // Si no hay datos, usar ejemplos con fechas de HOY y FUTURO
         if (this.audienciasDesahogadas.length === 0) {
             this.audienciasDesahogadas = [
                 {
                     id: 1,
-                    fechaAudiencia: getFechaStr(0),
+                    fechaAudiencia: getFechaStr(0), // HOY (Para que aparezca en el filtro 'Hoy')
                     horaAudiencia: '09:30',
                     expediente: 'EXP-2025-0456',
                     tipoAudiencia: 'Conciliación',
                     partes: 'Martínez vs. Rodríguez',
                     abogado: 'Dra. Laura Méndez',
                     actaDocumento: 'ACTA-PENDIENTE.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(0),
-                    observaciones: 'Programada para hoy a primera hora.',
-                    fechaCreacion: new Date().toISOString()
+                    atendida: true, // Marcado true para que salga en esta lista (simulando agendado/listo)
+                    fechaDesahogo: getFechaStr(0), 
+                    observaciones: 'Programada para hoy a primera hora.'
                 },
                 {
                     id: 2,
-                    fechaAudiencia: getFechaStr(1),
+                    fechaAudiencia: getFechaStr(1), // MAÑANA (Para filtro Semana)
                     horaAudiencia: '11:00',
                     expediente: 'EXP-2025-0789',
                     tipoAudiencia: 'Vista',
@@ -92,12 +73,11 @@ class AgendaGeneralManager {
                     actaDocumento: 'ACTA-FUTURA.pdf',
                     atendida: true,
                     fechaDesahogo: getFechaStr(1),
-                    observaciones: 'Vista pública confirmada para mañana.',
-                    fechaCreacion: new Date().toISOString()
+                    observaciones: 'Vista pública confirmada para mañana.'
                 },
                 {
                     id: 3,
-                    fechaAudiencia: getFechaStr(3),
+                    fechaAudiencia: getFechaStr(3), // EN 3 DÍAS (Para filtro Semana)
                     horaAudiencia: '15:15',
                     expediente: 'EXP-2025-1123',
                     tipoAudiencia: 'Juicio',
@@ -106,12 +86,11 @@ class AgendaGeneralManager {
                     actaDocumento: 'ACTA-PROXIMA.pdf',
                     atendida: true,
                     fechaDesahogo: getFechaStr(3),
-                    observaciones: 'Juicio oral próximo.',
-                    fechaCreacion: new Date().toISOString()
+                    observaciones: 'Juicio oral próximo.'
                 },
                 {
                     id: 4,
-                    fechaAudiencia: getFechaStr(15),
+                    fechaAudiencia: getFechaStr(15), // EN 15 DÍAS (Para filtro Mes)
                     horaAudiencia: '10:00',
                     expediente: '3485/2025',
                     tipoAudiencia: 'Inicial',
@@ -120,109 +99,58 @@ class AgendaGeneralManager {
                     actaDocumento: 'ACTA-MES.pdf',
                     atendida: true,
                     fechaDesahogo: getFechaStr(15),
-                    observaciones: 'Audiencia inicial programada para final de mes.',
-                    fechaCreacion: new Date().toISOString()
+                    observaciones: 'Audiencia inicial programada para final de mes.'
                 }
             ];
-            
-            // Guardar los datos de ejemplo
-            localStorage.setItem('audienciasDesahogadas', JSON.stringify(this.audienciasDesahogadas));
         }
 
-        // 2. CARGAR TÉRMINOS PRESENTADOS DESDE localStorage
-        // Primero intentamos cargar del nuevo almacenamiento
-        this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+        // 2. CARGAR TÉRMINOS (Simulando Vencimientos Futuros)
+        const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
+        this.terminosPresentados = todosTerminos.filter(termino => termino.estatus === 'Presentado' || termino.estatus === 'Concluido');
         
-        // Si no hay datos en el nuevo almacenamiento, buscamos en términos existentes
-        if (this.terminosPresentados.length === 0) {
-            const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
-            
-            // Filtrar términos que están en estado "Liberado" o "Presentado" o "Concluido"
-            // PERO: Los términos liberados ya NO deben estar en la tabla principal
-            // Solo debemos mostrar los que ya están en terminosPresentados
-            this.terminosPresentados = todosTerminos
-                .filter(termino => termino.estatus === 'Liberado' || termino.estatus === 'Presentado' || termino.estatus === 'Concluido')
-                .map(t => ({
-                    id: Date.now() + Math.random(), // ID único
-                    fechaIngreso: t.fechaIngreso,
-                    fechaVencimiento: t.fechaVencimiento,
-                    fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha actual como presentación
-                    expediente: t.expediente || 'S/N',
-                    actuacion: t.asunto || t.actuacion || '',
-                    partes: t.actor || '',
-                    abogado: t.abogado || 'Sin asignar',
-                    acuseDocumento: t.acuseDocumento || '',
-                    etapaRevision: t.estatus,
-                    estatus: t.estatus,
-                    observaciones: t.observaciones || 'Término liberado para presentación',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: t.id // Referencia al término original
-                }));
-            
-            // Guardar en el nuevo almacenamiento para futuras cargas
-            if (this.terminosPresentados.length > 0) {
-                localStorage.setItem('terminosPresentados', JSON.stringify(this.terminosPresentados));
-            }
-        }
-        
-        // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
         if (this.terminosPresentados.length === 0) {
             this.terminosPresentados = [
                 {
                     id: 1,
                     fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(0),
-                    fechaPresentacion: getFechaStr(0),
+                    fechaVencimiento: getFechaStr(0), // VENCE HOY
                     expediente: 'EXP-2025-001',
                     actuacion: 'Contestación de demanda',
                     partes: 'Empresa A vs. Empleado B',
                     abogado: 'Lic. Juan Pérez',
                     acuseDocumento: 'ACUSE-HOY.pdf',
                     etapaRevision: 'Presentado',
-                    estatus: 'Presentado',
-                    observaciones: 'Vencimiento el día de hoy.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 1
+                    fechaPresentacion: getFechaStr(0), // PRESENTAR HOY
+                    observaciones: 'Vencimiento el día de hoy.'
                 },
                 {
                     id: 2,
                     fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(2),
-                    fechaPresentacion: getFechaStr(2),
+                    fechaVencimiento: getFechaStr(2), // VENCE EN 2 DÍAS
                     expediente: 'EXP-2025-002',
                     actuacion: 'Ofrecimiento de pruebas',
                     partes: 'Banco X vs. Deudor Y',
                     abogado: 'Lic. Ana López',
                     acuseDocumento: 'ACUSE-PENDIENTE.pdf',
-                    etapaRevision: 'Liberado',
-                    estatus: 'Liberado',
-                    observaciones: 'Preparar pruebas para esta semana.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 2
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: getFechaStr(2),
+                    observaciones: 'Preparar pruebas para esta semana.'
                 },
                 {
                     id: 3,
                     fechaIngreso: getFechaStr(5),
-                    fechaVencimiento: getFechaStr(10),
-                    fechaPresentacion: getFechaStr(10),
+                    fechaVencimiento: getFechaStr(10), // VENCE EN 10 DÍAS
                     expediente: 'EXP-2025-003',
                     actuacion: 'Alegatos finales',
                     partes: 'Constructora Z vs. Municipio',
                     abogado: 'Lic. Roberto M.',
                     acuseDocumento: 'ACUSE-FUTURO.pdf',
-                    etapaRevision: 'Concluido',
-                    estatus: 'Concluido',
-                    observaciones: 'Alegatos programados para mediados de mes.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 3
+                    etapaRevision: 'Presentado',
+                    fechaPresentacion: getFechaStr(10),
+                    observaciones: 'Alegatos programados para mediados de mes.'
                 }
             ];
-            
-            // Guardar los datos de ejemplo
-            localStorage.setItem('terminosPresentados', JSON.stringify(this.terminosPresentados));
         }
-        
-        console.log(`📊 Términos presentados cargados: ${this.terminosPresentados.length}`);
     }
 
     configurarPestañas() {
@@ -291,16 +219,10 @@ class AgendaGeneralManager {
         hoy.setHours(0, 0, 0, 0);
         
         return datos.filter(item => {
-            // === CORRECCIÓN DE SEGURIDAD ===
-            // Si el dato no tiene la fecha o no es válida, lo saltamos para no romper la app
-            if (!item[fechaCampo]) {
-                return false; 
-            }
-            // ===============================
+            // Si el dato no tiene la fecha o no es válida, lo saltamos
+            if (!item[fechaCampo]) return false; 
 
             const partesFecha = item[fechaCampo].split('-');
-            
-            // Validar que el split funcionó (formato correcto YYYY-MM-DD)
             if (partesFecha.length !== 3) return false;
 
             const fechaItem = new Date(partesFecha[0], partesFecha[1] - 1, partesFecha[2]);
@@ -332,6 +254,7 @@ class AgendaGeneralManager {
             }
         });
     }
+    
     configurarModalObservaciones() {
         const modal = document.getElementById('modal-observaciones');
         const btnsClose = document.querySelectorAll('#close-modal-observaciones, #btn-cerrar-obs');
@@ -370,10 +293,10 @@ class AgendaGeneralManager {
                 <tr class="bg-white hover:bg-gray-50 border-b">
                     <td class="px-6 py-4">${this.formatDate(a.fechaAudiencia)}</td>
                     <td class="px-6 py-4">${a.horaAudiencia}</td>
-                    <td class="px-6 py-4 font-medium text-gob-guinda">${a.expediente}</td>
-                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">${a.tipoAudiencia}</span></td>
-                    <td class="px-6 py-4 text-sm truncate max-w-[200px]" title="${a.partes}">${a.partes}</td>
-                    <td class="px-6 py-4 text-sm">${a.abogado}</td>
+                    <td class="px-6 py-4 font-medium text-gob-guinda">${a.expediente || 'S/N'}</td>
+                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">${a.tipoAudiencia || 'General'}</span></td>
+                    <td class="px-6 py-4 text-sm truncate max-w-[200px]" title="${a.partes}">${a.partes || ''}</td>
+                    <td class="px-6 py-4 text-sm">${a.abogado || ''}</td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center gap-2">
                             <button onclick="descargarDocumento('${a.actaDocumento}')" class="text-gray-500 hover:text-gob-guinda" title="Acta"><i class="fas fa-file-pdf"></i></button>
@@ -410,10 +333,7 @@ class AgendaGeneralManager {
                     <td class="px-6 py-4">${this.formatDate(t.fechaPresentacion)}</td>
                     <td class="px-6 py-4">${this.formatDate(t.fechaVencimiento)}</td>
                     <td class="px-6 py-4 font-medium text-gob-guinda">${t.expediente}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="${badgeClass} text-xs font-semibold px-2.5 py-0.5 rounded mr-2">${t.estatus}</span>
-                        ${t.actuacion}
-                    </td>
+                    <td class="px-6 py-4 text-sm">${t.actuacion}</td>
                     <td class="px-6 py-4 text-sm truncate max-w-[200px]">${t.partes}</td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center gap-2">
@@ -430,7 +350,7 @@ class AgendaGeneralManager {
     }
 
     actualizarEstadisticas() {
-        // Placeholder
+        // Placeholder para futuras estadísticas
     }
 
     formatDate(dateString) {
@@ -506,7 +426,7 @@ export function initAgendaGeneral() {
         if(item) {
             document.getElementById('obs-modal-title').textContent = tipo === 'audiencia' ? 'Observaciones Audiencia' : 'Observaciones Término';
             document.getElementById('obs-modal-expediente').innerHTML = `<span class="font-bold text-gob-guinda">${item.expediente}</span>`;
-            document.getElementById('obs-modal-content').innerHTML = `<p class="text-gray-700 bg-gray-50 p-4 rounded border">${item.observaciones}</p>`;
+            document.getElementById('obs-modal-content').innerHTML = `<p class="text-gray-700 bg-gray-50 p-4 rounded border">${item.observaciones || 'Sin observaciones'}</p>`;
             document.getElementById('modal-observaciones').style.display = 'block';
         }
     };

@@ -1,12 +1,85 @@
-# 🏛️ Sistema Jurídico GOB.MX V3 - Base de Datos Unificada
+#  Sistema Jurídico GOB.MX V3 - Arquitectura Frontend
 
-## 📋 Descripción del Proyecto
+## Descripción del Proyecto
 
-Este proyecto es un sistema integral de gestión jurídica desarrollado para instituciones gubernamentales mexicanas, siguiendo las directrices de diseño GOB.MX V3. El sistema modular permite gestionar usuarios, expedientes, audiencias, términos, calendario, notificaciones y otros aspectos del proceso jurídico.
+Este proyecto es un sistema integral de gestión jurídica desarrollado para instituciones gubernamentales mexicanas, siguiendo las directrices de diseño GOB.MX V3. El sistema modular permite gestionar usuarios, expedientes, audiencias, términos, calendario, notificaciones y otros aspectos del proceso jurídico desde una interfaz web moderna y responsive.
 
-Esta propuesta presenta la estructura de base de datos relacional (PostgreSQL) diseñada para solucionar las limitaciones de escalabilidad actuales (localStorage), incorporando lógica de negocio específica para la asignación de abogados, gestión de permisos, notificaciones jerárquicas y auditoría.
+Esta propuesta presenta la arquitectura frontend (HTML, CSS, JavaScript) diseñada para ofrecer una experiencia de usuario fluida y eficiente, con persistencia local y capacidades offline.
 
-## 🗄️ Arquitectura de Base de Datos
+## Arquitectura Frontend
+
+### Tecnologías Utilizadas
+
+- **Frontend**: HTML5, CSS3, JavaScript ES6+ (Vanilla)
+- **Framework CSS**: Tailwind CSS para diseño responsivo
+- **Gráficos**: Chart.js para visualizaciones de datos
+- **Iconografía**: Font Awesome 6.5.0
+- **Tipografía**: Google Fonts (Montserrat, Noto Sans)
+- **Persistencia**: localStorage para almacenamiento local
+- **Arquitectura**: Modular con componentes reutilizables
+
+### Diagrama de Módulos del Sistema
+
+```mermaid
+graph TD
+    App[Sistema Principal] --> Dashboard[Dashboard Module]
+    App --> Expedientes[Expedientes Module]
+    App --> Audiencias[Audiencias Module]
+    App --> Terminos[Términos Module]
+    App --> Calendario[Calendario Module]
+    App --> Notificaciones[Notificaciones Module]
+    App --> Usuarios[Usuarios Module]
+    App --> Recordatorios[Recordatorios Module]
+    App --> AgendaGeneral[Agenda General Module]
+    
+    Dashboard --> Charts[Chart.js Visualizations]
+    Expedientes --> OrganosManager[Gestor de Órganos]
+    Audiencias --> ModalSystem[Sistema de Modales]
+    Terminos --> Workflow[Flujo de Aprobación]
+    Notificaciones --> RealTime[Actualización en Tiempo Real]
+    Usuarios --> RBAC[Control de Acceso por Roles]
+```
+
+## Matriz de Módulos y Funcionalidades (Detallada)
+
+A continuación se detalla la arquitectura modular y las responsabilidades de cada componente.
+
+### 1. Gestión de Expedientes (Core)
+
+| Módulo | Archivo Principal | Funcionalidades Clave | Integración | Dependencias |
+|--------|-------------------|----------------------|-------------|--------------|
+| Expedientes | `expediente-module/js/expedientes.js` | CRUD expedientes, filtros, búsqueda | Crea notificaciones, timeline | Chart.js, OrganosManager |
+| Detalle Expediente | `expediente-module/js/expediente-detalle.js` | Vista 360°, timeline, documentos | Integra audiencias, términos | SweetAlert2, Chart.js |
+| Gestión Órganos | `expediente-module/js/organos-manager.js` | Admin órganos jurisdiccionales | Popula selectores | localStorage |
+
+
+### 2. Seguimiento Procesal (Audiencias y Términos)
+
+| Módulo | Archivo Principal | Funcionalidades Clave | Integración | Dependencias |
+|--------|-------------------|----------------------|-------------|--------------|
+| Audiencias | `audiencias/js/audiencias.js` | CRUD audiencias, semaforización, actas | Vincula expedientes, notificaciones | SweetAlert2 |
+| Términos | `terminos/js/terminos.js` | Flujo etapas, aprobaciones, acuses | Workflow jerárquico, notificaciones | Chart.js (export) |
+| Agenda General | `agenda-general-module/js/agenda-general-module.js` | Vista personal unificada, observaciones de términos concluidos, observaciones de audiencias desahogadas | Combina audiencias y términos (vista individual por usuario) | Calendario |
+
+### 3. Gestión de Usuarios y Organización
+
+| Módulo | Archivo Principal | Funcionalidades Clave | Integración | Dependencias |
+|--------|-------------------|----------------------|-------------|--------------|
+| Usuarios | `usuario-module/js/usuarios-module.js` | CRUD usuarios, roles, gerencias | RBAC, materias por gerencia | Validación email |
+| Gerencias | `usuario-module/components/gerencias-table.html` | Gestión gerencias y materias | Asignación jerárquica | localStorage |
+| Materias | `usuario-module/components/modal-manage-materias.html` | Admin especialidades | Relación N:M usuarios | Sistema permisos |
+
+### 4. Visualización y Analytics
+
+| Módulo | Archivo Principal | Funcionalidades Clave | Integración | Dependencias |
+|--------|-------------------|----------------------|-------------|--------------|
+| Dashboard | `dashboard-module/js/dashboard-module.js` | Métricas, gráficos dinámicos | Filtros por gerencia | Chart.js |
+| Calendario | `calendario-module/js/calendario-module.js` | Vista mensual/semanal/diaria | Eventos múltiples | Date manipulation |
+| Notificaciones | `notificaciones-module/js/notificaciones.js` | Sistema alertas, resumen inteligente | Actualización automática | localStorage |
+
+# Estructura de Base de Datos (PostgreSQL)
+
+## Arquitectura de Base de Datos
 
 ### Tecnologías Recomendadas
 
@@ -34,7 +107,7 @@ graph TD
     Cal -.->|Opcional| Term
 ```
 
-## 🔗 Matriz de Relaciones del Sistema (Detallada)
+## Matriz de Relaciones del Sistema (Detallada)
 
 A continuación se detalla la integridad referencial y la lógica de negocio aplicada a cada relación.
 
@@ -77,7 +150,7 @@ A continuación se detalla la integridad referencial y la lógica de negocio apl
 | eventos_calendario | termino_id | terminos | 1:1 | CASCADE | Sincronización: Si el término se cumple/borra, debe desaparecer o actualizarse en el calendario. |
 | recordatorios | usuario_id | usuarios | N:1 | CASCADE | Recordatorios personales (notas adhesivas digitales). |
 
-## 📊 Esquema de Tablas (DDL)
+## Esquema de Tablas (DDL)
 
 ### 1. usuarios
 
@@ -265,7 +338,7 @@ CREATE TABLE recordatorios (
 );
 ```
 
-## 📝 Consultas SQL Clave
+## Consultas SQL Clave
 
 ### 1. Dashboard de Dirección (Carga de Trabajo)
 
@@ -298,7 +371,8 @@ AND n.leida = FALSE
 AND n.event_type IN ('audiencia', 'termino');
 ```
 
-## 🚀 Plan de Migración
+
+## Plan de Migración de Base de Datos
 
 - **Limpieza de Datos (LocalStorage)**: Asegurar que los campos de texto libre (como nombres de abogados en audiencias) se normalicen para coincidir con los usuarios registrados.
 - **Schema Setup**: Ejecutar el DDL de PostgreSQL presentado arriba.
@@ -307,5 +381,14 @@ AND n.event_type IN ('audiencia', 'termino');
 - **Migración Transaccional**: Mover Expedientes -> Audiencias -> Términos.
 - **Validación**: Verificar que las notificaciones de prueba lleguen al rol DIRECCION.
 
-## 📅 Estado: Consolidado (Enero 2025)
-## 🔒 Seguridad: Hash bcrypt, Roles (RBAC), Logs de auditoría en Timeline.
+## Consideraciones para Gestión de Documentos (Futuro)
+
+**Nota Importante**: Actualmente el sistema maneja documentos como campos VARCHAR en la base de datos. En una fase futura del backend se implementará una lógica de gestión de archivos que incluya:
+
+- **Estructura de Carpetas**: Creación automática de una carpeta por cada expediente creado
+- **Organización Interna**: Subcarpetas dentro de cada expediente para "Términos" y "Audiencias"
+- **Tipos de Archivo**: Principalmente documentos PDF
+- **Visualización**: Sistema integrado para visualizar PDFs directamente en la interfaz
+
+Esta funcionalidad está considerada para el desarrollo del backend y no forma parte del scope actual del frontend.
+

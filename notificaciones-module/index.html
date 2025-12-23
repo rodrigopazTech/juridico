@@ -8,6 +8,8 @@
     <link href="../css/output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="../sweetalert2.all.min.js"></script>
 </head>
 <body class="font-sans text-gob-gris antialiased bg-gray-50">
 
@@ -49,10 +51,12 @@
                 <p class="text-gray-500 text-sm mt-1">No tienes alertas pendientes con los filtros actuales.</p>
             </div>
         </div>
-        </div>
+    </div>
 
     <div data-include="./components/modal-create.html"></div>
     <div data-include="./components/notification-row-template.html"></div>
+
+    <script src="../components/system-badge.js"></script>
 
     <script type="module">
         import { loadIncludes } from '../js/loader.js';

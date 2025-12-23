@@ -1,4 +1,5 @@
 import { expedienteById, updateExpediente } from '../data/expedientes-data.js';
+import { OrganosManager } from './organos-manager.js';
 
 export class ExpedienteDetalleModule {
   constructor(){
@@ -16,13 +17,17 @@ export class ExpedienteDetalleModule {
     // Renderizado inicial
     this.populateVista360();
     
-    // Renderizado de módulos secundarios (con leve retardo para asegurar DOM)
     setTimeout(() => { 
         this.renderTimeline();
         this.setupModals(); 
         this.setupDocumentsModule();
-        this.setupObservacionesModule(); // <--- Módulo de Observaciones
-    }, 200);
+        this.setupObservacionesModule();
+        
+        this.setupHistoricoLegalModule(); 
+    
+        const manager = new OrganosManager();
+        manager.init();
+    }, 500);
   }
 
   parseId(){
@@ -33,7 +38,6 @@ export class ExpedienteDetalleModule {
   loadData(){
     this.expediente = expedienteById(this.id);
     
-    // Inicializar arrays si no existen para evitar errores
     if(!this.expediente.documentos) this.expediente.documentos = [];
     if(!this.expediente.observaciones) this.expediente.observaciones = [];
     
@@ -49,9 +53,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // VISTA 360 (DATOS GENERALES)
-  // ==========================================
   populateVista360() {
     const e = this.expediente;
     const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text || '—'; };
@@ -64,14 +65,12 @@ export class ExpedienteDetalleModule {
     setText('v360-partes', e.partes);
     setText('v360-organo', e.organo);
     
-    // Prioridad con color
     const elPrio = document.getElementById('v360-prioridad');
     if(elPrio) {
         elPrio.textContent = e.prioridad || 'Media';
         elPrio.className = `text-sm font-bold ${e.prioridad === 'Alta' ? 'text-red-700' : (e.prioridad === 'Baja' ? 'text-gray-600' : 'text-orange-600')}`;
     }
 
-    // Estado con Badge
     const elEstado = document.getElementById('v360-estado');
     if(elEstado) {
         const st = (e.estado || 'TRAMITE').toUpperCase();
@@ -85,7 +84,6 @@ export class ExpedienteDetalleModule {
         elEstado.className = `px-3 py-1 rounded-full text-sm font-bold border uppercase tracking-wide font-headings ${colorClass}`;
     }
 
-    // Descripción
     const descContainer = document.getElementById('v360-descripcion-container');
     const descText = document.getElementById('v360-descripcion');
     if(e.descripcion && descContainer) {
@@ -103,9 +101,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // MODALES GENERALES (EDICIÓN / ESTADO)
-  // ==========================================
   setupModals() {
       this.setupEditModal();
       this.setupEstadoModal();
@@ -155,28 +150,74 @@ export class ExpedienteDetalleModule {
   }
 
   saveEditForm() {
-      const getVal = (id) => document.getElementById(id)?.value;
-      const getText = (id) => { const el = document.getElementById(id); return el && el.options ? el.options[el.selectedIndex].text : ''; };
+    // Helpers para obtener valores
+    const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
+    const getText = (id) => { const el = document.getElementById(id); return el && el.options ? el.options[el.selectedIndex].text : ''; };
 
-      const changes = {
-          numero: getVal('edit-numero'),
-          materia: getVal('edit-materia'),
-          gerenciaId: getVal('edit-gerencia'),
-          gerencia: getText('edit-gerencia'),
-          sede: getVal('edit-sede'),
-          abogado: getVal('edit-abogado'),
-          partes: getVal('edit-partes'),
-          organo: getVal('edit-organo'),
-          prioridad: getVal('edit-prioridad'),
-          descripcion: getVal('edit-descripcion')
-      };
+    // 1. Obtenemos los valores nuevos del formulario
+    const changes = {
+        numero: getVal('edit-numero'),
+        materia: getVal('edit-materia'),
+        gerenciaId: getVal('edit-gerencia'),
+        gerencia: getText('edit-gerencia'), // Texto de la gerencia
+        sede: getVal('edit-sede'),
+        abogado: getVal('edit-abogado'),
+        partes: getVal('edit-partes'),
+        organo: getVal('edit-organo'),
+        prioridad: getVal('edit-prioridad'),
+        descripcion: getVal('edit-descripcion')
+    };
 
-      updateExpediente(this.id, changes);
-      this.registrarActividad('Edición de Datos', 'Se actualizaron los datos generales del expediente.', 'edit');
-      this.loadData();
-      this.populateVista360();
-  }
+    // 2. DETECTAR CAMBIOS: Comparamos 'this.expediente' (viejo) vs 'changes' (nuevo)
+    const cambiosDetectados = [];
+    const original = this.expediente;
 
+    // Mapa para traducir el nombre técnico a nombre legible
+    const labels = {
+        numero: 'No. Expediente',
+        materia: 'Materia',
+        gerenciaId: 'Gerencia',
+        sede: 'Estado/Sede',
+        abogado: 'Abogado Responsable',
+        partes: 'Partes Procesales',
+        organo: 'Órgano Jurisdiccional',
+        prioridad: 'Prioridad',
+        descripcion: 'Descripción'
+    };
+
+    // Comparamos campo por campo
+    Object.keys(labels).forEach(key => {
+        // Normalizamos a string para evitar falsos positivos (ej: null vs "")
+        const valOriginal = String(original[key] || '').trim();
+        const valNuevo = String(changes[key] || '').trim();
+
+        if (valOriginal !== valNuevo) {
+            cambiosDetectados.push(labels[key]);
+        }
+    });
+
+    // 3. Generar el mensaje de la actividad
+    let mensajeActividad = 'Se actualizaron los datos generales del expediente.';
+    
+    if (cambiosDetectados.length > 0) {
+        // Si hay cambios específicos, los listamos. Ej: "Se modificó: Prioridad, Órgano Jurisdiccional."
+        const listaCambios = cambiosDetectados.join(', ');
+        mensajeActividad = `Se modificó: ${listaCambios}.`;
+    } else {
+        // Si el usuario guardó sin cambiar nada, podemos omitir el registro o avisar
+        // return; // Descomenta esto si NO quieres registrar actividad si no hubo cambios reales
+        mensajeActividad = 'Se guardó la edición sin cambios detectados.';
+    }
+
+    // 4. Guardar y Registrar
+    // Nota: Pasamos el 'changes' original para actualizar
+    updateExpediente(this.id, changes);
+    
+    this.registrarActividad('Edición de Datos', mensajeActividad, 'edit');
+    
+    this.loadData();
+    this.populateVista360();
+}
   setupEstadoModal() {
     const modal = document.getElementById('modal-cambio-estado');
     const btnOpen = document.getElementById('btn-cambiar-estado-expediente');
@@ -190,8 +231,8 @@ export class ExpedienteDetalleModule {
         const select = document.getElementById('nuevo-estado-select');
         const razonInput = document.getElementById('razon-cambio');
         
-        if(select) select.value = ""; // Resetear selección
-        if(razonInput) razonInput.value = ''; // Limpiar razón
+        if(select) select.value = ""; 
+        if(razonInput) razonInput.value = ''; 
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -224,9 +265,6 @@ export class ExpedienteDetalleModule {
     }
   }
 
-  // ==========================================
-  // MÓDULO DE DOCUMENTOS
-  // ==========================================
   setupDocumentsModule() {
     this.renderDocumentsTable();
     this.setupUploadModal();
@@ -398,9 +436,6 @@ export class ExpedienteDetalleModule {
       this.renderDocumentsTable();
   }
 
-  // ==========================================
-  // MÓDULO DE OBSERVACIONES (NUEVO)
-  // ==========================================
   setupObservacionesModule() {
       const modal = document.getElementById('modal-observaciones-expediente');
       const btnOpen = document.getElementById('btn-observaciones-expediente');
@@ -480,15 +515,12 @@ export class ExpedienteDetalleModule {
       });
   }
 
-  // ==========================================
-  // ACTIVIDAD / TIMELINE
-  // ==========================================
   registrarActividad(titulo, descripcion, tipo) {
       const nuevaActividad = {
           fecha: new Date().toISOString(),
           titulo: titulo,
           descripcion: descripcion,
-          tipo: tipo // 'upload', 'delete', 'edit', 'status'
+          tipo: tipo 
       };
 
       if(!this.expediente.actividad) this.expediente.actividad = [];
@@ -541,4 +573,166 @@ export class ExpedienteDetalleModule {
   }
 
   renderError(msg){ console.error(msg); }
+
+// ==========================================
+  // MÓDULO: HISTÓRICO LEGAL (CORREGIDO)
+  // ==========================================
+  setupHistoricoLegalModule() {
+    const container = document.getElementById('historico-legal-container');
+    if (!container) return;
+
+    // 1. Obtener TODAS las listas (Activas e Históricas)
+    const audienciasActivas = JSON.parse(localStorage.getItem('audiencias')) || [];
+    const audienciasHistoricas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+    const terminosActivos = JSON.parse(localStorage.getItem('terminos')) || [];
+    const terminosHistoricos = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+
+    // Unificar listas para búsqueda global
+    const todasAudiencias = [...audienciasActivas, ...audienciasHistoricas];
+    const todosTerminos = [...terminosActivos, ...terminosHistoricos];
+
+    // Función de filtrado robusta (por ID o por Número de Expediente)
+    const esDeEsteExpediente = (item) => {
+        // Coincidencia directa por ID de base de datos (asuntoId)
+        if (item.asuntoId && String(item.asuntoId) === String(this.id)) return true;
+        
+        // Coincidencia por Texto del Expediente (Respaldo por si el ID se pierde en históricos)
+        if (item.expediente && this.expediente.numero && 
+            item.expediente.trim() === this.expediente.numero.trim()) return true;
+        
+        return false;
+    };
+
+    // 2. Procesar Audiencias (Activas + Concluidas)
+    const actas = todasAudiencias
+        .filter(a => esDeEsteExpediente(a) && a.actaDocumento)
+        .map(a => ({
+            tipo: 'Audiencia',
+            subtipo: a.tipo || a.tipoAudiencia || 'General',
+            nombreDoc: a.actaDocumento,
+            fecha: a.fecha || a.fechaAudiencia,
+            icono: 'fa-gavel',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+            idRef: a.id
+        }));
+
+    // 3. Procesar Términos (Activos + Presentados)
+    const acuses = todosTerminos
+        .filter(t => esDeEsteExpediente(t) && t.acuseDocumento)
+        .map(t => ({
+            tipo: 'Término',
+            subtipo: 'Acuse Recibido',
+            nombreDoc: t.acuseDocumento,
+            fecha: t.fechaVencimiento || t.fechaPresentacion,
+            icono: 'fa-clock',
+            color: 'text-orange-600',
+            bg: 'bg-orange-50',
+            idRef: t.id
+        }));
+
+    // 4. Unificar y Ordenar (Más reciente primero)
+    const documentos = [...actas, ...acuses].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // 5. Renderizar
+    container.innerHTML = '';
+
+    if (documentos.length === 0) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-8 text-gray-400">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                    <i class="fas fa-folder-open text-xl"></i>
+                </div>
+                <p class="text-xs italic">Sin actas ni acuses registrados.</p>
+            </div>`;
+        return;
+    }
+
+    const lista = document.createElement('ul');
+    lista.className = 'divide-y divide-gray-100';
+
+    documentos.forEach(doc => {
+        const li = document.createElement('li');
+        li.className = 'p-3 hover:bg-gray-50 transition-colors group flex items-center gap-3';
+        
+        li.innerHTML = `
+            <div class="flex-shrink-0 w-8 h-8 rounded-lg ${doc.bg} flex items-center justify-center">
+                <i class="fas ${doc.icono} ${doc.color} text-xs"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start">
+                    <p class="text-xs font-bold text-gray-700 truncate cursor-help" title="${doc.nombreDoc}">
+                        ${doc.nombreDoc}
+                    </p>
+                    <span class="text-[10px] text-gray-400 ml-2 whitespace-nowrap">${this.formatDateShort(doc.fecha)}</span>
+                </div>
+                <p class="text-[10px] text-gray-500 flex items-center gap-1">
+                    <span class="font-semibold ${doc.color}">${doc.tipo}</span> 
+                    <span class="text-gray-300">•</span> 
+                    ${doc.subtipo}
+                </p>
+            </div>
+            <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <button class="btn-preview-historico w-7 h-7 rounded border border-gray-200 bg-white text-gray-500 hover:text-gob-guinda hover:border-gob-guinda flex items-center justify-center transition-all shadow-sm" 
+                        data-doc="${doc.nombreDoc}" title="Previsualizar">
+                    <i class="fas fa-eye text-xs"></i>
+                </button>
+                <button class="btn-download-historico w-7 h-7 rounded border border-gray-200 bg-white text-gray-500 hover:text-blue-600 hover:border-blue-600 flex items-center justify-center transition-all shadow-sm" 
+                        data-doc="${doc.nombreDoc}" title="Descargar">
+                    <i class="fas fa-download text-xs"></i>
+                </button>
+            </div>
+        `;
+        lista.appendChild(li);
+    });
+
+    container.appendChild(lista);
+
+    // Listeners
+    container.querySelectorAll('.btn-preview-historico').forEach(btn => {
+        btn.addEventListener('click', (e) => this.previewHistorico(e.currentTarget.dataset.doc));
+    });
+    container.querySelectorAll('.btn-download-historico').forEach(btn => {
+        btn.addEventListener('click', (e) => this.downloadHistorico(e.currentTarget.dataset.doc));
+    });
+}
+
+// Helpers para el módulo histórico
+formatDateShort(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    // Retorna formato: 12 Dic 2024
+    return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+previewHistorico(nombreDoc) {
+    Swal.fire({
+        title: '<span class="text-sm font-bold text-gray-700">Vista Previa</span>',
+        html: `
+            <div class="flex flex-col items-center gap-4 py-4">
+                <i class="fas fa-file-pdf text-5xl text-red-500"></i>
+                <p class="text-gob-guinda font-bold text-lg">${nombreDoc}</p>
+                <p class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Simulación de visor PDF</p>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '400px'
+    });
+}
+
+downloadHistorico(nombreDoc) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+    Toast.fire({
+        icon: 'success',
+        title: 'Descargando...',
+        text: nombreDoc
+    });
+}
 }

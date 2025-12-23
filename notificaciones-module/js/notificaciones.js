@@ -1,11 +1,10 @@
 export class NotificacionesModule {
     constructor() {
-        this.STORAGE_KEY = 'jl_notifications_v4'; // Versión actualizada
+        this.STORAGE_KEY = 'jl_notifications_v4'; 
         this.currentFilter = 'all';
         this.notifications = [];
         this.updateInterval = null;
         
-        // Elementos DOM
         this.tableBody = null;
         this.emptyState = null;
         this.searchInput = null;
@@ -15,16 +14,15 @@ export class NotificacionesModule {
     }
 
     init() {
-        // Esperamos un momento a que el loader inyecte el HTML y los Templates
         setTimeout(() => {
             this.bindElements();
             this.bindEvents();
             this.loadNotifications();
-            
-            // Cargar datos de prueba si está vacío para visualizar el diseño
-            if(this.notifications.length === 0) this.seedDemoData();
-            
             this.renderTable();
+            
+            // CAMBIO 1: Marcar como leídas al entrar
+            this.markAllAsRead(); 
+            
             this.startAutoUpdate();
         }, 200);
     }
@@ -37,7 +35,6 @@ export class NotificacionesModule {
         this.modal = document.querySelector('#modal-notificacion');
         this.form = document.querySelector('#form-notificacion');
         
-        // Botón nuevo (si existe en el toolbar)
         const btnNew = document.querySelector('#btn-nueva-notificacion');
         if(btnNew) btnNew.addEventListener('click', () => this.showModal());
     }
@@ -49,7 +46,6 @@ export class NotificacionesModule {
         if (this.searchInput) {
             this.searchInput.addEventListener('input', () => this.renderTable());
         }
-        // Eventos del modal
         if (this.modal) {
             this.modal.querySelectorAll('[data-modal-hide]').forEach(b => b.addEventListener('click', () => this.hideModal()));
         }
@@ -65,121 +61,69 @@ export class NotificacionesModule {
     }
     
     loadNotifications() {
-        // Intentamos cargar notificaciones, si falla o no hay, array vacío
         try {
             this.notifications = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
         } catch (e) {
             this.notifications = [];
         }
-
-        // También podríamos intentar leer de los módulos de 'recordatorios' para sincronizar,
-        // pero por simplicidad asumimos que los otros módulos empujan datos a este storage key.
     }
     
     saveNotifications() {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.notifications));
     }
-    
-    seedDemoData() {
+
+    // CAMBIO 1: Función para "limpiar" el badge
+    markAllAsRead() {
+        let huboCambios = false;
         const now = new Date();
-        const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
-        const in3Days = new Date(now); in3Days.setDate(now.getDate() + 3);
-        const past = new Date(now); past.setDate(now.getDate() - 1);
-
-        this.notifications = [
-            // AUDIENCIAS
-            { 
-                id: this.uid(), 
-                eventType: 'audiencia', 
-                title: 'Audiencia Inicial', 
-                expediente: '100/2025', 
-                status: 'Pendiente', 
-                detalles: { juzgado: 'Juzgado 1 Civil' }, 
-                notifyAt: tomorrow.toISOString() 
-            },
-            { 
-                id: this.uid(), 
-                eventType: 'audiencia', 
-                title: 'Juicio Oral', 
-                expediente: '300/2025', 
-                status: 'Concluida', 
-                detalles: { juzgado: 'Tribunal Laboral' }, 
-                notifyAt: past.toISOString() 
-            },
-
-            // TÉRMINOS
-            { 
-                id: this.uid(), 
-                eventType: 'termino', 
-                title: 'Contestación de Demanda', 
-                expediente: '456/2024', 
-                status: 'Proyectista', 
-                detalles: { actuacion: 'Elaboración de proyecto' }, 
-                notifyAt: now.toISOString() 
-            },
-            { 
-                id: this.uid(), 
-                eventType: 'termino', 
-                title: 'Amparo Directo', 
-                expediente: '999/2024', 
-                status: 'Liberado', 
-                detalles: { actuacion: 'Listo para presentar' }, 
-                notifyAt: in3Days.toISOString() 
-            },
-
-            // RECORDATORIOS (Con metadatos para el resumen inteligente)
-            { 
-                id: this.uid(), 
-                eventType: 'recordatorio', 
-                title: 'Recordatorio: Vencimiento de plazo', 
-                meta: { 
-                    tipoOrigen: 'termino', 
-                    expediente: '777/2024', 
-                    anticipacion: '2 días', 
-                    fechaEvento: in3Days.toISOString() 
-                },
-                status: 'Activo',
-                detalles: { descripcion: 'Subir documentos pendientes' }, 
-                notifyAt: now.toISOString() 
+        
+        this.notifications.forEach(n => {
+            // Solo marcamos las que ya ocurrieron y no estaban leídas
+            if (!n.read && new Date(n.notifyAt) <= now) {
+                n.read = true;
+                huboCambios = true;
             }
-        ];
-        this.saveNotifications();
+        });
+
+        if (huboCambios) {
+            this.saveNotifications();
+            // Disparar evento para que el badge se actualice al instante
+            window.dispatchEvent(new Event('storage')); 
+        }
     }
 
-    // ==================== RENDERIZADO (TABLA) ====================
+    // ==================== RENDERIZADO ====================
 
     renderTable() {
         if (!this.tableBody) return;
         
         const template = document.getElementById('template-notification-row');
-        if (!template) return console.error("Template 'template-notification-row' no encontrado en el DOM.");
+        if (!template) return; 
 
         const searchTerm = this.searchInput ? this.searchInput.value.toLowerCase() : '';
-        
-        // Filtrar y Ordenar (Más recientes primero)
+        const now = new Date(); 
+
         const filtered = this.notifications.filter(n => {
+            const notificationTime = new Date(n.notifyAt);
+            if (notificationTime > now) return false; 
+
             const matchesFilter = this.currentFilter === 'all' || n.eventType === this.currentFilter;
-            
-            // Búsqueda profunda en título, expediente o estado
             const matchesSearch = n.title.toLowerCase().includes(searchTerm) || 
                                   (n.expediente || '').toLowerCase().includes(searchTerm) ||
                                   (n.status || '').toLowerCase().includes(searchTerm);
                                   
             return matchesFilter && matchesSearch;
-        }).sort((a, b) => new Date(b.notifyAt) - new Date(a.notifyAt));
+        }).sort((a, b) => new Date(b.notifyAt) - new Date(a.notifyAt)); 
 
-        // Limpiar tabla actual
         this.tableBody.innerHTML = '';
 
-        // Manejo de estado vacío
         if (filtered.length === 0) {
             this.emptyState?.classList.remove('hidden');
-            this.tableBody.parentElement.classList.add('hidden'); // Ocultar el contenedor de la tabla
+            this.tableBody.parentElement.classList.add('hidden');
         } else {
             this.emptyState?.classList.add('hidden');
             this.tableBody.parentElement.classList.remove('hidden');
             
-            // Generar filas
             filtered.forEach(n => {
                 const clone = template.content.cloneNode(true);
                 this.hydrateRow(clone, n);
@@ -189,7 +133,6 @@ export class NotificacionesModule {
     }
 
     hydrateRow(clone, n) {
-        // 1. FECHAS
         const dateObj = new Date(n.notifyAt);
         const dateStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
         const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -197,7 +140,7 @@ export class NotificacionesModule {
         clone.querySelector('.js-date').textContent = dateStr;
         clone.querySelector('.js-time').textContent = timeStr;
 
-        // 2. TIPO (Icono y Color Semántico)
+        // Estilos visuales
         const styles = {
             audiencia: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-gavel', label: 'Audiencia' },
             termino: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-hourglass-end', label: 'Término' },
@@ -207,17 +150,15 @@ export class NotificacionesModule {
 
         const typeBadge = clone.querySelector('.js-badge');
         typeBadge.classList.add(st.bg, st.text, st.border);
-        
         clone.querySelector('.js-type-icon').classList.add(st.icon);
         clone.querySelector('.js-type-text').textContent = st.label;
 
-        // 3. ESTADO (Colores Específicos por Tipo)
+        // Status Badge
         const statusBadge = clone.querySelector('.js-status-badge');
         const statusText = n.status || 'Pendiente';
         statusBadge.textContent = statusText;
         
-        let statusClass = 'bg-gray-100 text-gray-600 border-gray-200'; // Default
-
+        let statusClass = 'bg-gray-100 text-gray-600 border-gray-200';
         if (n.eventType === 'audiencia') {
             if (statusText === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
             else if (statusText === 'Con Acta') statusClass = 'bg-blue-100 text-blue-800 border-blue-200';
@@ -226,14 +167,12 @@ export class NotificacionesModule {
             if (['Liberado', 'Presentado'].includes(statusText)) statusClass = 'bg-green-100 text-green-800 border-green-200';
             else if (statusText === 'Concluido') statusClass = 'bg-gray-800 text-white border-gray-600';
             else if (['Revisión', 'Gerencia', 'Dirección'].includes(statusText)) statusClass = 'bg-indigo-100 text-indigo-800 border-indigo-200';
-        } else { // Recordatorio
+        } else {
             statusClass = 'bg-amber-100 text-amber-800 border-amber-200';
         }
-        
-        // Limpiar clases anteriores y aplicar nuevas
         statusBadge.className = `js-status-badge inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-bold ${statusClass}`;
 
-        // 4. RESUMEN INTELIGENTE
+        // Contenido
         const resumenEl = clone.querySelector('.js-resumen');
         const extraEl = clone.querySelector('.js-detalles-extra');
         
@@ -252,32 +191,26 @@ export class NotificacionesModule {
             if (['Concluida', 'Desahogada'].includes(statusText)) estadoDesc = "ha sido concluida exitosamente";
             
             const exp = n.expediente ? `<span class="font-mono text-xs bg-gray-100 px-1 rounded border ml-1">${n.expediente}</span>` : '';
-            resumenHTML = `La audiencia <span class="font-bold text-blue-700">${n.title}</span> ${exp} ${estadoDesc}.`;
+            const cleanTitle = n.title.replace('Nueva Audiencia:', '').replace('Audiencia Concluida:', '').trim();
+            resumenHTML = `La audiencia de tipo <span class="font-bold text-blue-700">${cleanTitle}</span> ${exp} ${estadoDesc}.`;
             extraText = n.detalles?.juzgado || 'Juzgado no especificado';
 
         } else if (n.eventType === 'recordatorio') {
-            // Usamos metadatos si existen para ser precisos con el tiempo relativo
             const tiempo = n.meta?.anticipacion || "breve";
             const expRef = n.meta?.expediente ? `(Exp. ${n.meta.expediente})` : '';
-            
-            // Limpiar título redundante si viene con prefijo
             const cleanTitle = n.title.replace('Recordatorio:', '').trim();
-            
             resumenHTML = `<span class="text-amber-700 font-bold"><i class="fas fa-exclamation-circle"></i> Aviso:</span> El evento <span class="font-semibold">${cleanTitle}</span> ${expRef} es en <span class="font-bold underline text-gray-800">${tiempo}</span>.`;
-            // Unir descripción con nota si existen
             extraText = n.detalles?.descripcion || n.detalles || '';
         }
 
         resumenEl.innerHTML = resumenHTML;
         extraEl.textContent = extraText;
-        extraEl.title = extraText; // Tooltip nativo
+        extraEl.title = extraText;
 
-        // 5. BOTÓN ELIMINAR
         const btnDelete = clone.querySelector('.js-delete-btn');
         btnDelete.onclick = () => this.deleteNotification(n.id);
     }
 
-    // Helper para textos descriptivos de términos
     obtenerAccionTermino(estado) {
         switch(estado) {
             case 'Proyectista': return 'ha sido asignado a Proyectista';
@@ -290,8 +223,6 @@ export class NotificacionesModule {
             default: return 'ha cambiado de estado';
         }
     }
-
-    // ==================== ACCIONES DE UI ====================
 
     handleFilterClick(event) {
         const btn = event.target.closest('.btn-filter');
@@ -308,21 +239,36 @@ export class NotificacionesModule {
         this.renderTable();
     }
 
+    // CAMBIO 2: Eliminación sin confirmación (Directa + Toast)
     deleteNotification(id) {
-        if(confirm('¿Eliminar esta notificación del historial?')) {
-            this.notifications = this.notifications.filter(n => n.id !== id);
-            this.saveNotifications();
-            this.renderTable();
-        }
+        // Eliminación inmediata de la memoria y persistencia
+        this.notifications = this.notifications.filter(n => n.id !== id);
+        this.saveNotifications();
+        this.renderTable();
+
+        // Mostrar notificación tipo "Toast" discreta
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: false,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Notificación eliminada'
+        });
     }
 
     startAutoUpdate() { 
-        // Refrescar cada minuto para actualizar tiempos relativos si fuera necesario
         this.updateInterval = setInterval(() => this.renderTable(), 60000); 
     }
 
-    // ==================== MODAL (CREACIÓN MANUAL) ====================
-    
     showModal() {
         if (this.modal) {
             this.modal.classList.remove('hidden'); this.modal.classList.add('flex');
@@ -357,7 +303,8 @@ export class NotificacionesModule {
             status: 'Pendiente', 
             detalles: { descripcion: detalles || 'Notificación manual' },
             notifyAt: notifyAt,
-            sent: false
+            sent: false,
+            read: false // Nueva propiedad para badge
         });
         
         this.saveNotifications();

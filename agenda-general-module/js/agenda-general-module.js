@@ -26,19 +26,24 @@ class AgendaGeneralManager {
 
     cargarDatos() {
         // 1. CARGAR AUDIENCIAS DESAHOGADAS
-        // Leemos la llave específica donde 'audiencias.js' guarda las concluidas
         this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
         
-        // Normalización de fechas por seguridad (asegurar que fechaDesahogo exista)
+        // NORMALIZACIÓN ROBUSTA (Arregla datos mal guardados)
         this.audienciasDesahogadas = this.audienciasDesahogadas.map(a => ({
             ...a,
+            // Si no existe el campo de agenda, usa el campo original de audiencias
+            fechaAudiencia: a.fechaAudiencia || a.fecha || '-',
+            horaAudiencia: a.horaAudiencia || a.hora || '--:--',
+            partes: a.partes || a.actor || 'No especificado',
+            abogado: a.abogado || a.abogadoComparece || 'Sin asignar',
+            tipoAudiencia: a.tipoAudiencia || a.tipo || 'General',
+            
+            // Asegurar fecha de desahogo para el filtro
             fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
         }));
 
         // 2. CARGAR TÉRMINOS PRESENTADOS
         this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
-        
-        // NOTA: Se han eliminado los bloques de datos de ejemplo (Dummy Data)
     }
 
     configurarPestañas() {

@@ -804,7 +804,7 @@ function initModalFinalizarAudiencia() {
             audienciaAConcluir.atendida = true;
             audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; 
 
-            // Notificación de Conclusión (Solo Tipo)
+            // 1. Notificación
             crearNotificacionGlobal({
                 eventType: 'audiencia',
                 title: audienciaAConcluir.tipo,
@@ -814,15 +814,14 @@ function initModalFinalizarAudiencia() {
                 notifyAt: new Date().toISOString()
             });
 
-            // Mover a Agenda General
-            const historico = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
-            historico.push(audienciaAConcluir);
-            localStorage.setItem('audienciasDesahogadas', JSON.stringify(historico));
+            // 2. CORRECCIÓN IMPORTANTE: Usar la función transformadora
+            guardarAudienciaEnAgendaGeneral(audienciaAConcluir);
             
-            // Eliminar de pendientes
+            // 3. Eliminar de la tabla de pendientes
             AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             
+            // 4. Registrar en historial del expediente
             registrarActividadExpediente(
                 audienciaAConcluir.asuntoId,
                 'Audiencia Concluida',

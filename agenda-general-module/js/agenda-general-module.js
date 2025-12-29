@@ -28,129 +28,20 @@ class AgendaGeneralManager {
     // CARGA DE DATOS (FECHAS FUTURAS Y HOY)
     // ==========================================
     cargarDatos() {
-        // Helper: Genera fechas dinámicas a partir de hoy
-        const hoy = new Date();
-        const getFechaStr = (diasOffset) => {
-            const d = new Date(hoy);
-            d.setDate(hoy.getDate() + diasOffset);
-            return d.toISOString().split('T')[0];
-        };
-
-        // 1. CARGAR AUDIENCIAS (Simulando Agenda Futura/Presente)
-        const todasAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
+        // 1. CARGAR AUDIENCIAS DESAHOGADAS
+        // Leemos la llave específica donde 'audiencias.js' guarda las concluidas
+        this.audienciasDesahogadas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
         
-        this.audienciasDesahogadas = todasAudiencias
-            .filter(audiencia => audiencia.atendida === true)
-            .map(a => ({
-                ...a,
-                // Si falta fechaDesahogo, usamos fechaAudiencia o la fecha genérica para evitar errores
-                fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
-            }));        
-        // Si no hay datos, usar ejemplos con fechas de HOY y FUTURO
-        if (this.audienciasDesahogadas.length === 0) {
-            this.audienciasDesahogadas = [
-                {
-                    id: 1,
-                    fechaAudiencia: getFechaStr(0), // HOY (Para que aparezca en el filtro 'Hoy')
-                    horaAudiencia: '09:30',
-                    expediente: 'EXP-2025-0456',
-                    tipoAudiencia: 'Conciliación',
-                    partes: 'Martínez vs. Rodríguez',
-                    abogado: 'Dra. Laura Méndez',
-                    actaDocumento: 'ACTA-PENDIENTE.pdf',
-                    atendida: true, // Marcado true para que salga en esta lista (simulando agendado/listo)
-                    fechaDesahogo: getFechaStr(0), 
-                    observaciones: 'Programada para hoy a primera hora.'
-                },
-                {
-                    id: 2,
-                    fechaAudiencia: getFechaStr(1), // MAÑANA (Para filtro Semana)
-                    horaAudiencia: '11:00',
-                    expediente: 'EXP-2025-0789',
-                    tipoAudiencia: 'Vista',
-                    partes: 'Pérez e Hijos S.A. vs. Estado',
-                    abogado: 'Lic. Carlos Ruiz',
-                    actaDocumento: 'ACTA-FUTURA.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(1),
-                    observaciones: 'Vista pública confirmada para mañana.'
-                },
-                {
-                    id: 3,
-                    fechaAudiencia: getFechaStr(3), // EN 3 DÍAS (Para filtro Semana)
-                    horaAudiencia: '15:15',
-                    expediente: 'EXP-2025-1123',
-                    tipoAudiencia: 'Juicio',
-                    partes: 'González vs. Instituto Federal',
-                    abogado: 'Lic. Ana Vargas',
-                    actaDocumento: 'ACTA-PROXIMA.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(3),
-                    observaciones: 'Juicio oral próximo.'
-                },
-                {
-                    id: 4,
-                    fechaAudiencia: getFechaStr(15), // EN 15 DÍAS (Para filtro Mes)
-                    horaAudiencia: '10:00',
-                    expediente: '3485/2025',
-                    tipoAudiencia: 'Inicial',
-                    partes: 'Herrera Campos vs. Transportes',
-                    abogado: 'Lic. María González',
-                    actaDocumento: 'ACTA-MES.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(15),
-                    observaciones: 'Audiencia inicial programada para final de mes.'
-                }
-            ];
-        }
+        // Normalización de fechas por seguridad (asegurar que fechaDesahogo exista)
+        this.audienciasDesahogadas = this.audienciasDesahogadas.map(a => ({
+            ...a,
+            fechaDesahogo: a.fechaDesahogo || a.fechaAudiencia || a.fecha
+        }));
 
-        // 2. CARGAR TÉRMINOS (Simulando Vencimientos Futuros)
-        const todosTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
-        this.terminosPresentados = todosTerminos.filter(termino => termino.estatus === 'Presentado' || termino.estatus === 'Concluido');
+        // 2. CARGAR TÉRMINOS PRESENTADOS
+        this.terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
         
-        if (this.terminosPresentados.length === 0) {
-            this.terminosPresentados = [
-                {
-                    id: 1,
-                    fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(0), // VENCE HOY
-                    expediente: 'EXP-2025-001',
-                    actuacion: 'Contestación de demanda',
-                    partes: 'Empresa A vs. Empleado B',
-                    abogado: 'Lic. Juan Pérez',
-                    acuseDocumento: 'ACUSE-HOY.pdf',
-                    etapaRevision: 'Presentado',
-                    fechaPresentacion: getFechaStr(0), // PRESENTAR HOY
-                    observaciones: 'Vencimiento el día de hoy.'
-                },
-                {
-                    id: 2,
-                    fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(2), // VENCE EN 2 DÍAS
-                    expediente: 'EXP-2025-002',
-                    actuacion: 'Ofrecimiento de pruebas',
-                    partes: 'Banco X vs. Deudor Y',
-                    abogado: 'Lic. Ana López',
-                    acuseDocumento: 'ACUSE-PENDIENTE.pdf',
-                    etapaRevision: 'Presentado',
-                    fechaPresentacion: getFechaStr(2),
-                    observaciones: 'Preparar pruebas para esta semana.'
-                },
-                {
-                    id: 3,
-                    fechaIngreso: getFechaStr(5),
-                    fechaVencimiento: getFechaStr(10), // VENCE EN 10 DÍAS
-                    expediente: 'EXP-2025-003',
-                    actuacion: 'Alegatos finales',
-                    partes: 'Constructora Z vs. Municipio',
-                    abogado: 'Lic. Roberto M.',
-                    acuseDocumento: 'ACUSE-FUTURO.pdf',
-                    etapaRevision: 'Presentado',
-                    fechaPresentacion: getFechaStr(10),
-                    observaciones: 'Alegatos programados para mediados de mes.'
-                }
-            ];
-        }
+        // NOTA: Se han eliminado los bloques de datos de ejemplo (Dummy Data)
     }
 
     configurarPestañas() {

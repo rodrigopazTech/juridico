@@ -225,10 +225,10 @@ function generarAccionesRapidas(termino, rol) {
     // Se muestra en etapas previas a la liberación final
     if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa !== 'Liberado') {
         if (tieneDocumento) {
-            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
+            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Proyecto', 'text-blue-600');
             html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
         } else {
-            html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Borrador Word', 'text-gob-oro font-bold');
+            html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Proyecto Word', 'text-gob-oro font-bold');
         }
     }
 
@@ -334,7 +334,7 @@ function setupActionMenuListener() {
                 
                 registrarActividadExpediente(
                     TERMINOS[tIdx].asuntoId,
-                    'Borrador Actualizado',
+                    'Proyecto Actualizado',
                     `Se cargó el archivo: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`,
                     'upload'
                 );
@@ -346,7 +346,7 @@ function setupActionMenuListener() {
         fileInput.click();
         }
         else if (target.classList.contains('action-download-word')) {
-            mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
+            mostrarMensajeGlobal(`Descargando Proyecto: ${termino.archivoWord}`, "success");
             // Aquí iría la lógica real de descarga
         }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
@@ -472,7 +472,7 @@ function avanzarEtapa(id) {
     const actual = termino.estatus;
 
     if (!termino.archivoWord && actual !== 'Liberado' && actual !== 'Presentado') {
-        mostrarMensajeGlobal("No puede avanzar sin subir el borrador Word primero.", "danger");
+        mostrarMensajeGlobal("No puede avanzar sin subir el Proyecto Word primero.", "danger");
         return;
     }
 

@@ -31,22 +31,31 @@ export class OrganosManager {
     }
 
     updateDatalists() {
-        const ids = ['datalist-organos-create', 'datalist-organos-edit'];
+        const ids = ['datalist-organos-create', 'edit-organo'];
         
         ids.forEach(id => {
-            const datalist = document.getElementById(id);
-            if (!datalist) {
-                // console.log(`OrganosManager: No se encontró #${id} (Aún no cargado o no existe en esta página)`);
-                return;
-            }
+            const element = document.getElementById(id);
+            if (!element) return;
             
-            datalist.innerHTML = '';
+            element.innerHTML = '';
+            
+            if (element.tagName === 'SELECT') {
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = "";
+                defaultOpt.textContent = "Seleccione un órgano...";
+                element.appendChild(defaultOpt);
+            }
+
             this.organos.sort().forEach(org => {
                 const opt = document.createElement('option');
                 opt.value = org;
-                datalist.appendChild(opt);
+                
+                if (element.tagName === 'SELECT') {
+                    opt.textContent = org;
+                }
+                
+                element.appendChild(opt);
             });
-            // console.log(`OrganosManager: Lista actualizada para #${id}`);
         });
     }
 

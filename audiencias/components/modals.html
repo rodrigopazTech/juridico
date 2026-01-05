@@ -181,39 +181,39 @@
                 >Ubicación (Presencial / En Línea)</label
               >
 
-              <div
-                class="inline-flex rounded-md shadow-sm"
-                role="group"
-                id="ubicacion-selector-group"
-              >
-                <input
-                  type="radio"
-                  name="ubicacion_tipo"
-                  value="presencial"
-                  id="radio-presencial"
-                  checked
-                  class="hidden peer/presencial"
-                />
-                <label
-                  for="radio-presencial"
-                  class="px-3 py-1.5 text-xs font-bold rounded-l-md border border-gray-300 cursor-pointer transition-colors peer-checked/presencial:bg-gob-guinda peer-checked/presencial:text-white peer-checked/presencial:border-gob-guinda"
-                >
-                  <i class="fas fa-building mr-1"></i> Presencial
-                </label>
+              <div class="inline-flex rounded-md shadow-sm isolate" role="group" id="ubicacion-selector-group">
+                  <input 
+                      type="radio" 
+                      name="ubicacion_tipo" 
+                      value="presencial" 
+                      id="radio-presencial" 
+                      checked 
+                      class="hidden peer/presencial" 
+                  />
+                  <label 
+                      for="radio-presencial" 
+                      class="px-4 py-2 text-xs font-bold rounded-l-md border border-gray-300 cursor-pointer transition-all duration-200 
+                             bg-white text-gray-500 hover:bg-gray-50 hover:text-gob-guinda
+                             peer-checked/presencial:bg-gob-guinda peer-checked/presencial:text-white peer-checked/presencial:border-gob-guinda peer-checked/presencial:shadow-inner"
+                  >
+                      <i class="fas fa-building mr-1"></i> Presencial
+                  </label>
 
-                <input
-                  type="radio"
-                  name="ubicacion_tipo"
-                  value="en_linea"
-                  id="radio-online"
-                  class="hidden peer/online"
-                />
-                <label
-                  for="radio-online"
-                  class="px-3 py-1.5 text-xs font-bold rounded-r-md border border-gray-300 cursor-pointer transition-colors peer-checked/online:bg-gob-guinda peer-checked/online:text-white peer-checked/online:border-gob-guinda"
-                >
-                  <i class="fas fa-video mr-1"></i> En Línea
-                </label>
+                  <input 
+                      type="radio" 
+                      name="ubicacion_tipo" 
+                      value="en_linea" 
+                      id="radio-online" 
+                      class="hidden peer/online" 
+                  />
+                  <label 
+                      for="radio-online" 
+                      class="px-4 py-2 text-xs font-bold rounded-r-md border border-l-0 border-gray-300 cursor-pointer transition-all duration-200 
+                             bg-white text-gray-500 hover:bg-gray-50 hover:text-gob-guinda
+                             peer-checked/online:bg-gob-guinda peer-checked/online:text-white peer-checked/online:border-gob-guinda peer-checked/online:shadow-inner"
+                  >
+                      <i class="fas fa-video mr-1"></i> En Línea
+                  </label>
               </div>
             </div>
 
@@ -265,7 +265,7 @@
             <p
               class="text-sm font-bold text-gob-guinda uppercase tracking-wide"
             >
-              Configuración del Recordatorio Automático
+              programar Notificacion
             </p>
           </div>
 

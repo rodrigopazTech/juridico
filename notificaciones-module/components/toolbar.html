@@ -7,10 +7,28 @@
     </div>
 
     <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-        <button class="btn-filter active bg-gob-guinda text-white border-gob-guinda px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-colors" data-filter="all">Todas</button>
-        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors" data-filter="audiencia">Audiencias</button>
-        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors" data-filter="termino">Términos</button>
-        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors" data-filter="recordatorio">Recordatorios</button>
-    </div>
+        <button class="btn-filter active bg-gob-guinda text-white border-gob-guinda px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-colors flex items-center gap-1" data-filter="all">
+            Todas
+            <span class="badge-count ml-1 opacity-90 text-[10px]">0</span>
+        </button>
 
+        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors flex items-center gap-1" data-filter="audiencia">
+            Audiencias
+            <span class="badge-count ml-1 text-gray-400 text-[10px]">0</span>
+        </button>
+
+        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors flex items-center gap-1" data-filter="termino">
+            Términos
+            <span class="badge-count ml-1 text-gray-400 text-[10px]">0</span>
+        </button>
+
+        <button class="btn-filter bg-white text-gob-gris border-gray-300 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap border hover:bg-gray-50 transition-colors flex items-center gap-1" data-filter="recordatorio">
+            Recordatorios
+            <span class="badge-count ml-1 text-gray-400 text-[10px]">0</span>
+        </button>
+    </div>
+    
+    <button id="btn-nueva-notificacion" class="hidden md:flex text-white bg-gob-oro hover:bg-gob-oroDark font-medium rounded-lg text-sm px-4 py-2 text-center items-center gap-2 transition-colors shadow-sm">
+        <i class="fas fa-plus"></i> <span class="hidden lg:inline">Nueva Notificación</span>
+    </button>
 </div>

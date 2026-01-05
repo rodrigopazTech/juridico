@@ -18,9 +18,11 @@ export class NotificacionesModule {
             this.bindElements();
             this.bindEvents();
             this.loadNotifications();
+            
+            // Renderizado inicial
             this.renderTable();
             
-            // CAMBIO 1: Marcar como leídas al entrar
+            // Marcar como leídas
             this.markAllAsRead(); 
             
             this.startAutoUpdate();
@@ -72,13 +74,11 @@ export class NotificacionesModule {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.notifications));
     }
 
-    // CAMBIO 1: Función para "limpiar" el badge
     markAllAsRead() {
         let huboCambios = false;
         const now = new Date();
         
         this.notifications.forEach(n => {
-            // Solo marcamos las que ya ocurrieron y no estaban leídas
             if (!n.read && new Date(n.notifyAt) <= now) {
                 n.read = true;
                 huboCambios = true;
@@ -87,7 +87,6 @@ export class NotificacionesModule {
 
         if (huboCambios) {
             this.saveNotifications();
-            // Disparar evento para que el badge se actualice al instante
             window.dispatchEvent(new Event('storage')); 
         }
     }
@@ -103,9 +102,10 @@ export class NotificacionesModule {
         const searchTerm = this.searchInput ? this.searchInput.value.toLowerCase() : '';
         const now = new Date(); 
 
+        // Filtrado principal para la tabla
         const filtered = this.notifications.filter(n => {
             const notificationTime = new Date(n.notifyAt);
-            if (notificationTime > now) return false; 
+            if (notificationTime > now) return false; // Filtro de tiempo (futuro)
 
             const matchesFilter = this.currentFilter === 'all' || n.eventType === this.currentFilter;
             const matchesSearch = n.title.toLowerCase().includes(searchTerm) || 
@@ -130,6 +130,39 @@ export class NotificacionesModule {
                 this.tableBody.appendChild(clone);
             });
         }
+        
+        // NUEVO: Actualizar los contadores de los filtros
+        this.updateToolbarBadges();
+    }
+
+    // NUEVO MÉTODO PARA CONTADORES
+    updateToolbarBadges() {
+        const now = new Date();
+        
+        // 1. Obtenemos solo las notificaciones activas (fecha pasada)
+        const activeNotifs = this.notifications.filter(n => new Date(n.notifyAt) <= now);
+        
+        // 2. Calculamos totales
+        const counts = {
+            all: activeNotifs.length,
+            audiencia: activeNotifs.filter(n => n.eventType === 'audiencia').length,
+            termino: activeNotifs.filter(n => n.eventType === 'termino').length,
+            recordatorio: activeNotifs.filter(n => n.eventType === 'recordatorio').length
+        };
+
+        // 3. Actualizamos el HTML de los botones
+        this.filterButtons.forEach(btn => {
+            const filterType = btn.dataset.filter; // 'all', 'audiencia', etc.
+            const badge = btn.querySelector('.badge-count');
+            
+            if (badge && counts[filterType] !== undefined) {
+                badge.textContent = counts[filterType];
+                
+                // Opcional: Ocultar el badge si es 0
+                // if(counts[filterType] === 0) badge.classList.add('hidden');
+                // else badge.classList.remove('hidden');
+            }
+        });
     }
 
     hydrateRow(clone, n) {
@@ -140,7 +173,6 @@ export class NotificacionesModule {
         clone.querySelector('.js-date').textContent = dateStr;
         clone.querySelector('.js-time').textContent = timeStr;
 
-        // Estilos visuales
         const styles = {
             audiencia: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-gavel', label: 'Audiencia' },
             termino: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-hourglass-end', label: 'Término' },
@@ -153,7 +185,6 @@ export class NotificacionesModule {
         clone.querySelector('.js-type-icon').classList.add(st.icon);
         clone.querySelector('.js-type-text').textContent = st.label;
 
-        // Status Badge
         const statusBadge = clone.querySelector('.js-status-badge');
         const statusText = n.status || 'Pendiente';
         statusBadge.textContent = statusText;
@@ -172,7 +203,6 @@ export class NotificacionesModule {
         }
         statusBadge.className = `js-status-badge inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-bold ${statusClass}`;
 
-        // Contenido
         const resumenEl = clone.querySelector('.js-resumen');
         const extraEl = clone.querySelector('.js-detalles-extra');
         
@@ -228,25 +258,39 @@ export class NotificacionesModule {
         const btn = event.target.closest('.btn-filter');
         if (!btn) return;
         
+        // 1. Resetear todos los botones a estado INACTIVO (Blanco)
         this.filterButtons.forEach(b => {
+            // Estilo del botón
             b.classList.remove('active', 'bg-gob-guinda', 'text-white', 'border-gob-guinda');
             b.classList.add('bg-white', 'text-gob-gris', 'border-gray-300');
+            
+            // Estilo del número (Gris discreto)
+            const badge = b.querySelector('.badge-count');
+            if(badge) {
+                badge.classList.remove('text-white', 'opacity-90');
+                badge.classList.add('text-gray-400');
+            }
         });
+
+        // 2. Activar el botón seleccionado (Guinda)
         btn.classList.remove('bg-white', 'text-gob-gris', 'border-gray-300');
         btn.classList.add('active', 'bg-gob-guinda', 'text-white', 'border-gob-guinda');
+        
+        // Estilo del número (Blanco para contrastar con el guinda)
+        const badge = btn.querySelector('.badge-count');
+        if(badge) {
+            badge.classList.remove('text-gray-400');
+            badge.classList.add('text-white', 'opacity-90');
+        }
 
         this.currentFilter = btn.dataset.filter;
         this.renderTable();
     }
-
-    // CAMBIO 2: Eliminación sin confirmación (Directa + Toast)
     deleteNotification(id) {
-        // Eliminación inmediata de la memoria y persistencia
         this.notifications = this.notifications.filter(n => n.id !== id);
         this.saveNotifications();
         this.renderTable();
 
-        // Mostrar notificación tipo "Toast" discreta
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -304,7 +348,7 @@ export class NotificacionesModule {
             detalles: { descripcion: detalles || 'Notificación manual' },
             notifyAt: notifyAt,
             sent: false,
-            read: false // Nueva propiedad para badge
+            read: false 
         });
         
         this.saveNotifications();

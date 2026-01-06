@@ -78,81 +78,79 @@ export class DashboardModule {
 
   // ==================== DATA LOADING ====================
   loadData() {
-    // 1. Expedientes
+    // 1. Expedientes (con seeding si no existen)
     try {
         this.expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
         if (this.expedientes.length === 0) {
-             this.expedientes = this.getSampleExpedientes();
-             localStorage.setItem('expedientesData', JSON.stringify(this.expedientes));
+            // Seed de expedientes iniciales
+            const seedExpedientes = [
+                {
+                    id: crypto.randomUUID(),
+                    numero: 'EXP-0001',
+                    descripcion: 'Conflicto contractual con proveedor estratégico.',
+                    materia: 'Civil',
+                    prioridad: 'Alta',
+                    estado: 'TRAMITE',
+                    abogado: 'Lic. González',
+                    gerenciaId: "1",
+                    gerencia: 'Civil, Mercantil, Fiscal y Administrativo',
+                    sede: 'CDMX',
+                    organo: 'Juzgado 4to Civil',
+                    ultimaActividad: '15 ene 2025'
+                },
+                {
+                    id: crypto.randomUUID(),
+                    numero: 'EXP-0002',
+                    descripcion: 'Demanda por despido injustificado.',
+                    materia: 'Laboral',
+                    prioridad: 'Media',
+                    estado: 'LAUDO',
+                    abogado: 'Lic. Sofía Martínez',
+                    gerenciaId: "2",
+                    gerencia: 'Laboral y Penal',
+                    sede: 'Jalisco',
+                    organo: 'Junta Local de Conciliación No. 3',
+                    ultimaActividad: '22 feb 2025'
+                },
+                {
+                    id: crypto.randomUUID(),
+                    numero: 'EXP-0003',
+                    descripcion: 'Juicio de nulidad contra crédito fiscal.',
+                    materia: 'Administrativo',
+                    prioridad: 'Alta',
+                    estado: 'TRAMITE',
+                    abogado: 'Lic. Fernando Ruiz',
+                    gerenciaId: "1",
+                    gerencia: 'Civil, Mercantil, Fiscal y Administrativo',
+                    sede: 'Nuevo León',
+                    organo: 'Sala Regional del Noreste',
+                    ultimaActividad: '05 mar 2025'
+                }
+            ];
+            this.expedientes = seedExpedientes;
+            localStorage.setItem('expedientesData', JSON.stringify(this.expedientes));
         }
     } catch(e) { this.expedientes = []; }
 
     // 2. Usuarios
     try { 
-        this.usuarios = JSON.parse(localStorage.getItem('usuarios')) || this.getSampleUsuarios(); 
+        this.usuarios = JSON.parse(localStorage.getItem('usuarios')) || []; 
     } catch(e) { this.usuarios = []; }
 
     // 3. Gerencias
     try { 
-        this.gerencias = JSON.parse(localStorage.getItem('gerencias')) || this.getSampleGerencias(); 
+        this.gerencias = JSON.parse(localStorage.getItem('gerencias')) || []; 
     } catch(e) { this.gerencias = []; }
 
     // 4. Audiencias
     try { 
-        this.audiencias = JSON.parse(localStorage.getItem('audiencias')) || this.getSampleAudiencias(); 
+        this.audiencias = JSON.parse(localStorage.getItem('audiencias')) || []; 
     } catch(e) { this.audiencias = []; }
 
     // 5. Términos
     try { 
-        this.terminos = JSON.parse(localStorage.getItem('terminos')) || this.getSampleTerminos(); 
+        this.terminos = JSON.parse(localStorage.getItem('terminos')) || []; 
     } catch(e) { this.terminos = []; }
-  }
-
-  // --- DATOS DE EJEMPLO ---
-  getSampleExpedientes() {
-    return [
-      { id: 1, numero: 'EXP-0001', descripcion: 'Conflicto contractual', materia: 'Civil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-15' },
-      { id: 2, numero: 'EXP-0002', descripcion: 'Revisión normativa', materia: 'Administrativo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Martínez', gerenciaId: 1, ultimaActividad: '2025-01-14' },
-      { id: 3, numero: 'EXP-0003', descripcion: 'Demanda laboral', materia: 'Laboral', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Morales', gerenciaId: 2, ultimaActividad: '2025-01-13' },
-      { id: 4, numero: 'EXP-0004', descripcion: 'Fraude fiscal', materia: 'Fiscal', prioridad: 'Urgente', estado: 'Urgente', abogado: 'Lic. Hernández', gerenciaId: 1, ultimaActividad: '2025-01-12' },
-      { id: 5, numero: 'EXP-0005', descripcion: 'Procedimiento penal', materia: 'Penal', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. Silva', gerenciaId: 2, ultimaActividad: '2025-01-11' },
-      { id: 6, numero: 'EXP-0006', descripcion: 'Amparo constitucional', materia: 'Amparo', prioridad: 'Media', estado: 'En Revisión', abogado: 'Lic. Jiménez', gerenciaId: 3, ultimaActividad: '2025-01-10' }
-    ];
-  }
-
-  getSampleUsuarios() {
-    return [
-      { id: 1, nombre: 'Lic. María González Ruiz', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECTOR', activo: true, gerenciaId: 1 },
-      { id: 2, nombre: 'Lic. Carlos Hernández López', correo: 'carlos.hernandez@juridico.com', rol: 'GERENTE', activo: true, gerenciaId: 1 },
-      { id: 3, nombre: 'Lic. Ana Patricia Morales', correo: 'ana.morales@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 2 },
-      { id: 4, nombre: 'Lic. Roberto Silva Martínez', correo: 'roberto.silva@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 2 },
-      { id: 5, nombre: 'Lic. Sandra Jiménez Castro', correo: 'sandra.jimenez@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 3 }
-    ];
-  }
-
-  getSampleGerencias() {
-    return [
-      { id: 1, nombre: 'Gerencia de Civil, Mercantil, Fiscal y Administrativo' },
-      { id: 2, nombre: 'Gerencia Laboral y Penal' },
-      { id: 3, nombre: 'Gerencia de Transparencia y Amparo' }
-    ];
-  }
-
-  getSampleAudiencias() {
-    return [
-      { id: 1, fecha: '2024-09-15', estado: 'Desahogada', gerenciaId: 1, usuarioId: 1 },
-      { id: 2, fecha: '2024-10-20', estado: 'Desahogada', gerenciaId: 2, usuarioId: 3 },
-      { id: 3, fecha: '2024-11-05', estado: 'Desahogada', gerenciaId: 1, usuarioId: 2 },
-      { id: 4, fecha: '2024-12-12', estado: 'Pendiente', gerenciaId: 3, usuarioId: 5 }
-    ];
-  }
-
-  getSampleTerminos() {
-    return [
-      { id: 1, fecha: '2024-09-10', estado: 'Concluido', gerenciaId: 1, usuarioId: 1 },
-      { id: 2, fecha: '2024-10-18', estado: 'Concluido', gerenciaId: 2, usuarioId: 4 },
-      { id: 3, fecha: '2024-11-25', estado: 'Pendiente', gerenciaId: 3, usuarioId: 5 }
-    ];
   }
 
   // ==================== STATS UPDATE ====================

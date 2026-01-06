@@ -122,11 +122,10 @@ export class DashboardModule {
 
   getSampleUsuarios() {
     return [
-      { id: 1, nombre: 'Lic. María González Ruiz', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECTOR', activo: true, gerenciaId: 1 },
-      { id: 2, nombre: 'Lic. Carlos Hernández López', correo: 'carlos.hernandez@juridico.com', rol: 'GERENTE', activo: true, gerenciaId: 1 },
-      { id: 3, nombre: 'Lic. Ana Patricia Morales', correo: 'ana.morales@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 2 },
-      { id: 4, nombre: 'Lic. Roberto Silva Martínez', correo: 'roberto.silva@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 2 },
-      { id: 5, nombre: 'Lic. Sandra Jiménez Castro', correo: 'sandra.jimenez@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 3 }
+      { id: 1, nombre: 'Lic. González', correo: 'maria.gonzalez@juridico.com', rol: 'SUBDIRECTOR', activo: true, gerenciaId: 1 },
+      { id: 2, nombre: 'Lic. Sofía Martínez', correo: 'carlos.hernandez@juridico.com', rol: 'GERENTE', activo: true, gerenciaId: 1 },
+      { id: 3, nombre: 'Lic. Fernando Ruiz', correo: 'ana.morales@juridico.com', rol: 'ABOGADO', activo: true, gerenciaId: 2 },
+   
     ];
   }
 

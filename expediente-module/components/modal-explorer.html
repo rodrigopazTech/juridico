@@ -1,48 +1,101 @@
-<div id="modal-explorer" class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm p-2 text-sans">
-    
-    <div class="relative w-full max-w-3xl bg-white rounded-xl shadow-2xl border-t-4 border-gob-guinda flex flex-col overflow-hidden animate-fade-in-down" style="height: 90vh;">
-        
-        <div class="flex-none flex items-center justify-between p-4 border-b bg-gray-50">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gob-guinda rounded-lg flex items-center justify-center text-white shadow-md">
-                    <i class="fas fa-archive text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-bold text-gob-gris leading-none">Gestor Documental</h2>
-                    <p id="explorer-subtitle" class="text-[10px] text-gray-500 font-medium uppercase mt-1">Expediente Digital</p>
-                </div>
-            </div>
-            <button id="close-explorer" class="text-gray-400 hover:text-red-600 transition-colors p-2 text-xl cursor-pointer">
-                <i class="fas fa-times"></i>
-            </button>
+<div
+  id="modal-explorer"
+  class="fixed inset-0 z-[60] hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm p-2 text-sans"
+>
+  <div
+    class="relative w-full max-w-4xl bg-white rounded-xl shadow-2xl border-t-4 border-gob-guinda flex flex-col overflow-hidden animate-fade-in-down"
+    style="height: 90vh"
+  >
+    <div class="flex-none flex items-center justify-between px-5 py-3 border-b bg-white">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-gob-guinda rounded-lg flex items-center justify-center text-white shadow-md shadow-gob-guinda/20">
+          <i class="fas fa-folder-open text-sm"></i>
         </div>
-
-        <div class="flex-1 flex overflow-hidden">
-            <div class="w-1/3 border-r border-gray-100 bg-gray-50/50 overflow-y-auto p-3">
-                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-2">Estructura</h4>
-                <div id="explorer-tree" class="space-y-1 text-xs select-none">
-                    </div>
-            </div>
-
-            <div class="flex-1 flex flex-col bg-white w-2/3">
-                <div class="p-3 border-b flex justify-between items-center bg-white shadow-sm z-10">
-                    <div id="explorer-breadcrumb" class="text-[11px] font-bold text-gob-oro flex items-center gap-2 italic uppercase truncate mr-2">
-                        </div>
-                    <div class="flex gap-2 items-center flex-shrink-0">
-                        <button id="btn-upload-explorer" class="hidden px-3 py-1.5 bg-gob-guinda text-white rounded text-[11px] font-bold hover:bg-gob-guindaDark transition-all flex items-center gap-2 shadow-sm">
-                            <i class="fas fa-upload"></i> <span class="hidden sm:inline">Subir Archivo</span>
-                        </button>
-                        <input type="file" id="input-explorer-upload" class="hidden">
-                    </div>
-                </div>
-                <div id="explorer-content" class="flex-1 p-4 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 overflow-y-auto content-start">
-                    </div>
-            </div>
+        <div>
+          <h2 class="text-base font-bold text-gray-800 leading-none tracking-tight">
+            Gestor Documental
+          </h2>
+          <p id="explorer-subtitle" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+            Expediente Digital
+          </p>
         </div>
-
-        <div class="flex-none p-2 sm:p-3 bg-gray-50 border-t flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            <span id="explorer-status" class="truncate mr-2">Sistema Activo</span>
-            <span id="explorer-stats" class="flex-shrink-0">0 Docs</span>
-        </div>
+      </div>
+      <button id="close-explorer" class="text-gray-300 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50">
+        <i class="fas fa-times text-xl"></i>
+      </button>
     </div>
+
+    <div class="flex-1 flex overflow-hidden">
+      
+      <div class="w-64 flex-shrink-0 border-r border-gray-100 bg-gray-50/80 overflow-y-auto p-3 custom-scrollbar">
+        <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 px-2">
+          Navegación
+        </h4>
+        <div id="explorer-tree" class="space-y-1 text-xs select-none font-medium text-gray-600">
+          </div>
+      </div>
+
+      <div class="flex-1 flex flex-col bg-white min-w-0">
+        
+        <div class="flex flex-col border-b border-gray-100 bg-white z-20 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)]">
+          
+          <div class="flex items-center justify-between px-4 py-2 gap-4">
+            
+            <div class="relative flex-1 max-w-md group">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400 group-focus-within:text-gob-oro transition-colors">
+                <i class="fas fa-search text-xs"></i>
+              </span>
+              <input 
+                type="text" 
+                id="explorer-search" 
+                class="w-full py-1.5 pl-10 pr-3 text-xs bg-gray-100 border-none rounded-full text-gray-600 placeholder-gray-400 focus:ring-2 focus:ring-gob-oro/20 focus:bg-white transition-all duration-200 outline-none" 
+                placeholder="Buscar archivo en esta carpeta..." 
+              />
+            </div>
+
+            <div class="flex items-center gap-2">
+                
+                <button id="btn-new-folder" class="p-1.5 rounded-md bg-white border border-gray-200 text-gray-500 hover:text-gob-guinda hover:border-gob-guinda hover:shadow-sm transition-all" title="Nueva Carpeta">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+
+                <div class="h-4 w-px bg-gray-200 mx-1"></div>
+
+                <div class="flex bg-gray-100 p-0.5 rounded-lg">
+                    <button id="view-grid" class="p-1.5 rounded-md bg-white shadow-sm text-gob-guinda text-xs transition-all" title="Cuadrícula">
+                    <i class="fas fa-th-large"></i>
+                    </button>
+                    <button id="view-list" class="p-1.5 rounded-md hover:bg-white hover:shadow-sm text-gray-400 hover:text-gob-guinda text-xs transition-all" title="Lista">
+                    <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center px-4 py-2 bg-gray-50/50 border-t border-gray-50">
+            <div id="explorer-breadcrumb" class="text-[11px] font-bold text-gray-500 flex items-center gap-2 truncate">
+              </div>
+
+            <div class="flex gap-2 items-center">
+              <input type="file" id="input-explorer-upload" class="hidden" />
+              <button id="btn-upload-explorer" class="px-3 py-1 bg-gob-guinda text-white rounded-md text-[10px] font-bold hover:bg-gob-guindaDark hover:shadow-lg hover:shadow-gob-guinda/30 transition-all flex items-center gap-2 tracking-wide transform active:scale-95">
+                <i class="fas fa-cloud-upload-alt"></i> <span>SUBIR DOCUMENTO</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="explorer-content" class="flex-1 p-4 overflow-y-auto bg-white relative">
+            </div>
+        
+      </div>
+    </div>
+
+    <div class="flex-none px-4 py-2 bg-white border-t border-gray-100 flex justify-between items-center text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+      <span id="explorer-status" class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
+      </span>
+      <span id="explorer-stats">--</span>
+    </div>
+  </div>
 </div>

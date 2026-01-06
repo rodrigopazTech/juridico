@@ -6,6 +6,20 @@ export class ExpedienteDetalleModule {
         this.id = null;
         this.expediente = null;
         this.currentPath = []; 
+        this.currentView = 'grid'; // Nuevo: 'grid' | 'list'
+        this.currentFolderId = null; // Guardamos esto para recargar al cambiar vista
+        this.currentLabel = 'Inicio'; // Guardamos el nombre actual
+    }
+    get userRole() {
+        // Obtenemos el rol guardado (o 'Abogado' por defecto si no existe)
+        return localStorage.getItem('rol') || 'DIRECCION';
+    }
+
+    canUserDelete() {
+        // Normalizamos a mayúsculas para evitar errores (Dirección, direccion, DIRECCION)
+        const rol = this.userRole.toUpperCase();
+        // Solo retorna TRUE si el rol es DIRECCIÓN (o DIRECTOR)
+        return rol === 'DIRECCIÓN' || rol === 'DIRECCION' || rol === 'DIRECTOR';
     }
 
     init() {
@@ -160,17 +174,74 @@ export class ExpedienteDetalleModule {
     // 3. NUEVO EXPLORADOR (GESTOR DOCUMENTAL)
     // ==========================================
     setupExplorer() {
-    const modal = document.getElementById('modal-explorer');
+        const modal = document.getElementById('modal-explorer');
         const btnOpen = document.getElementById('btn-open-explorer'); 
         const btnClose = document.getElementById('close-explorer');
         const inputFile = document.getElementById('input-explorer-upload');
         const btnUpload = document.getElementById('btn-upload-explorer');
+        const btnNewFolder = document.getElementById('btn-new-folder'); // NUEVO
+
+        // Botones de Vista
+        const btnGrid = document.getElementById('view-grid');
+        const btnList = document.getElementById('view-list');
+
+        if (btnGrid) {
+            btnGrid.onclick = () => {
+                this.currentView = 'grid';
+                this.updateViewButtons();
+                if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel);
+            };
+        }
+        if (btnList) {
+            btnList.onclick = () => {
+                this.currentView = 'list';
+                this.updateViewButtons();
+                if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel);
+            };
+        }
+
+        // BUSCADOR EN TIEMPO REAL
+        const searchInput = document.getElementById('explorer-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('#explorer-content > div');
+                
+                cards.forEach(card => {
+                    const nameSpan = card.querySelector('span[title], .truncate'); 
+                    const name = nameSpan ? nameSpan.textContent.toLowerCase() : '';
+                    
+                    if (name.includes(term)) {
+                        card.style.display = ''; 
+                    } else {
+                        card.style.display = 'none'; 
+                    }
+                });
+            });
+        }
+
+        // ACCIÓN: NUEVA CARPETA
+        if (btnNewFolder) {
+            btnNewFolder.onclick = () => {
+                if (this.currentFolderId === 'terminos') {
+                    Swal.fire('Gestión de Términos', 'Para agregar una carpeta aquí, debes registrar un nuevo Término Legal desde el módulo correspondiente.', 'info');
+                } else if (this.currentFolderId === 'audiencias') {
+                    Swal.fire('Gestión de Audiencias', 'Para agregar una carpeta aquí, debes agendar una nueva Audiencia.', 'info');
+                } else if (this.currentFolderId === 'anexos') {
+                    // Aquí sí podríamos permitir crear carpetas lógicas en el futuro
+                    Swal.fire('Nueva Carpeta', 'Función para crear sub-carpetas en Anexos (Próximamente).', 'success');
+                } else {
+                    Swal.fire('Acción no permitida', 'No puedes crear carpetas en la raíz o dentro de un expediente cerrado.', 'warning');
+                }
+            };
+        }
 
         // Abrir Modal
         if (btnOpen) btnOpen.onclick = () => {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            this.renderTree(); // Re-renderizar árbol cada vez que se abre
+            this.renderTree(); 
+            this.updateViewButtons(); 
         };
 
         // Cerrar Modal
@@ -179,16 +250,28 @@ export class ExpedienteDetalleModule {
             modal.classList.remove('flex');
         };
 
-        // Trigger del Input File
+        // Subir Archivo
         if (btnUpload && inputFile) {
             btnUpload.onclick = () => inputFile.click();
-            
-            // MANEJADOR DE SUBIDA DE ARCHIVOS
             inputFile.onchange = (e) => {
                 if (e.target.files.length > 0) {
                     this.handleExplorerUpload(e.target.files[0]);
                 }
             };
+        }
+    }
+
+    // Helper visual para resaltar el botón activo
+    updateViewButtons() {
+        const btnGrid = document.getElementById('view-grid');
+        const btnList = document.getElementById('view-list');
+        
+        if (this.currentView === 'grid') {
+            btnGrid.className = "p-1.5 rounded bg-white shadow-sm text-gob-guinda text-xs transition-all";
+            btnList.className = "p-1.5 rounded hover:bg-white hover:shadow-sm text-gray-400 hover:text-gob-guinda text-xs transition-all";
+        } else {
+            btnGrid.className = "p-1.5 rounded hover:bg-white hover:shadow-sm text-gray-400 hover:text-gob-guinda text-xs transition-all";
+            btnList.className = "p-1.5 rounded bg-white shadow-sm text-gob-guinda text-xs transition-all";
         }
     }
 
@@ -199,8 +282,8 @@ export class ExpedienteDetalleModule {
         // 1. Estructura Base
         let structure = [
             { id: 'root', label: 'EXP-' + (this.expediente.numero || this.id), icon: 'fa-folder-open', color: 'text-gob-oro' },
-            { id: 'audiencias', label: 'Audiencias', icon: 'fa-gavel', parent: 'root' },
-            { id: 'terminos', label: 'Términos Legales', icon: 'fa-clock', parent: 'root' },
+            { id: 'audiencias', label: 'Audiencias', icon: 'fa-folder', parent: 'root' },
+            { id: 'terminos', label: 'Términos Legales', icon: 'fa-folder', parent: 'root' },
             { id: 'anexos', label: 'Anexos y Pruebas', icon: 'fa-file-import', parent: 'root' }
         ];
 
@@ -234,7 +317,7 @@ export class ExpedienteDetalleModule {
             structure.push({
                 id: `aud-${aud.id}`,     // ID único para la carpeta
                 label: `${numAud} - ${nombreAud}`,
-                icon: 'fa-gavel',        // Icono de mazo
+                icon: 'fa-folder',        // Icono de mazo
                 parent: 'audiencias',    // Hijo de la carpeta "Audiencias"
                 color: 'text-indigo-500'
             });
@@ -279,104 +362,220 @@ export class ExpedienteDetalleModule {
 
     loadFolder(folderId, label) {
         this.currentFolderId = folderId; 
+        this.currentLabel = label; 
+        
         const content = document.getElementById('explorer-content');
         const breadcrumb = document.getElementById('explorer-breadcrumb');
         const btnUpload = document.getElementById('btn-upload-explorer');
         
-        // Actualizar Breadcrumb
-        breadcrumb.innerHTML = `<i class="fas fa-folder-open text-[10px]"></i> <span class="ml-1">${label}</span>`;
+        breadcrumb.innerHTML = `<i class="fas fa-folder-open text-[10px]"></i> <span class="ml-1 text-gob-guinda">${label}</span>`;
         content.innerHTML = '';
+        
+        content.removeAttribute('style');
+        content.className = "flex-1 p-4 overflow-y-auto bg-white relative"; 
 
-        // --- CORRECCIÓN AQUÍ ---
-        // Definimos qué carpetas permiten subida
+        if (this.currentView === 'grid') {
+            content.style.display = 'grid';
+            content.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+            content.style.gap = '1rem';
+            content.style.alignContent = 'start';
+        } else {
+            content.classList.add('flex', 'flex-col', 'gap-1');
+        }
+
         const esCarpetaTermino = folderId.startsWith('term-');
         const esCarpetaAudiencia = folderId.startsWith('aud-');
         const esAnexos = folderId === 'anexos';
         
-        // Agregamos '|| esAnexos' a la condición para que el botón aparezca
         if (esCarpetaTermino || esCarpetaAudiencia || esAnexos) {
             btnUpload.classList.remove('hidden');
         } else {
             btnUpload.classList.add('hidden');
         }
-        // -----------------------
 
         let files = [];
 
-        // --- LÓGICA DE CONTENIDO ---
-        
         if (esCarpetaTermino) {
-            // Extraer ID real del término
             const realId = folderId.replace('term-', '');
             const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
             const term = terminos.find(t => String(t.id) === String(realId));
-
             if (term) {
-                // Borrador Word
-                if(term.archivoWord) {
-                    files.push({ name: term.archivoWord, type: 'word', date: term.fechaIngreso || 'N/A', size: '15 KB' });
-                }
-                // Acuse PDF
-                if(term.acuseDocumento) {
-                    files.push({ name: term.acuseDocumento, type: 'pdf', date: term.fechaVencimiento || 'N/A', size: '1.2 MB' });
-                }
+                if(term.archivoWord) files.push({ name: term.archivoWord, type: 'word', date: term.fechaIngreso || 'N/A' });
+                if(term.acuseDocumento) files.push({ name: term.acuseDocumento, type: 'pdf', date: term.fechaVencimiento || 'N/A' });
             }
         } 
-        else if (folderId === 'terminos') {
-            content.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center py-10 text-gray-400 opacity-60">
-                    <i class="fas fa-level-down-alt text-4xl mb-2"></i>
-                    <p class="text-xs italic">Selecciona una subcarpeta (001, 002...) del menú izquierdo para ver sus archivos.</p>
-                </div>`;
-            return;
-        }
-        else if (folderId === 'audiencias') {
-            content.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center py-10 text-gray-400 opacity-60">
-                    <i class="fas fa-gavel text-4xl mb-2"></i>
-                    <p class="text-xs italic">Selecciona una audiencia específica del menú izquierdo.</p>
-                </div>`;
+        else if (folderId === 'terminos' || folderId === 'audiencias') {
+            content.style.display = 'flex';
+            content.className = "flex-1 flex flex-col items-center justify-center p-4"; 
+            content.innerHTML = `<div class="text-gray-300 text-center"><i class="fas fa-level-down-alt text-4xl mb-2"></i><p class="text-xs italic">Selecciona una subcarpeta del menú.</p></div>`;
             return;
         }
         else if (esAnexos) {
-            // Cargar anexos del expediente
             const anexos = (this.expediente.documentos || []).filter(d => d.tipo === 'Anexo');
             files = anexos.map(d => ({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: d.fecha }));
         }
 
-        // --- RENDERIZADO DE ARCHIVOS ---
         if (files.length === 0) {
-            content.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400 italic text-xs">Carpeta vacía</div>`;
+            content.style.display = 'flex';
+            content.className = "flex-1 flex items-center justify-center p-4"; 
+            content.innerHTML = `<div class="text-center text-gray-400 italic text-xs">Carpeta vacía</div>`;
             document.getElementById('explorer-stats').textContent = `0 Elementos`;
             return;
         }
 
+        // VERIFICAMOS PERMISO
+        const canDelete = this.canUserDelete();
+
         files.forEach(file => {
-            const card = document.createElement('div');
-            // Diseño Compacto tipo Windows
-            card.className = "group bg-white border border-gray-200 h-32 w-full p-3 rounded-lg flex flex-col items-center justify-center text-center hover:shadow-md hover:border-gob-oro transition-all cursor-pointer relative";
+            const el = document.createElement('div');
+            const iconClass = file.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-word text-blue-600';
             
-            // Forzamos altura para evitar que se vean gigantes
-            card.style.height = "130px";
-            
-            card.innerHTML = `
-                <i class="fas ${file.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-word text-blue-600'} text-3xl mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-[10px] font-bold text-gray-700 truncate w-full px-1" title="${file.name}">${file.name}</span>
-                <span class="text-[9px] text-gray-400 mt-1">${file.date}</span>
+            if (this.currentView === 'grid') {
+                el.className = "group relative flex flex-col items-center justify-start pt-4 gap-2 border border-gray-200 rounded-lg bg-white transition-all cursor-pointer overflow-hidden";
+                el.style.height = '140px'; 
+
+                el.onmouseenter = () => { 
+                    el.style.borderColor = '#b91c1c'; 
+                    el.style.backgroundColor = '#fef2f2'; 
+                    const overlay = el.querySelector('.overlay-actions');
+                    if(overlay) overlay.style.opacity = '1';
+                };
+                el.onmouseleave = () => { 
+                    el.style.borderColor = '#e5e7eb'; 
+                    el.style.backgroundColor = 'white';
+                    const overlay = el.querySelector('.overlay-actions');
+                    if(overlay) overlay.style.opacity = '0';
+                };
                 
-                <div class="absolute inset-0 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg backdrop-blur-[1px]">
-                    <button onclick="detalleModule.previewFile('${file.name}')" class="w-8 h-8 rounded-full bg-gob-guinda text-white hover:bg-gob-guindaDark shadow-sm flex items-center justify-center" title="Ver">
-                        <i class="fas fa-eye text-xs"></i>
+               // Renderizamos el botón eliminar SOLO si tiene permisos (canDelete)
+               el.innerHTML = `
+                <i class="fas ${iconClass} text-4xl transition-transform duration-300"></i>
+                <div class="w-full text-center px-2">
+                    <span class="block text-[11px] font-bold text-gray-700 leading-tight line-clamp-2 break-words" title="${file.name}">${file.name}</span>
+                    <span class="block text-[9px] text-gray-400 mt-1">${file.date}</span>
+                </div>
+
+                <div class="overlay-actions absolute inset-0 flex flex-col items-center justify-center gap-2 z-10 transition-opacity duration-200" 
+                     style="background-color: rgba(255,255,255,0.95); opacity: 0; backdrop-filter: blur(1px);">
+                    
+                    ${ canDelete ? `
+                    <button class="btn-delete absolute top-2 right-2 w-6 h-6 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors" title="Eliminar">
+                        <i class="fas fa-times text-xs"></i>
                     </button>
-                    <button onclick="detalleModule.downloadFile('${file.name}')" class="w-8 h-8 rounded-full bg-gob-oro text-white hover:bg-yellow-500 shadow-sm flex items-center justify-center" title="Descargar">
-                        <i class="fas fa-download text-xs"></i>
-                    </button>
+                    ` : '' }
+
+                    <div class="flex gap-2">
+                        <button class="btn-preview-file w-8 h-8 rounded-full bg-gob-guinda text-white flex items-center justify-center hover:scale-110 transition-transform" title="Ver">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                        <button class="btn-download-file w-8 h-8 rounded-full bg-white text-gray-600 border border-gray-200 flex items-center justify-center hover:text-gob-guinda shadow-md hover:scale-110 transition-transform" title="Descargar">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                    </div>
                 </div>
             `;
-            content.appendChild(card);
+            } else {
+                // VISTA LISTA
+                el.className = "flex items-center justify-between p-2 border-b border-gray-100 transition-colors rounded text-xs cursor-pointer";
+                el.onmouseenter = () => { el.style.backgroundColor = '#f8fafc'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '1'; };
+                el.onmouseleave = () => { el.style.backgroundColor = 'transparent'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '0'; };
+
+                el.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <div class="w-8 flex justify-center"><i class="fas ${iconClass} text-lg"></i></div>
+                        <span class="truncate font-medium text-gray-700">${file.name}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-gray-400 text-[10px] hidden sm:block w-20 text-right">${file.date}</span>
+                        <div class="list-actions flex items-center gap-1 transition-opacity duration-200" style="opacity: 0;">
+                            <button class="btn-preview-file p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button class="btn-download-file p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded" title="Descargar"><i class="fas fa-download"></i></button>
+                            ${ canDelete ? `<button class="btn-delete p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded" title="Eliminar"><i class="fas fa-times"></i></button>` : '' }
+                        </div>
+                    </div>
+                `;
+            }
+
+            const btnPreview = el.querySelector('.btn-preview-file');
+            const btnDownload = el.querySelector('.btn-download-file');
+            const btnDelete = el.querySelector('.btn-delete');
+            
+            if(btnPreview) btnPreview.onclick = (e) => { e.stopPropagation(); this.previewFile(file.name); };
+            if(btnDownload) btnDownload.onclick = (e) => { e.stopPropagation(); this.downloadFile(file.name); };
+            // Solo asignamos el evento si el botón existe (es decir, si tiene permiso)
+            if(btnDelete) btnDelete.onclick = (e) => { e.stopPropagation(); this.deleteFile(file.name); }; 
+
+            el.onclick = (e) => { if(!e.target.closest('button')) this.previewFile(file.name); };
+            content.appendChild(el);
         });
 
         document.getElementById('explorer-stats').textContent = `${files.length} Documentos`;
+    }
+
+    deleteFile(fileName) {
+        event.stopPropagation(); 
+
+        // VALIDACIÓN DE SEGURIDAD
+        if (!this.canUserDelete()) {
+            Swal.fire('Acceso Restringido', 'Solo el personal de Dirección puede eliminar archivos.', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Eliminar archivo?',
+            text: `Se borrará "${fileName}" de esta carpeta.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, borrar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.performDelete(fileName);
+            }
+        });
+    }
+
+    performDelete(fileName) {
+            if (!this.currentFolderId) return;
+            let eliminado = false;
+
+            // 1. Borrar de ANEXOS
+            if (this.currentFolderId === 'anexos') {
+                const index = this.expediente.documentos.findIndex(d => d.nombre === fileName);
+                if (index !== -1) {
+                    this.expediente.documentos.splice(index, 1);
+                    updateExpediente(this.id, { documentos: this.expediente.documentos });
+                    eliminado = true;
+                }
+            } 
+            // 2. Borrar de TÉRMINOS
+            else if (this.currentFolderId.startsWith('term-')) {
+                const realId = this.currentFolderId.replace('term-', '');
+                const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
+                const idx = terminos.findIndex(t => String(t.id) === String(realId));
+
+                if (idx !== -1) {
+                    const term = terminos[idx];
+                    if (term.archivoWord === fileName) {
+                        term.archivoWord = null; 
+                        eliminado = true;
+                    } else if (term.acuseDocumento === fileName) {
+                        term.acuseDocumento = null; 
+                        eliminado = true;
+                    }
+                    if (eliminado) localStorage.setItem('terminos', JSON.stringify(terminos));
+                }
+            }
+
+            if (eliminado) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo eliminado', showConfirmButton: false, timer: 2000 });
+                this.loadFolder(this.currentFolderId, this.currentLabel);
+                this.renderDocumentsTable(); 
+            } else {
+                Swal.fire('Error', 'No se pudo localizar el archivo para eliminar.', 'error');
+            }
     }
 
    handleExplorerUpload(file) {

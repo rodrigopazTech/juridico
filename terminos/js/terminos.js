@@ -366,19 +366,19 @@ function setupActionMenuListener() {
         }
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion(
-                'Quitar Acuse / Corregir', 
-                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.', 
+                'Quitar Acuse / Corregir',
+                '¿Deseas eliminar el acuse actual?\n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.',
                 () => {
                     const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
                     if (tIdx !== -1) {
                         TERMINOS[tIdx].acuseDocumento = '';
-                        TERMINOS[tIdx].estatus = 'Liberado'; 
+                        TERMINOS[tIdx].estatus = 'Liberado';
                         registrarActividadExpediente(
                             TERMINOS[tIdx].asuntoId,
                             'Acuse Removido',
                             `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}" para corrección.`,
                             'delete'
-                        );  
+                        );
                         guardarYRecargar();
                         mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
                     }
@@ -507,6 +507,10 @@ function avanzarEtapa(id) {
                     `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
                     'status'
                 );
+                // Sincronizar al liberar (mover a Agenda General y limpiar tabla principal)
+                sincronizarConAgendaGeneral(TERMINOS[idx]);
+                // sincronizarConAgendaGeneral eliminará el término de la lista principal; no continuar con más operaciones
+                return;
             }
             guardarYRecargar(); 
             mostrarMensajeGlobal(`Avanzado a ${nuevoEstado}`, 'success'); 
@@ -790,7 +794,7 @@ function initModalPresentar() {
                 
                 if(nuevoEstatus) {
                     TERMINOS[idx].estatus = nuevoEstatus;
-                    
+
                     if(observaciones) {
                         TERMINOS[idx].observaciones = observaciones;
                     }
@@ -814,7 +818,7 @@ function initModalPresentar() {
                     // -------------------------------
                     
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
-                    
+
                     modal.classList.remove('flex'); 
                     modal.classList.add('hidden');
                 }

@@ -140,7 +140,7 @@ export class NotificacionesModule {
         clone.querySelector('.js-date').textContent = dateStr;
         clone.querySelector('.js-time').textContent = timeStr;
 
-        // Estilos visuales
+        // Estilos visuales base
         const styles = {
             audiencia: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-gavel', label: 'Audiencia' },
             termino: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-hourglass-end', label: 'Término' },
@@ -159,27 +159,44 @@ export class NotificacionesModule {
         statusBadge.textContent = statusText;
         
         let statusClass = 'bg-gray-100 text-gray-600 border-gray-200';
+        
+        // --- LÓGICA DE COLORES POR ESTADO ---
         if (n.eventType === 'audiencia') {
             if (statusText === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
             else if (statusText === 'Con Acta') statusClass = 'bg-blue-100 text-blue-800 border-blue-200';
             else if (['Concluida', 'Desahogada'].includes(statusText)) statusClass = 'bg-gray-800 text-white border-gray-600';
-        } else if (n.eventType === 'termino') {
+            // NUEVO: Color para edición de Audiencia
+            else if (statusText === 'Edición') statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
+        } 
+        else if (n.eventType === 'termino') {
             if (['Liberado', 'Presentado'].includes(statusText)) statusClass = 'bg-green-100 text-green-800 border-green-200';
             else if (statusText === 'Concluido') statusClass = 'bg-gray-800 text-white border-gray-600';
             else if (['Revisión', 'Gerencia', 'Dirección'].includes(statusText)) statusClass = 'bg-indigo-100 text-indigo-800 border-indigo-200';
+            else if (statusText === 'Edición') statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
         } else {
             statusClass = 'bg-amber-100 text-amber-800 border-amber-200';
         }
         statusBadge.className = `js-status-badge inline-flex items-center px-2.5 py-0.5 rounded border text-xs font-bold ${statusClass}`;
 
-        // Contenido
+        // Contenido del Resumen
         const resumenEl = clone.querySelector('.js-resumen');
         const extraEl = clone.querySelector('.js-detalles-extra');
         
         let resumenHTML = '';
         let extraText = '';
 
-        if (n.eventType === 'termino') {
+        // --- RENDERIZADO DEL MENSAJE ---
+        
+        // CASO 1: EDICIÓN (Global para Audiencia y Término)
+        if (n.status === 'Edición') {
+            const exp = n.expediente ? `<span class="font-mono text-xs bg-gray-100 px-1 rounded border ml-1">${n.expediente}</span>` : '';
+            // Mensaje genérico de edición
+            resumenHTML = `<span class="text-blue-600 font-bold"><i class="fas fa-pen"></i> Actualización:</span> Se modificaron datos de ${st.label.toLowerCase()} <span class="font-bold text-gob-guinda">${n.title}</span> ${exp}.`;
+            // Aquí leemos lo que mandamos en 'juzgado' (audiencias) o 'actuacion' (terminos)
+            extraText = n.detalles?.juzgado || n.detalles?.actuacion || 'Cambios realizados en el expediente.';
+        } 
+        // CASO 2: FLUJO NORMAL
+        else if (n.eventType === 'termino') {
             const accion = this.obtenerAccionTermino(statusText);
             const exp = n.expediente ? `<span class="font-mono text-xs bg-gray-100 px-1 rounded border ml-1">${n.expediente}</span>` : '';
             resumenHTML = `El término <span class="font-bold text-gob-guinda">${n.title}</span> ${exp} ${accion}.`;
@@ -210,7 +227,7 @@ export class NotificacionesModule {
         const btnDelete = clone.querySelector('.js-delete-btn');
         btnDelete.onclick = () => this.deleteNotification(n.id);
     }
-
+    
     obtenerAccionTermino(estado) {
         switch(estado) {
             case 'Proyectista': return 'ha sido asignado a Proyectista';

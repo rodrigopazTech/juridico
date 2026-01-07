@@ -665,14 +665,23 @@ function guardarAudiencia() {
     const fecha = document.getElementById('fecha-audiencia').value;
     const hora = document.getElementById('hora-audiencia').value;
     const asuntoId = document.getElementById('asunto-selector-audiencia').value;
+    const tipoAudiencia = document.getElementById('tipo-audiencia').value;
 
     const esEnLinea = document.getElementById('radio-online')?.checked || false;
     const sala = document.getElementById('sala-audiencia')?.value || '';
     const urlReunion = document.getElementById('url-audiencia')?.value || '';
+    const abogadoComparece = document.getElementById('abogado-comparece').value;
     
-    if(!fecha || !hora || !asuntoId) return alert('Completa los campos obligatorios');
+    if(!fecha || !hora || !asuntoId || !tipoAudiencia) return alert('Completa los campos obligatorios');
     if (!esEnLinea && !sala) return alert('Especifique Sala/Lugar.');
     if (esEnLinea && !urlReunion) return alert('Especifique URL.');
+
+    // Datos automáticos y de recordatorio
+    const exp = document.getElementById('expediente-auto-audiencia').value;
+    const tribunal = document.getElementById('organo-auto-audiencia').value;
+    const actor = document.getElementById('partes-auto-audiencia').value;
+    const materia = document.getElementById('materia-auto-audiencia').value;
+    const gerencia = document.getElementById('gerencia-auto-audiencia').value;
 
     const fechaBase = new Date(fecha + 'T' + hora);
     const diasAntes = parseInt(document.getElementById('dias-antes-rec-aud').value) || 0;
@@ -683,55 +692,128 @@ function guardarAudiencia() {
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
     fechaNotificacion.setHours(fechaBase.getHours() - horasAntes);
 
-    let textoAnticipacion = "";
-    if (diasAntes > 0) textoAnticipacion = `${diasAntes} días`;
-    if (horasAntes > 0) textoAnticipacion += (textoAnticipacion ? " y " : "") + `${horasAntes} horas`;
-    if (!textoAnticipacion) textoAnticipacion = "el momento";
+    let textoAnticipacion = diasAntes > 0 ? `${diasAntes} días` : (horasAntes > 0 ? `${horasAntes} horas` : "el momento");
 
-    const tipoAudiencia = document.getElementById('tipo-audiencia').value;
-    const exp = document.getElementById('expediente-auto-audiencia').value;
-    
-    // Notificación de Recordatorio
+    // 1. Notificación de Recordatorio (Siempre se actualiza o crea)
     crearNotificacionGlobal({
         eventType: 'recordatorio',
         title: `Recordatorio: Audiencia ${tipoAudiencia}`,
         expediente: exp,
         status: 'Activo',
         notifyAt: fechaNotificacion.toISOString(),
-        detalles: { descripcion: notaRec || `Audiencia programada para el expediente ${exp}` },
-        meta: {
-            tipoOrigen: 'audiencia',
-            expediente: exp,
-            anticipacion: textoAnticipacion,
-            fechaEvento: fechaBase.toISOString()
-        }
+        detalles: { descripcion: notaRec || `Audiencia programada: ${sala || urlReunion}` },
+        meta: { tipoOrigen: 'audiencia', expediente: exp, anticipacion: textoAnticipacion, fechaEvento: fechaBase.toISOString() }
     });
 
+    // Objeto con los DATOS NUEVOS
     const nueva = {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
-        tipo: tipoAudiencia || 'General',
+        tipo: tipoAudiencia,
         esEnLinea, urlReunion, sala,
-        abogadoComparece: document.getElementById('abogado-comparece').value,
+        abogadoComparece,
         expediente: exp,
-        tribunal: document.getElementById('organo-auto-audiencia').value,
-        actor: document.getElementById('partes-auto-audiencia').value,
-        materia: document.getElementById('materia-auto-audiencia').value, 
-        gerencia: document.getElementById('gerencia-auto-audiencia').value, 
+        tribunal: tribunal,
+        actor: actor,
+        materia: materia,
+        gerencia: gerencia,
         atendida: false,
         actaDocumento: ''
     };
 
     if(id) {
-        const idx = AUDIENCIAS.findIndex(a => a.id == id);
-        nueva.actaDocumento = AUDIENCIAS[idx].actaDocumento;
-        nueva.atendida = AUDIENCIAS[idx].atendida;
-        nueva.comentarios = AUDIENCIAS[idx].comentarios; 
-        AUDIENCIAS[idx] = nueva;
+        // === MODO EDICIÓN: DETECTAR CAMBIOS ===
+        const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
+        if(idx !== -1) {
+            const original = AUDIENCIAS[idx];
+            
+            // Mantener datos que no cambian en el form
+            nueva.actaDocumento = original.actaDocumento;
+            nueva.atendida = original.atendida;
+            nueva.comentarios = original.comentarios;
+
+            // A. CAMBIO DE TIPO
+            if (original.tipo !== nueva.tipo) {
+                crearNotificacionGlobal({
+                    eventType: 'audiencia',
+                    title: nueva.tipo,
+                    expediente: exp,
+                    status: 'Edición',
+                    detalles: { juzgado: `Tipo de audiencia modificado. Anterior: ${original.tipo}` }
+                });
+            }
+
+            // B. CAMBIO DE FECHA
+            if (original.fecha !== nueva.fecha) {
+                crearNotificacionGlobal({
+                    eventType: 'audiencia',
+                    title: nueva.tipo,
+                    expediente: exp,
+                    status: 'Edición',
+                    detalles: { juzgado: `Fecha reagendada. Anterior: ${formatDate(original.fecha)}. Nueva: ${formatDate(nueva.fecha)}` }
+                });
+            }
+
+            // C. CAMBIO DE HORA
+            if (original.hora !== nueva.hora) {
+                crearNotificacionGlobal({
+                    eventType: 'audiencia',
+                    title: nueva.tipo,
+                    expediente: exp,
+                    status: 'Edición',
+                    detalles: { juzgado: `Hora modificada. Anterior: ${original.hora}. Nueva: ${nueva.hora}` }
+                });
+            }
+
+            // D. CAMBIO DE ABOGADO
+            if (original.abogadoComparece !== nueva.abogadoComparece) {
+                crearNotificacionGlobal({
+                    eventType: 'audiencia',
+                    title: nueva.tipo,
+                    expediente: exp,
+                    status: 'Edición',
+                    detalles: { juzgado: `Cambio de abogado. Asignado anteriormente: ${original.abogadoComparece}` }
+                });
+            }
+
+            // E. CAMBIO DE UBICACIÓN (Lógica compuesta)
+            let huboCambioUbicacion = false;
+            let detalleUbicacion = "";
+
+            if (original.esEnLinea !== nueva.esEnLinea) {
+                // Cambió de Presencial a Online o viceversa
+                const anterior = original.esEnLinea ? "En Línea" : "Presencial";
+                const actual = nueva.esEnLinea ? "En Línea" : "Presencial";
+                detalleUbicacion = `Modalidad cambiada de ${anterior} a ${actual}.`;
+                huboCambioUbicacion = true;
+            } else {
+                // Misma modalidad, pero cambiaron los detalles (Sala o URL)
+                if (nueva.esEnLinea && original.urlReunion !== nueva.urlReunion) {
+                    detalleUbicacion = `Se actualizó la URL de la reunión.`;
+                    huboCambioUbicacion = true;
+                } else if (!nueva.esEnLinea && original.sala !== nueva.sala) {
+                    detalleUbicacion = `Cambio de Sala/Lugar. Anterior: ${original.sala}. Nueva: ${nueva.sala}`;
+                    huboCambioUbicacion = true;
+                }
+            }
+
+            if (huboCambioUbicacion) {
+                crearNotificacionGlobal({
+                    eventType: 'audiencia',
+                    title: nueva.tipo,
+                    expediente: exp,
+                    status: 'Edición',
+                    detalles: { juzgado: detalleUbicacion }
+                });
+            }
+
+            // Guardar en el array
+            AUDIENCIAS[idx] = nueva;
+        }
     } else {
+        // === MODO CREACIÓN ===
         AUDIENCIAS.push(nueva);
         
-        // Notificación de Creación (Solo Tipo, sin "Nueva Audiencia:")
         crearNotificacionGlobal({
             eventType: 'audiencia',
             title: nueva.tipo, 
@@ -744,16 +826,28 @@ function guardarAudiencia() {
         registrarActividadExpediente(
             asuntoId,
             'Nueva Audiencia Programada',
-            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora} hrs. Lugar: ${esEnLinea ? 'En Línea' : nueva.sala}.`,
+            `Tipo: ${nueva.tipo}. Fecha: ${formatDate(fecha)} ${hora}. ${esEnLinea ? 'En Línea' : 'Sala: '+sala}.`,
             'edit'
         );
     }
     
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
-    document.getElementById('modal-audiencia').style.display = 'none';
+    document.getElementById('modal-audiencia').classList.add('hidden');
+    document.getElementById('modal-audiencia').classList.remove('flex');
     loadAudiencias();
-    mostrarMensajeGlobal('Audiencia guardada', 'success');
+    mostrarMensajeGlobal('Audiencia guardada correctamente', 'success');
 }
+
+// Helper para mensaje toast (si no lo tienes, puedes agregarlo al final del archivo)
+function mostrarMensajeGlobal(msg, tipo='success') {
+    const toast = document.createElement('div');
+    const color = tipo === 'success' ? 'bg-green-600' : 'bg-blue-600';
+    toast.className = `fixed top-5 right-5 ${color} text-white px-6 py-3 rounded shadow-lg animate-fade-in-down z-[100] font-bold text-sm`;
+    toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
 function initModalFinalizarAudiencia() {
     const modal = document.getElementById('modal-finalizar-audiencia');
     document.getElementById('close-modal-finalizar').onclick = () => modal.style.display='none';

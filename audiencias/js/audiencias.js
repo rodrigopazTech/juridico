@@ -214,171 +214,171 @@ function renderListaTipos() {
 // Renderizado Principal (Actualizado para mostrar ubicación)
 // -------------------------------
 function loadAudiencias() {
-const tbody = document.getElementById('audiencias-body');
-  if(!tbody) return;
+    const tbody = document.getElementById('audiencias-body');
+    if(!tbody) return;
 
-  let ls = [];
-  try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
+    let ls = [];
+    try { ls = JSON.parse(localStorage.getItem('audiencias') || '[]'); } catch (e) { ls = []; }
 
-  const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
-  const NOMBRES_GERENCIAS = {
-      1: 'Civil, Mercantil, Fiscal y Administrativo',
-      2: 'Laboral y Penal',
-      3: 'Transparencia y Amparo'
-  };
+    const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    const NOMBRES_GERENCIAS = {
+        1: 'Civil, Mercantil, Fiscal y Administrativo',
+        2: 'Laboral y Penal',
+        3: 'Transparencia y Amparo'
+    };
 
-  if (!ls || ls.length === 0) {
-      ls = [ ];
-      localStorage.setItem('audiencias', JSON.stringify(ls));
-  }
-  AUDIENCIAS = ls;
+    if (!ls || ls.length === 0) {
+        ls = [ ];
+        localStorage.setItem('audiencias', JSON.stringify(ls));
+    }
+    AUDIENCIAS = ls;
 
-  const filtroTipo = document.getElementById('filter-tipo')?.value || '';
-  const filtroGerencia = (document.getElementById('filter-gerencia')?.value || '').toLowerCase();
-  const filtroMateria = (document.getElementById('filter-materia')?.value || '').toLowerCase(); 
-  const busqueda = (document.getElementById('search-audiencias')?.value || '').toLowerCase();
+    const filtroTipo = document.getElementById('filter-tipo')?.value || '';
+    const filtroGerencia = (document.getElementById('filter-gerencia')?.value || '').toLowerCase();
+    const filtroMateria = (document.getElementById('filter-materia')?.value || '').toLowerCase(); 
+    const busqueda = (document.getElementById('search-audiencias')?.value || '').toLowerCase();
 
-  let html = '';
-  
-  AUDIENCIAS.forEach(a => {
-    let materiaMostrar = a.materia;
-    let gerenciaMostrar = a.gerencia;
+    let html = '';
+    
+    AUDIENCIAS.forEach(a => {
+        let materiaMostrar = a.materia;
+        let gerenciaMostrar = a.gerencia;
 
-    if (!materiaMostrar || !gerenciaMostrar || materiaMostrar === 'S/D') {
-        const expRelacionado = expedientes.find(e => 
-            (a.asuntoId && String(e.id) === String(a.asuntoId)) || 
-            (e.numero === a.expediente) ||
-            (e.expediente === a.expediente)
-        );
+        if (!materiaMostrar || !gerenciaMostrar || materiaMostrar === 'S/D') {
+            const expRelacionado = expedientes.find(e => 
+                (a.asuntoId && String(e.id) === String(a.asuntoId)) || 
+                (e.numero === a.expediente) ||
+                (e.expediente === a.expediente)
+            );
 
-        if (expRelacionado) {
-            if (!materiaMostrar) materiaMostrar = expRelacionado.materia;
-            if (!gerenciaMostrar) {
-                gerenciaMostrar = expRelacionado.gerencia || NOMBRES_GERENCIAS[expRelacionado.gerenciaId] || '';
+            if (expRelacionado) {
+                if (!materiaMostrar) materiaMostrar = expRelacionado.materia;
+                if (!gerenciaMostrar) {
+                    gerenciaMostrar = expRelacionado.gerencia || NOMBRES_GERENCIAS[expRelacionado.gerenciaId] || '';
+                }
             }
         }
-    }
-    
-    materiaMostrar = materiaMostrar || 'S/D';
-    gerenciaMostrar = gerenciaMostrar || '-';
+        
+        materiaMostrar = materiaMostrar || 'S/D';
+        gerenciaMostrar = gerenciaMostrar || '-';
 
-    const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece} ${materiaMostrar} ${gerenciaMostrar}`.toLowerCase();
-    
-    if (filtroTipo && a.tipo !== filtroTipo) return;
-    if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
-    if (filtroMateria && !materiaMostrar.toLowerCase().includes(filtroMateria)) return; 
-    if (busqueda && !textoFila.includes(busqueda)) return;
+        const textoFila = `${a.expediente} ${a.actor} ${a.tribunal} ${a.tipo} ${a.abogadoComparece} ${materiaMostrar} ${gerenciaMostrar}`.toLowerCase();
+        
+        if (filtroTipo && a.tipo !== filtroTipo) return;
+        if (filtroGerencia && !gerenciaMostrar.toLowerCase().includes(filtroGerencia)) return;
+        if (filtroMateria && !materiaMostrar.toLowerCase().includes(filtroMateria)) return; 
+        if (busqueda && !textoFila.includes(busqueda)) return;
 
-    const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
-    let estadoBadge = '';
-    if (a.atendida) {
-        estadoBadge = '<span class="inline-flex items-center bg-gray-800 text-white text-xs font-bold px-2.5 py-0.5 rounded border border-gray-600"><i class="fas fa-flag-checkered mr-1"></i> Concluida</span>';
-    } else if (a.actaDocumento) {
-        if (a.tipoDocumentoSubido === 'Alegatos Amparo') {
-            estadoBadge = '<span class="inline-flex items-center bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded border border-indigo-200"><i class="fas fa-file-invoice mr-1"></i> Con Alegatos</span>';
+        const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
+        
+        // CAMBIO AQUÍ: Modificar el badge de estado para "con documento"
+        let estadoBadge = '';
+        if (a.atendida) {
+            estadoBadge = '<span class="inline-flex items-center bg-gray-800 text-white text-xs font-bold px-2.5 py-0.5 rounded border border-gray-600"><i class="fas fa-flag-checkered mr-1"></i> Concluida</span>';
+        } else if (a.actaDocumento) {
+            // NUEVO ESTADO "CON DOCUMENTO"
+            estadoBadge = '<span class="inline-flex items-center bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded border border-purple-200"><i class="fas fa-file-alt mr-1"></i> Con Documento</span>';
         } else {
-            estadoBadge = '<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200"><i class="fas fa-file-signature mr-1"></i> Con Acta</span>';
+            estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
         }
-    } else {
-        estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
-    }
-  
-    let ubicacionIcono = '';
-    let ubicacionTooltip = '';
-    if (a.esEnLinea) {
-        ubicacionIcono = `<i class="fas fa-video text-blue-600"></i>`;
-        ubicacionTooltip = a.urlReunion || 'En Línea';
-    } else {
-        ubicacionIcono = `<i class="fas fa-map-marker-alt text-gray-500"></i>`;
-        ubicacionTooltip = a.sala || 'Presencial';
-    }
- html += `
-      <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
-        
-        <td class="px-4 py-3 text-center">
-            <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}"><i class="fas fa-chevron-down"></i></button>
-        </td>
-        
-        <td class="px-4 py-3 whitespace-nowrap">
-          <div class="flex items-center">
-            <div class="w-2.5 h-2.5 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
-            <div class="flex flex-col">
-                <span class="text-sm font-bold text-gray-900">${formatDate(a.fecha)}</span>
-                <span class="text-xs text-gray-500">${a.hora} hrs</span>
-            </div>
-          </div>
-        </td>
-        
-        <td class="px-4 py-3 text-sm font-bold text-gob-guinda whitespace-nowrap">
-            ${escapeHTML(a.expediente)}
-        </td>
-        
-        <td class="px-4 py-3">
-            <div class="flex flex-col">
-                <span class="text-xs font-bold text-gray-700">${escapeHTML(materiaMostrar)}</span>
-                <span class="text-[10px] text-gray-500 truncate max-w-[120px]" title="${escapeHTML(gerenciaMostrar)}">${escapeHTML(gerenciaMostrar)}</span>
-            </div>
-        </td>
-        
-        <td class="px-4 py-3">
-            <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded w-fit font-semibold">${escapeHTML(a.tipo)}</span>
-            <div class="flex items-center gap-1 mt-0.5 text-xs text-gray-700" title="${ubicacionTooltip}">
-                 ${ubicacionIcono}
-                <span>${a.esEnLinea ? 'En Línea' : 'Presencial'}</span>
-            </div>
-        </td>
-        
-        <td class="px-4 py-3 text-sm text-gray-700">
-             <div class="flex items-center gap-1" title="Comparece">
-                <i class="fas fa-user-tie text-gray-400 text-xs"></i>
-                <span>${escapeHTML(a.abogadoComparece || 'Por asignar')}</span>
-             </div>
-        </td>
-        
-        <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">
-            ${escapeHTML(a.actor)}
-        </td>
-        
-        <td class="px-4 py-3">${estadoBadge}</td> 
-        
-        <td class="px-4 py-3 text-right whitespace-nowrap relative">
-            <div class="flex items-center justify-end gap-2">
-                ${!a.atendida ? 
-                    `<button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit"></i></button>` : 
-                    `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock"></i></button>`
-                }
-                <div class="relative action-menu-container">
-                    <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones"><i class="fas fa-ellipsis-v"></i></button>
-                     <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
-                        ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
+    
+        let ubicacionIcono = '';
+        let ubicacionTooltip = '';
+        if (a.esEnLinea) {
+            ubicacionIcono = `<i class="fas fa-video text-blue-600"></i>`;
+            ubicacionTooltip = a.urlReunion || 'En Línea';
+        } else {
+            ubicacionIcono = `<i class="fas fa-map-marker-alt text-gray-500"></i>`;
+            ubicacionTooltip = a.sala || 'Presencial';
+        }
+
+        html += `
+            <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${a.id}">
+                
+                <td class="px-4 py-3 text-center">
+                    <button class="text-gray-400 hover:text-gob-guinda toggle-expand transition-transform duration-200" data-id="${a.id}"><i class="fas fa-chevron-down"></i></button>
+                </td>
+                
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="w-2.5 h-2.5 rounded-full mr-2 ${sem.class}" title="${sem.tooltip}"></div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-gray-900">${formatDate(a.fecha)}</span>
+                            <span class="text-xs text-gray-500">${a.hora} hrs</span>
+                        </div>
                     </div>
-                </div>   
-                <input type="file" class="input-acta-hidden hidden" data-id="${a.id}" accept=".pdf,.doc,.docx">
-            </div>
-        </td>
-      </tr>
-      
-      <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
-        <td colspan="9" class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Tribunal / Órgano</span>
-                    <span class="font-medium text-gray-800">${escapeHTML(a.tribunal || 'No especificado')}</span>
-                </div>
+                </td>
+                
+                <td class="px-4 py-3 text-sm font-bold text-gob-guinda whitespace-nowrap">
+                    ${escapeHTML(a.expediente)}
+                </td>
+                
+                <td class="px-4 py-3">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-gray-700">${escapeHTML(materiaMostrar)}</span>
+                        <span class="text-[10px] text-gray-500 truncate max-w-[120px]" title="${escapeHTML(gerenciaMostrar)}">${escapeHTML(gerenciaMostrar)}</span>
+                    </div>
+                </td>
+                
+                <td class="px-4 py-3">
+                    <span class="text-[10px] bg-gray-100 text-gray-600 px-1 rounded w-fit font-semibold">${escapeHTML(a.tipo)}</span>
+                    <div class="flex items-center gap-1 mt-0.5 text-xs text-gray-700" title="${ubicacionTooltip}">
+                        ${ubicacionIcono}
+                        <span>${a.esEnLinea ? 'En Línea' : 'Presencial'}</span>
+                    </div>
+                </td>
+                
+                <td class="px-4 py-3 text-sm text-gray-700">
+                    <div class="flex items-center gap-1" title="Comparece">
+                        <i class="fas fa-user-tie text-gray-400 text-xs"></i>
+                        <span>${escapeHTML(a.abogadoComparece || 'Por asignar')}</span>
+                    </div>
+                </td>
+                
+                <td class="px-4 py-3 text-sm text-gray-600 truncate max-w-[150px]" title="${escapeHTML(a.actor)}">
+                    ${escapeHTML(a.actor)}
+                </td>
+                
+                <td class="px-4 py-3">${estadoBadge}</td> 
+                
+                <td class="px-4 py-3 text-right whitespace-nowrap relative">
+                    <div class="flex items-center justify-end gap-2">
+                        ${!a.atendida ? 
+                            `<button class="text-gray-400 hover:text-gob-oro action-edit-audiencia p-1" title="Editar"><i class="fas fa-edit"></i></button>` : 
+                            `<button class="text-gray-200 cursor-not-allowed p-1" title="Cerrado"><i class="fas fa-lock"></i></button>`
+                        }
+                        <div class="relative action-menu-container">
+                            <button class="text-gray-400 hover:text-gob-guinda action-menu-toggle p-1 px-2 transition-colors" title="Acciones"><i class="fas fa-ellipsis-v"></i></button>
+                            <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
+                                ${generarAccionesRapidasAudiencia(a, USER_ROLE)}
+                            </div>
+                        </div>   
+                        <input type="file" class="input-acta-hidden hidden" data-id="${a.id}" accept=".pdf,.doc,.docx">
+                    </div>
+                </td>
+            </tr>
+            
+            <tr id="expand-row-${a.id}" class="hidden bg-gray-50 border-b shadow-inner">
+                <td colspan="9" class="p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="block text-xs font-bold text-gray-400 uppercase">Tribunal / Órgano</span>
+                            <span class="font-medium text-gray-800">${escapeHTML(a.tribunal || 'No especificado')}</span>
+                        </div>
 
-                <div>
-                    <span class="block text-xs font-bold text-gray-400 uppercase">Ubicación Detallada</span>
-                    <span class="font-medium text-gray-800">${escapeHTML(a.sala || a.urlReunion || 'No especificada')}</span>
-                </div>
+                        <div>
+                            <span class="block text-xs font-bold text-gray-400 uppercase">Ubicación Detallada</span>
+                            <span class="font-medium text-gray-800">${escapeHTML(a.sala || a.urlReunion || 'No especificada')}</span>
+                        </div>
 
-                ${a.observaciones ? `<div><span class="block text-xs font-bold text-gray-400 uppercase">Resultado / Observaciones</span><span class="font-medium text-gray-800">${escapeHTML(a.observaciones)}</span></div>` : ''}
-            </div>
-        </td>
-      </tr>
-    `;
-  });
-  
-  tbody.innerHTML = html || `<tr><td colspan="9" class="text-center py-8 text-gray-500">No hay datos registrados.</td></tr>`;
+                        ${a.observaciones ? `<div><span class="block text-xs font-bold text-gray-400 uppercase">Resultado / Observaciones</span><span class="font-medium text-gray-800">${escapeHTML(a.observaciones)}</span></div>` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html || `<tr><td colspan="9" class="text-center py-8 text-gray-500">No hay datos registrados.</td></tr>`;
 }
 
 function generarAccionesRapidasAudiencia(audiencia, rol) {
@@ -411,20 +411,28 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
                  </a>`;
     }
 
-    // 2. GESTIÓN DE ARCHIVOS
+    // 2. GESTIÓN DE ARCHIVOS - CAMBIO AQUÍ
     if (!audiencia.atendida) {
         if (audiencia.actaDocumento) {
-            const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Acta';
+            const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Documento';
+            
+            html += crearSeparador("Documento Adjunto");
+            // CAMBIO: Usar "Ver Documento" en lugar de "Ver Acta Prev."
+            html += crearBoton('action-view-acta', 'fas fa-eye', `Ver Documento`, 'text-blue-600');
+            
+            // Mover la opción "Concluir Audiencia" fuera de esta sección
             html += crearSeparador("Gestión");
-            html += crearBoton('action-view-acta', 'fas fa-eye', `Ver ${labelDoc} Prev.`, 'text-blue-600');
             html += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
-            html += crearBoton('action-remove-acta', 'fas fa-times-circle', `Quitar ${labelDoc}`, 'text-red-500');
+            
+            // CAMBIO: Usar "Quitar Documento" en lugar de "Quitar Acta"
+            html += crearSeparador();
+            html += crearBoton('action-remove-acta', 'fas fa-times-circle', `Quitar Documento`, 'text-red-500');
         } else {
-            html += crearSeparador("Subir Archivo");
+            html += crearSeparador("Subir Documento");
             html += crearBoton('action-upload-generic-documento', 'fas fa-file-upload', 'Subir Documento', 'text-gob-oro font-bold');
         }
     } else if (audiencia.actaDocumento) {
-        const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Acta';
+        const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Documento';
         html += crearSeparador("Archivo Final");
         html += crearBoton('action-view-acta', 'fas fa-file-pdf', `Descargar ${labelDoc}`, 'text-gob-guinda');
     }
@@ -511,7 +519,7 @@ function setupActionMenuListenerAudiencia() {
             else if (target.classList.contains('action-view-acta')) {
                 const nombreDoc = audiencia.actaDocumento;
                 const tipoDoc = audiencia.tipoDocumentoSubido || "Documento";
-                mostrarAlertaAudiencia(`Previsualizando ${tipoDoc} (Simulación): ${nombreDoc}`);
+                mostrarAlertaAudiencia(`Documento: ${nombreDoc}\nTipo: ${tipoDoc}\n\n(Simulación de previsualización)`);
             }
             else if (target.classList.contains('action-download-acta')) {
                 const nombreDoc = audiencia.actaDocumento;
@@ -562,17 +570,20 @@ function subirActa(id, file, tipoElegido = "Acta") {
         AUDIENCIAS[idx].tipoDocumentoSubido = tipoElegido; // <--- GUARDAR TIPO
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        mostrarMensajeGlobal(`${tipoElegido} cargado correctamente.`, 'success');
+        // CAMBIO: Cambiar mensaje para reflejar que es un documento
+        mostrarMensajeGlobal(`Documento "${file.name}" cargado correctamente.`, 'success');
     }
 }
 function quitarActa(id) {
     const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
     if (idx !== -1) {
+        const nombreArchivo = AUDIENCIAS[idx].actaDocumento;
         AUDIENCIAS[idx].actaDocumento = '';
         AUDIENCIAS[idx].tipoDocumentoSubido = ''; // <--- LIMPIAR TIPO
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        mostrarMensajeGlobal('Archivo eliminado.', 'warning');
+        // CAMBIO: Mensaje más específico
+        mostrarMensajeGlobal(`Documento "${nombreArchivo}" eliminado.`, 'warning');
     }
 }
 function initModalAudiencias() {
@@ -983,7 +994,11 @@ function abrirModalReasignarAudiencia(id) {
 
 function mostrarAlertaAudiencia(mensaje) {
     const modal = document.getElementById('modal-alerta-audiencia');
-    if(!modal) return alert(mensaje); 
+    if(!modal) {
+        // CAMBIO: Mostrar alerta con el nombre del documento
+        alert(mensaje); 
+        return;
+    }
 
     document.getElementById('alerta-mensaje-audiencia').textContent = mensaje;
     

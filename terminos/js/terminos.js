@@ -92,8 +92,6 @@ function loadTerminos() {
         search: document.getElementById('search-terminos')?.value.toLowerCase() || ''
     };
 
-    // Filtrar términos que NO están en estado "Liberado" para la tabla principal
-    // (Los liberados se mueven a Agenda General)
     const listaFiltrada = TERMINOS.filter(t => {
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
         
@@ -227,7 +225,7 @@ function generarAccionesRapidas(termino, rol) {
     // Se muestra en etapas previas a la liberación final
     if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa !== 'Liberado') {
         if (tieneDocumento) {
-            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Proyecto', 'text-blue-600');
+            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
             html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
         } else {
             html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Proyecto Word', 'text-gob-oro font-bold');
@@ -336,7 +334,7 @@ function setupActionMenuListener() {
                 
                 registrarActividadExpediente(
                     TERMINOS[tIdx].asuntoId,
-                    'Proyecto Actualizado',
+                    'Borrador Actualizado',
                     `Se cargó el archivo: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`,
                     'upload'
                 );
@@ -348,7 +346,7 @@ function setupActionMenuListener() {
         fileInput.click();
         }
         else if (target.classList.contains('action-download-word')) {
-            mostrarMensajeGlobal(`Descargando Proyecto: ${termino.archivoWord}`, "success");
+            mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
             // Aquí iría la lógica real de descarga
         }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
@@ -366,19 +364,19 @@ function setupActionMenuListener() {
         }
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion(
-                'Quitar Acuse / Corregir',
-                '¿Deseas eliminar el acuse actual?\n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.',
+                'Quitar Acuse / Corregir', 
+                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.', 
                 () => {
                     const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
                     if (tIdx !== -1) {
                         TERMINOS[tIdx].acuseDocumento = '';
-                        TERMINOS[tIdx].estatus = 'Liberado';
+                        TERMINOS[tIdx].estatus = 'Liberado'; 
                         registrarActividadExpediente(
                             TERMINOS[tIdx].asuntoId,
                             'Acuse Removido',
                             `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}" para corrección.`,
                             'delete'
-                        );
+                        );  
                         guardarYRecargar();
                         mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
                     }
@@ -399,12 +397,7 @@ function setupActionMenuListener() {
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
             if(idx !== -1) {
                 TERMINOS[idx].acuseDocumento = e.target.files[0].name;
-                if(TERMINOS[idx].estatus === 'Liberado') {
-                    TERMINOS[idx].estatus = 'Presentado';
-                    
-                    // Si se sube acuse a un término liberado, sincronizar primero
-                    sincronizarConAgendaGeneral(TERMINOS[idx]);
-                }
+                if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
                 guardarYRecargar();
                 mostrarMensajeGlobal('Acuse subido', 'success');
             }
@@ -479,7 +472,7 @@ function avanzarEtapa(id) {
     const actual = termino.estatus;
 
     if (!termino.archivoWord && actual !== 'Liberado' && actual !== 'Presentado') {
-        mostrarMensajeGlobal("No puede avanzar sin subir el Proyecto Word primero.", "danger");
+        mostrarMensajeGlobal("No puede avanzar sin subir el borrador Word primero.", "danger");
         return;
     }
 
@@ -507,10 +500,6 @@ function avanzarEtapa(id) {
                     `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
                     'status'
                 );
-                // Sincronizar al liberar (mover a Agenda General y limpiar tabla principal)
-                sincronizarConAgendaGeneral(TERMINOS[idx]);
-                // sincronizarConAgendaGeneral eliminará el término de la lista principal; no continuar con más operaciones
-                return;
             }
             guardarYRecargar(); 
             mostrarMensajeGlobal(`Avanzado a ${nuevoEstado}`, 'success'); 
@@ -551,7 +540,7 @@ function guardarYRecargar() {
 }
 
 // ===============================================
-// 8. MODALES (MANUALES) - ROBUSTO
+// 7. MODALES (MANUALES) - ROBUSTO
 // ===============================================
 function initModalTerminosJS() {
    const modal = document.getElementById('modal-termino');
@@ -794,7 +783,7 @@ function initModalPresentar() {
                 
                 if(nuevoEstatus) {
                     TERMINOS[idx].estatus = nuevoEstatus;
-
+                    
                     if(observaciones) {
                         TERMINOS[idx].observaciones = observaciones;
                     }
@@ -818,7 +807,7 @@ function initModalPresentar() {
                     // -------------------------------
                     
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
-
+                    
                     modal.classList.remove('flex'); 
                     modal.classList.add('hidden');
                 }

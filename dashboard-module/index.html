@@ -1,135 +1,155 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-gray-50">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Sistema Legal</title>
-  
-  <link href="../css/output.css" rel="stylesheet" />
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet" />
-  <script src="../chart.umd.min.js"></script>
-</head>
-<body class="bg-gray-50">
-  
-  <div data-include="../components/sidebar.html"></div>
-
-  <div class="p-4 sm:ml-64">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Sistema Legal</title>
     
+    <link href="../css/output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="../chart.umd.min.js"></script>
+</head>
+<body class="font-sans text-gob-gris antialiased bg-gray-50">
 
-    <div data-include="./components/stats-cards.html"></div>
+    <div data-include="../components/sidebar.html"></div>
 
-    <div class="grid grid-cols-1 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gob-guinda font-headings">
-            <i class="fas fa-building mr-2"></i>Distribución por Gerencia
-          </h3>
-        </div>
-        <div class="chart-container">
-          <canvas id="chartGerencias"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div class="flex items-center gap-2">
-          <i class="fas fa-filter text-gob-guinda"></i>
-          <span class="text-sm font-semibold text-gob-gris">Filtrar por Gerencia:</span>
-        </div>
-        <select id="filterGerenciaUnificado" class="flex-1 sm:flex-none sm:min-w-[300px] text-sm border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-gob-oro focus:border-gob-oro transition-all">
-          <option value=""> Todas las gerencias</option>
-        </select>
-        <div class="flex items-center gap-3 text-xs ml-auto">
-          <span class="text-gob-gris">Leyenda:</span>
-          <span class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-            <span class="text-gray-600">Audiencias</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full bg-green-500"></span>
-            <span class="text-gray-600">Términos</span>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
-          <h3 class="text-lg font-bold text-gob-guinda font-headings flex items-center">
-            <i class="fas fa-users mr-2"></i>Carga de Trabajo
-          </h3>
-          
-          <div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
-            <span class="text-xs font-semibold text-gray-500 pl-2">Ver en:</span>
-            <select id="filterCargaTrabajoMetric" class="text-xs border-0 bg-transparent py-1 pl-1 pr-7 text-gray-700 font-medium focus:ring-0 cursor-pointer hover:text-gob-guinda">
-              <option value="expedientes">Expedientes</option>
-              <option value="audiencias">Audiencias</option>
-              <option value="terminos">Términos</option>
-            </select>
-          </div>
-        </div>
+    <div class="p-4 sm:ml-64">
         
-        <div class="chart-container">
-          <canvas id="chartUsuarios">
-          </canvas>
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gob-gris font-headings">
+                    <i class="fas fa-chart-line text-gob-oro mr-2"></i> Dashboard
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Resumen de actividad y métricas clave.</p>
+            </div>
+            
+            <div class="w-full md:w-64">
+                <select id="filterGerenciaUnificado" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gob-oro focus:border-gob-oro block w-full p-2.5 shadow-sm">
+                    <option value="">Cargando gerencias...</option>
+                </select>
+            </div>
         </div>
-      </div>
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gob-guinda font-headings">
-            <i class="fas fa-chart-line mr-2"></i>Trabajo Completado (Últimos 6 Meses)
-          </h3>
-        </div>
-        <div class="chart-container">
-          <canvas id="chartTrabajoCompletado"></canvas>
-        </div>
-      </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg p-5 shadow-md border-l-4 border-gob-guinda transition-transform hover:-translate-y-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Expedientes Totales</p>
+                        <h3 class="text-3xl font-bold text-gob-gris mt-2" id="kpi-total-expedientes">0</h3>
+                        <p class="text-xs text-gray-400 mt-1">Registrados en sistema</p>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded-full text-gob-guinda">
+                        <i class="fas fa-folder text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-md border-l-4 border-blue-500 transition-transform hover:-translate-y-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">En Trámite</p>
+                        <h3 class="text-3xl font-bold text-gob-gris mt-2" id="kpi-expedientes-activos">0</h3>
+                        <p class="text-xs text-gray-400 mt-1">Expedientes activos</p>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-full text-blue-600">
+                        <i class="fas fa-folder-open text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-md border-l-4 border-gob-oro transition-transform hover:-translate-y-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Audiencias Pendientes</p>
+                        <h3 class="text-3xl font-bold text-gob-gris mt-2" id="kpi-audiencias-programadas">0</h3>
+                        <p class="text-xs text-gray-400 mt-1">Próximas a vencer</p>
+                    </div>
+                    <div class="p-3 bg-yellow-50 rounded-full text-gob-oro">
+                        <i class="fas fa-gavel text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-md border-l-4 border-green-600 transition-transform hover:-translate-y-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Términos Activos</p>
+                        <h3 class="text-3xl font-bold text-gob-gris mt-2" id="kpi-terminos-activos">0</h3>
+                        <p class="text-xs text-gray-400 mt-1">En seguimiento</p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-full text-green-600">
+                        <i class="fas fa-clock text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
+                <h3 class="text-lg font-bold text-gob-guinda font-headings mb-4">
+                    <i class="fas fa-chart-pie mr-2"></i> Estatus Global de Expedientes
+                </h3>
+                <div class="relative h-80 w-full">
+                    <canvas id="chartEstatusExpedientes"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gob-guinda font-headings">
+                        <i class="fas fa-chart-bar mr-2"></i> Carga de Trabajo
+                    </h3>
+                    <select id="filterCargaTrabajoMetric" class="text-xs bg-gray-50 border border-gray-300 rounded p-1">
+                        <option value="expedientes">Expedientes</option>
+                        <option value="audiencias">Audiencias</option>
+                    </select>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="chartCargaTrabajo"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gob-guinda font-headings mb-4">
+                    <i class="fas fa-history mr-2"></i> Trabajo Completado (Año Actual)
+                </h3>
+                <div class="relative h-72 w-full">
+                    <canvas id="chartTrabajoCompletado"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gob-guinda font-headings mb-4">
+                    <i class="fas fa-gavel mr-2"></i> Cumplimiento Audiencias
+                </h3>
+                <div class="relative h-72 w-full">
+                    <canvas id="chartEstatusAudiencias"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gob-guinda font-headings mb-4">
+                    <i class="fas fa-tasks mr-2"></i> Etapas de Términos
+                </h3>
+                <div class="relative h-72 w-full">
+                    <canvas id="chartEstatusTerminos"></canvas>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gob-guinda font-headings">
-            <i class="fas fa-chart-pie mr-2"></i>Estados de Expedientes
-          </h3>
-        </div>
-        <div class="chart-container">
-          <canvas id="chartEstados"></canvas>
-        </div>
-      </div>
-    </div>
+    <script src="../components/system-badge.js"></script>
 
-  </div>
-
-  <script type="module">
-    // Importación Global del Loader
-    import { loadIncludes } from '../js/loader.js';
-    // Importación Local del Módulo
-    import { DashboardModule } from './js/dashboard-module.js';
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      await loadIncludes();
-      
-      // Resaltar el link activo en el sidebar global
-      const navDashboard = document.getElementById('nav-dashboard');
-      if(navDashboard) {
-         navDashboard.classList.add('bg-white/10', 'text-white', 'border-l-4', 'border-gob-oro');
-         navDashboard.classList.remove('text-gray-300', 'hover:bg-gob-verdeDark');
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const dashboard = new DashboardModule();
-      dashboard.init();
-    });
-  </script>
-  <script src="../components/system-badge.js"></script>
+    <script type="module">
+        import { loadIncludes } from '../js/loader.js';
+        import { DashboardModule } from './js/dashboard-module.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadIncludes();
+            const dashboard = new DashboardModule();
+            dashboard.init();
+        });
+    </script>
 </body>
 </html>

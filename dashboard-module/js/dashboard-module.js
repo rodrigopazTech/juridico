@@ -108,7 +108,7 @@ export class DashboardModule {
     } catch(e) { this.terminos = []; }
   }
 
-  // --- DATOS DE EJEMPLO ---
+  // ---  DE EJEMPLO ---
   getSampleExpedientes() {
     return [
       { id: 1, numero: 'EXP-0001', descripcion: 'Conflicto contractual', materia: 'Civil', prioridad: 'Alta', estado: 'Activo', abogado: 'Lic. González', gerenciaId: 1, ultimaActividad: '2025-01-15' },

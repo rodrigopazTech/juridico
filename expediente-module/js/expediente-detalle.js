@@ -9,6 +9,7 @@ export class ExpedienteDetalleModule {
         this.currentView = 'grid'; // Nuevo: 'grid' | 'list'
         this.currentFolderId = null; // Guardamos esto para recargar al cambiar vista
         this.currentLabel = 'Inicio'; // Guardamos el nombre actual
+        this.expandedFolders = new Set(['root']);
     }
     get userRole() {
         // Obtenemos el rol guardado (o 'Abogado' por defecto si no existe)
@@ -179,86 +180,98 @@ export class ExpedienteDetalleModule {
         const btnClose = document.getElementById('close-explorer');
         const inputFile = document.getElementById('input-explorer-upload');
         const btnUpload = document.getElementById('btn-upload-explorer');
-        const btnNewFolder = document.getElementById('btn-new-folder'); // NUEVO
-
-        // Botones de Vista
+        const btnNewFolder = document.getElementById('btn-new-folder'); 
         const btnGrid = document.getElementById('view-grid');
         const btnList = document.getElementById('view-list');
-
-        if (btnGrid) {
-            btnGrid.onclick = () => {
-                this.currentView = 'grid';
-                this.updateViewButtons();
-                if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel);
-            };
-        }
-        if (btnList) {
-            btnList.onclick = () => {
-                this.currentView = 'list';
-                this.updateViewButtons();
-                if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel);
-            };
-        }
-
-        // BUSCADOR EN TIEMPO REAL
         const searchInput = document.getElementById('explorer-search');
+
+        if (btnGrid) btnGrid.onclick = () => { this.currentView = 'grid'; this.updateViewButtons(); if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel); };
+        if (btnList) btnList.onclick = () => { this.currentView = 'list'; this.updateViewButtons(); if(this.currentFolderId) this.loadFolder(this.currentFolderId, this.currentLabel); };
+
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
-                const cards = document.querySelectorAll('#explorer-content > div');
-                
-                cards.forEach(card => {
-                    const nameSpan = card.querySelector('span[title], .truncate'); 
-                    const name = nameSpan ? nameSpan.textContent.toLowerCase() : '';
-                    
-                    if (name.includes(term)) {
-                        card.style.display = ''; 
-                    } else {
-                        card.style.display = 'none'; 
-                    }
+                document.querySelectorAll('#explorer-content > div').forEach(card => {
+                    const name = card.querySelector('span[title], .truncate')?.textContent.toLowerCase() || '';
+                    card.style.display = name.includes(term) ? '' : 'none'; 
                 });
             });
         }
 
-        // ACCIÓN: NUEVA CARPETA
         if (btnNewFolder) {
             btnNewFolder.onclick = () => {
-                if (this.currentFolderId === 'terminos') {
-                    Swal.fire('Gestión de Términos', 'Para agregar una carpeta aquí, debes registrar un nuevo Término Legal desde el módulo correspondiente.', 'info');
-                } else if (this.currentFolderId === 'audiencias') {
-                    Swal.fire('Gestión de Audiencias', 'Para agregar una carpeta aquí, debes agendar una nueva Audiencia.', 'info');
-                } else if (this.currentFolderId === 'anexos') {
-                    // Aquí sí podríamos permitir crear carpetas lógicas en el futuro
-                    Swal.fire('Nueva Carpeta', 'Función para crear sub-carpetas en Anexos (Próximamente).', 'success');
+                // Ahora permitimos crear subcarpetas infinitas en 'anexos' o dentro de 'custom-'
+                if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-')) {
+                    this.promptNewFolder();
+                } else if (this.currentFolderId === 'terminos' || this.currentFolderId === 'audiencias') {
+                    Swal.fire('Estructura Protegida', 'Estas carpetas se gestionan automáticamente desde sus módulos.', 'info');
                 } else {
-                    Swal.fire('Acción no permitida', 'No puedes crear carpetas en la raíz o dentro de un expediente cerrado.', 'warning');
+                    Swal.fire('Acción no permitida', 'No puedes crear carpetas en la raíz.', 'warning');
                 }
             };
         }
 
-        // Abrir Modal
-        if (btnOpen) btnOpen.onclick = () => {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            this.renderTree(); 
-            this.updateViewButtons(); 
-        };
+        if (btnOpen) btnOpen.onclick = () => { modal.classList.remove('hidden'); modal.classList.add('flex'); this.renderTree(); this.updateViewButtons(); };
+        if (btnClose) btnClose.onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
-        // Cerrar Modal
-        if (btnClose) btnClose.onclick = () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        };
-
-        // Subir Archivo
         if (btnUpload && inputFile) {
             btnUpload.onclick = () => inputFile.click();
-            inputFile.onchange = (e) => {
-                if (e.target.files.length > 0) {
-                    this.handleExplorerUpload(e.target.files[0]);
-                }
-            };
+            inputFile.onchange = (e) => { if (e.target.files.length > 0) this.handleExplorerUpload(e.target.files[0]); };
         }
+    }
+
+    // --- FUNCIÓN PARA CREAR CARPETA PERSONALIZADA ---
+    async promptNewFolder() {
+        const { value: folderName } = await Swal.fire({
+            title: 'Nueva Carpeta',
+            input: 'text',
+            inputLabel: 'Nombre de la carpeta',
+            inputPlaceholder: 'Ej: Pruebas Periciales',
+            showCancelButton: true,
+            confirmButtonColor: '#691c32',
+            confirmButtonText: 'Crear',
+            inputValidator: (value) => {
+                if (!value) return 'Debes escribir un nombre';
+            }
+        });
+
+        if (folderName) {
+            this.createCustomFolder(folderName);
+        }
+    }
+
+    createCustomFolder(name) {
+        const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
+        const parentId = (this.currentFolderId.startsWith('custom-')) ? this.currentFolderId : 'anexos';
+
+        const newFolder = {
+            id: `custom-${Date.now()}`,
+            expedienteId: this.id,
+            parentId: parentId, 
+            name: name,
+            date: new Date().toLocaleDateString('es-MX')
+        };
+        customFolders.push(newFolder);
+        localStorage.setItem('custom_folders', JSON.stringify(customFolders));
+        
+        // Al crear, expandimos el padre para ver la nueva carpeta
+        this.expandedFolders.add(parentId);
+        
+        this.loadFolder(this.currentFolderId, this.currentLabel); 
+        this.renderTree(); 
+        
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+        Toast.fire({ icon: 'success', title: 'Carpeta creada' });
+    }
+
+    // --- LÓGICA DE ÁRBOL "UNITY" (TOGGLE) ---
+    toggleTreeNode(nodeId) {
+        if (this.expandedFolders.has(nodeId)) {
+            this.expandedFolders.delete(nodeId); // Desacoplar (Cerrar)
+        } else {
+            this.expandedFolders.add(nodeId); // Acoplar (Abrir)
+        }
+        this.renderTree(); // Redibujar árbol
     }
 
     // Helper visual para resaltar el botón activo
@@ -275,103 +288,130 @@ export class ExpedienteDetalleModule {
         }
     }
 
-   renderTree() {
+    renderTree() {
         const treeContainer = document.getElementById('explorer-tree');
         if(!treeContainer) return;
 
-        // 1. Estructura Base
+        // 1. Construir la estructura completa de datos
         let structure = [
-            { id: 'root', label: 'EXP-' + (this.expediente.numero || this.id), icon: 'fa-folder-open', color: 'text-gob-oro' },
-            { id: 'audiencias', label: 'Audiencias', icon: 'fa-folder', parent: 'root' },
-            { id: 'terminos', label: 'Términos Legales', icon: 'fa-folder', parent: 'root' },
-            { id: 'anexos', label: 'Anexos y Pruebas', icon: 'fa-file-import', parent: 'root' }
+            { id: 'root', label: 'EXP-' + (this.expediente.numero || this.id), icon: 'fa-folder', color: 'text-gob-oro', type: 'folder' },
+            { id: 'audiencias', label: 'Audiencias', icon: 'fa-folder', parent: 'root', type: 'folder' },
+            { id: 'terminos', label: 'Términos Legales', icon: 'fa-folder', parent: 'root', type: 'folder' },
+            { id: 'anexos', label: 'Anexos y Pruebas', icon: 'fa-file-import', parent: 'root', type: 'folder' }
         ];
 
-        // 2. GENERACIÓN DINÁMICA DE SUB-CARPETAS (001, 002...)
-        // Obtenemos los términos reales de este expediente
+        // Términos
         const allTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
         const misTerminos = allTerminos.filter(t => String(t.asuntoId) === String(this.id));
-
-        misTerminos.forEach((t, index) => {
-            // Formato: "001 - Contestación..."
-            const numCarpeta = String(index + 1).padStart(3, '0');
-            const nombreCorto = (t.asunto || 'Sin Asunto').substring(0, 18) + '...';
-            
-            structure.push({
-                id: `term-${t.id}`, // ID especial para identificarlo
-                label: `${numCarpeta} - ${nombreCorto}`,
-                icon: 'fa-folder',
-                parent: 'terminos', // Esto lo hace hijo de "Términos Legales"
-                color: 'text-yellow-500'
-            });
-        });
-      
-        const allAudiencias = JSON.parse(localStorage.getItem('audiencias')) || [];
-        const misAudiencias = allAudiencias.filter(a => String(a.expedienteId) === String(this.id)); // Asegúrate que tu objeto audiencia tenga 'expedienteId' o similar
-
-        misAudiencias.forEach((aud, index) => {
-            const numAud = String(index + 1).padStart(3, '0');
-            // Asumimos que la audiencia tiene un campo 'tipo' o 'descripcion'
-            const nombreAud = (aud.tipo || 'Audiencia').substring(0, 18); 
-
-            structure.push({
-                id: `aud-${aud.id}`,     // ID único para la carpeta
-                label: `${numAud} - ${nombreAud}`,
-                icon: 'fa-folder',        // Icono de mazo
-                parent: 'audiencias',    // Hijo de la carpeta "Audiencias"
-                color: 'text-indigo-500'
+        misTerminos.forEach((t, i) => {
+            const folderId = `term-${t.id}`;
+            structure.push({ id: folderId, label: `${String(i+1).padStart(3,'0')} - ${(t.asunto||'').substring(0,15)}...`, icon: 'fa-folder', parent: 'terminos', color: 'text-yellow-500', type: 'folder' });
+            // Archivos de término
+            if(t.archivoWord) structure.push({ id: `f-t-w-${t.id}`, label: t.archivoWord, icon: 'fa-file-word', parent: folderId, type: 'file', color: 'text-blue-600' });
+            if(t.acuseDocumento) structure.push({ id: `f-t-a-${t.id}`, label: t.acuseDocumento, icon: 'fa-file-pdf', parent: folderId, type: 'file', color: 'text-red-500' });
+            if(t.historialArchivos) t.historialArchivos.forEach((h, hi) => {
+                if(h.nombre !== t.archivoWord && h.nombre !== t.acuseDocumento) structure.push({ id: `f-t-h-${t.id}-${hi}`, label: h.nombre, icon: h.nombre.endsWith('pdf')?'fa-file-pdf':'fa-file-word', parent: folderId, type: 'file', color: 'text-gray-400' });
             });
         });
 
-        // 3. Renderizado Recursivo (Para que se vea la jerarquía)
+        // Audiencias
+        const audAct = JSON.parse(localStorage.getItem('audiencias')) || [];
+        const audHist = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+        const misAud = [...audAct, ...audHist].filter(a => String(a.asuntoId) === String(this.id)).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+        misAud.forEach((a, i) => {
+            const folderId = `aud-${a.id}`;
+            structure.push({ id: folderId, label: `${String(i+1).padStart(3,'0')} - ${(a.tipo||'').substring(0,15)}...`, icon: a.atendida?'fa-check-circle':'fa-folder', parent: 'audiencias', color: a.atendida?'text-green-600':'text-indigo-500', type: 'folder' });
+            if(a.actaDocumento) structure.push({ id: `f-a-${a.id}`, label: a.actaDocumento, icon: 'fa-file-pdf', parent: folderId, type: 'file', color: 'text-red-500' });
+        });
+
+        // Custom Folders
+        const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
+        const misCustom = customFolders.filter(f => String(f.expedienteId) === String(this.id));
+        misCustom.forEach(f => {
+            structure.push({ id: f.id, label: f.name, icon: 'fa-folder', parent: f.parentId, type: 'folder', color: 'text-gray-500' });
+        });
+
+        // Archivos sueltos
+        if(this.expediente.documentos) {
+            this.expediente.documentos.forEach((d, i) => {
+                let parent = d.folderId ? d.folderId : (d.tipo==='Anexo' ? 'anexos' : 'root');
+                structure.push({ id: `doc-${i}`, label: d.nombre, icon: d.nombre.endsWith('pdf')?'fa-file-pdf':'fa-file-word', parent: parent, type: 'file', color: d.nombre.endsWith('pdf')?'text-red-500':'text-blue-600' });
+            });
+        }
+
+        // Renderizado Recursivo
         let html = '';
-        
         const renderNode = (node, level = 0) => {
-            // Padding para simular anidación visual
-            const paddingLeft = 8 + (level * 12);
+            const children = structure.filter(item => item.parent === node.id);
+            const hasChildren = children.length > 0;
+            const padding = 8 + (level * 12);
             
-            // Icono de flechita si tiene hijos (opcional, visual)
-            const hasChildren = structure.some(s => s.parent === node.id);
-            const arrow = hasChildren ? '<i class="fas fa-caret-down text-gray-300 mr-1 text-[10px]"></i>' : '<span class="w-3 inline-block"></span>';
+            // Estado Unity
+            const isExpanded = this.expandedFolders.has(node.id);
+            const isSelected = this.currentFolderId === node.id;
+            
+            // Iconos dinámicos
+            let iconToRender = node.icon;
+            if (node.type === 'folder') {
+                if (node.id === 'root') iconToRender = 'fa-folder-open'; // Root siempre abierto visualmente
+                else if (isExpanded) iconToRender = 'fa-folder-open';
+            }
+
+            // Flecha (Click -> Toggle)
+            // Si es carpeta, mostrar flecha. Si está vacía, mostrar punto transparente o nada.
+            let arrow = '<span class="w-4 inline-block"></span>';
+            if (node.type === 'folder' && hasChildren) {
+                arrow = `<span class="w-4 inline-flex items-center justify-center cursor-pointer hover:text-gob-guinda transition-colors" 
+                               onclick="window.detalleModule.toggleTreeNode('${node.id}'); event.stopPropagation();">
+                            <i class="fas ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-[10px] text-gray-400"></i>
+                         </span>`;
+            }
+
+            // Fondo de selección
+            const bgClass = isSelected ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100';
+
+            // Acción principal (Click en nombre/icono)
+            const mainAction = node.type === 'folder' 
+                ? `window.detalleModule.loadFolder('${node.id}', '${node.label.replace(/'/g, "\\'")}')`
+                : `window.detalleModule.previewFile('${node.label.replace(/'/g, "\\'")}')`;
 
             html += `
-            <div class="flex items-center gap-1.5 p-1.5 hover:bg-blue-50 hover:text-blue-700 rounded cursor-pointer transition-all text-xs group" 
-                 style="padding-left: ${paddingLeft}px"
-                 onclick="window.detalleModule.loadFolder('${node.id}', '${node.label}')">
+            <div class="flex items-center gap-1 p-1 rounded cursor-pointer transition-all text-xs group select-none ${bgClass}" 
+                 style="padding-left: ${padding}px" 
+                 onclick="${mainAction}">
                 ${arrow}
-                <i class="fas ${node.icon} ${node.color || 'text-gray-400'} group-hover:text-blue-500"></i>
-                <span class="truncate font-medium">${node.label}</span>
+                <i class="fas ${iconToRender} ${node.color || 'text-gray-400'} min-w-[16px] text-center"></i>
+                <span class="truncate ${node.type==='file'?'text-gray-500':'font-medium'} ml-1">${node.label}</span>
             </div>`;
 
-            // Buscar y renderizar hijos
-            const children = structure.filter(item => item.parent === node.id);
-            children.forEach(child => renderNode(child, level + 1));
+            // RECURSIÓN: Solo si está expandido
+            if (isExpanded && hasChildren) {
+                children.forEach(child => renderNode(child, level + 1));
+            }
         };
 
-        // Iniciar renderizado desde la raíz
         const root = structure.find(s => s.id === 'root');
         if(root) renderNode(root);
-
         treeContainer.innerHTML = html;
-        window.detalleModule = this; // Exponer para el onclick del HTML
-        
-        // Cargar carpeta raíz por defecto
-        if(!this.currentFolderId) this.loadFolder('root', 'Inicio');
+        window.detalleModule = this; 
     }
-
 
     loadFolder(folderId, label) {
         this.currentFolderId = folderId; 
         this.currentLabel = label; 
         
+        // Al dar clic en una carpeta para cargarla, nos aseguramos que se expanda en el árbol
+        if (!this.expandedFolders.has(folderId)) {
+            this.expandedFolders.add(folderId);
+            this.renderTree();
+        }
+
         const content = document.getElementById('explorer-content');
         const breadcrumb = document.getElementById('explorer-breadcrumb');
         const btnUpload = document.getElementById('btn-upload-explorer');
         
         breadcrumb.innerHTML = `<i class="fas fa-folder-open text-[10px]"></i> <span class="ml-1 text-gob-guinda">${label}</span>`;
         content.innerHTML = '';
-        
-        content.removeAttribute('style');
         content.className = "flex-1 p-4 overflow-y-auto bg-white relative"; 
 
         if (this.currentView === 'grid') {
@@ -383,133 +423,156 @@ export class ExpedienteDetalleModule {
             content.classList.add('flex', 'flex-col', 'gap-1');
         }
 
-        const esCarpetaTermino = folderId.startsWith('term-');
-        const esCarpetaAudiencia = folderId.startsWith('aud-');
-        const esAnexos = folderId === 'anexos';
-        
-        if (esCarpetaTermino || esCarpetaAudiencia || esAnexos) {
-            btnUpload.classList.remove('hidden');
-        } else {
-            btnUpload.classList.add('hidden');
+        const esPermitido = folderId.startsWith('term-') || folderId.startsWith('aud-') || folderId === 'anexos' || folderId.startsWith('custom-');
+        btnUpload.classList.toggle('hidden', !esPermitido);
+
+        let items = []; 
+
+        // Lógica de Contenido (Igual que antes)
+        if (folderId === 'root') {
+            items.push(
+                { isFolder: true, id: 'audiencias', name: 'Audiencias', date: 'Sistema' },
+                { isFolder: true, id: 'terminos', name: 'Términos Legales', date: 'Sistema' },
+                { isFolder: true, id: 'anexos', name: 'Anexos y Pruebas', date: 'Sistema' }
+            );
         }
-
-        let files = [];
-
-        if (esCarpetaTermino) {
+        else if (folderId === 'terminos') {
+            const all = JSON.parse(localStorage.getItem('terminos')) || [];
+            all.filter(t => String(t.asuntoId) === String(this.id)).forEach((t, i) => {
+                items.push({ isFolder: true, id: `term-${t.id}`, name: `${String(i+1).padStart(3,'0')} - ${t.asunto}`, date: t.fechaIngreso || 'N/A' });
+            });
+        }
+        else if (folderId === 'audiencias') {
+            const act = JSON.parse(localStorage.getItem('audiencias')) || [];
+            const hist = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+            [...act, ...hist].filter(a => String(a.asuntoId) === String(this.id)).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).forEach((a, i) => {
+                items.push({ isFolder: true, id: `aud-${a.id}`, name: `${String(i+1).padStart(3,'0')} - ${a.tipo}`, date: a.fecha });
+            });
+        }
+        else if (folderId.startsWith('term-')) {
             const realId = folderId.replace('term-', '');
-            const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
-            const term = terminos.find(t => String(t.id) === String(realId));
+            const term = (JSON.parse(localStorage.getItem('terminos'))||[]).find(t => String(t.id) === String(realId));
             if (term) {
-                if(term.archivoWord) files.push({ name: term.archivoWord, type: 'word', date: term.fechaIngreso || 'N/A' });
-                if(term.acuseDocumento) files.push({ name: term.acuseDocumento, type: 'pdf', date: term.fechaVencimiento || 'N/A' });
+                if(term.historialArchivos) term.historialArchivos.forEach(d => items.push({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: this.formatDateShort(d.fecha) }));
+                else {
+                    if(term.archivoWord) items.push({ name: term.archivoWord, type: 'word', date: term.fechaIngreso });
+                    if(term.acuseDocumento) items.push({ name: term.acuseDocumento, type: 'pdf', date: term.fechaVencimiento });
+                }
             }
-        } 
-        else if (folderId === 'terminos' || folderId === 'audiencias') {
-            content.style.display = 'flex';
-            content.className = "flex-1 flex flex-col items-center justify-center p-4"; 
-            content.innerHTML = `<div class="text-gray-300 text-center"><i class="fas fa-level-down-alt text-4xl mb-2"></i><p class="text-xs italic">Selecciona una subcarpeta del menú.</p></div>`;
-            return;
         }
-        else if (esAnexos) {
-            const anexos = (this.expediente.documentos || []).filter(d => d.tipo === 'Anexo');
-            files = anexos.map(d => ({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: d.fecha }));
+        else if (folderId.startsWith('aud-')) {
+            const realId = folderId.replace('aud-', '');
+            const act = JSON.parse(localStorage.getItem('audiencias')) || [];
+            const hist = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+            const aud = [...act, ...hist].find(a => String(a.id) === String(realId));
+            if (aud && aud.actaDocumento) items.push({ name: aud.actaDocumento, type: 'pdf', date: aud.fecha });
+        }
+        else {
+            const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
+            customFolders.filter(f => String(f.expedienteId) === String(this.id) && f.parentId === folderId).forEach(f => {
+                items.push({ isFolder: true, id: f.id, name: f.name, date: f.date });
+            });
+            const docs = this.expediente.documentos || [];
+            docs.filter(d => {
+                if (folderId === 'anexos') return d.tipo === 'Anexo' && (!d.folderId || d.folderId === 'anexos');
+                return d.tipo === 'Anexo' && d.folderId === folderId;
+            }).forEach(d => {
+                items.push({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: d.fecha });
+            });
         }
 
-        if (files.length === 0) {
-            content.style.display = 'flex';
-            content.className = "flex-1 flex items-center justify-center p-4"; 
+        if (items.length === 0) {
+            content.style.display = 'flex'; content.className = "flex-1 flex items-center justify-center p-4"; 
             content.innerHTML = `<div class="text-center text-gray-400 italic text-xs">Carpeta vacía</div>`;
             document.getElementById('explorer-stats').textContent = `0 Elementos`;
             return;
         }
 
-        // VERIFICAMOS PERMISO
         const canDelete = this.canUserDelete();
 
-        files.forEach(file => {
+        items.forEach(item => {
             const el = document.createElement('div');
-            const iconClass = file.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-word text-blue-600';
+            let iconClass = item.isFolder ? 'fa-folder' : ((item.name.endsWith('.pdf')||item.type==='pdf')?'fa-file-pdf':'fa-file-word');
+            let iconColor = item.isFolder ? 'text-yellow-400' : ((item.name.endsWith('.pdf')||item.type==='pdf')?'text-red-500':'text-blue-600');
             
             if (this.currentView === 'grid') {
                 el.className = "group relative flex flex-col items-center justify-start pt-4 gap-2 border border-gray-200 rounded-lg bg-white transition-all cursor-pointer overflow-hidden";
                 el.style.height = '140px'; 
-
-                el.onmouseenter = () => { 
-                    el.style.borderColor = '#b91c1c'; 
-                    el.style.backgroundColor = '#fef2f2'; 
-                    const overlay = el.querySelector('.overlay-actions');
-                    if(overlay) overlay.style.opacity = '1';
-                };
-                el.onmouseleave = () => { 
-                    el.style.borderColor = '#e5e7eb'; 
-                    el.style.backgroundColor = 'white';
-                    const overlay = el.querySelector('.overlay-actions');
-                    if(overlay) overlay.style.opacity = '0';
-                };
+                el.onmouseenter = () => { el.style.borderColor = '#b91c1c'; el.style.backgroundColor = '#fef2f2'; const overlay = el.querySelector('.overlay-actions'); if(overlay) overlay.style.opacity = '1'; };
+                el.onmouseleave = () => { el.style.borderColor = '#e5e7eb'; el.style.backgroundColor = 'white'; const overlay = el.querySelector('.overlay-actions'); if(overlay) overlay.style.opacity = '0'; };
                 
-               // Renderizamos el botón eliminar SOLO si tiene permisos (canDelete)
-               el.innerHTML = `
-                <i class="fas ${iconClass} text-4xl transition-transform duration-300"></i>
-                <div class="w-full text-center px-2">
-                    <span class="block text-[11px] font-bold text-gray-700 leading-tight line-clamp-2 break-words" title="${file.name}">${file.name}</span>
-                    <span class="block text-[9px] text-gray-400 mt-1">${file.date}</span>
-                </div>
+                let actions = item.isFolder 
+                    ? `${ canDelete && item.id.startsWith('custom-') ? `<button class="btn-delete-folder absolute top-2 right-2 w-6 h-6 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors"><i class="fas fa-trash-alt text-xs"></i></button>` : '' }<button class="btn-open-folder w-8 h-8 rounded-full bg-gob-guinda text-white flex items-center justify-center hover:scale-110 shadow-md"><i class="fas fa-folder-open text-xs"></i></button>`
+                    : `${ canDelete ? `<button class="btn-delete absolute top-2 right-2 w-6 h-6 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors"><i class="fas fa-times text-xs"></i></button>` : '' }<div class="flex gap-2"><button class="btn-preview-file w-8 h-8 rounded-full bg-gob-guinda text-white flex items-center justify-center hover:scale-110"><i class="fas fa-eye text-xs"></i></button><button class="btn-download-file w-8 h-8 rounded-full bg-white text-gray-600 border border-gray-200 flex items-center justify-center hover:text-gob-guinda shadow-md hover:scale-110"><i class="fas fa-download text-xs"></i></button></div>`;
 
-                <div class="overlay-actions absolute inset-0 flex flex-col items-center justify-center gap-2 z-10 transition-opacity duration-200" 
-                     style="background-color: rgba(255,255,255,0.95); opacity: 0; backdrop-filter: blur(1px);">
-                    
-                    ${ canDelete ? `
-                    <button class="btn-delete absolute top-2 right-2 w-6 h-6 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors" title="Eliminar">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                    ` : '' }
-
-                    <div class="flex gap-2">
-                        <button class="btn-preview-file w-8 h-8 rounded-full bg-gob-guinda text-white flex items-center justify-center hover:scale-110 transition-transform" title="Ver">
-                            <i class="fas fa-eye text-xs"></i>
-                        </button>
-                        <button class="btn-download-file w-8 h-8 rounded-full bg-white text-gray-600 border border-gray-200 flex items-center justify-center hover:text-gob-guinda shadow-md hover:scale-110 transition-transform" title="Descargar">
-                            <i class="fas fa-download text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+                el.innerHTML = `<i class="fas ${iconClass} ${iconColor} text-4xl transition-transform duration-300"></i><div class="w-full text-center px-2"><span class="block text-[11px] font-bold text-gray-700 leading-tight line-clamp-2 break-words" title="${item.name}">${item.name}</span><span class="block text-[9px] text-gray-400 mt-1">${item.date}</span></div><div class="overlay-actions absolute inset-0 flex flex-col items-center justify-center gap-2 z-10 transition-opacity duration-200" style="background-color: rgba(255,255,255,0.95); opacity: 0; backdrop-filter: blur(1px);">${actions}</div>`;
             } else {
-                // VISTA LISTA
+                // === CORRECCIÓN VISTA LISTA: NOMBRE COMPLETO ===
                 el.className = "flex items-center justify-between p-2 border-b border-gray-100 transition-colors rounded text-xs cursor-pointer";
                 el.onmouseenter = () => { el.style.backgroundColor = '#f8fafc'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '1'; };
                 el.onmouseleave = () => { el.style.backgroundColor = 'transparent'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '0'; };
+                
+                let actions = item.isFolder 
+                    ? `${ canDelete && item.id.startsWith('custom-') ? `<button class="btn-delete-folder p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded"><i class="fas fa-trash-alt"></i></button>` : '' }<button class="btn-open-folder p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded"><i class="fas fa-folder-open"></i></button>`
+                    : `<button class="btn-preview-file p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded"><i class="fas fa-eye"></i></button><button class="btn-download-file p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded"><i class="fas fa-download"></i></button>${ canDelete ? `<button class="btn-delete p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded"><i class="fas fa-times"></i></button>` : '' }`;
 
+                // Aquí quitamos 'truncate' y usamos 'flex-1 break-words' para que ocupe espacio y baje línea si es necesario
                 el.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <div class="w-8 flex justify-center"><i class="fas ${iconClass} text-lg"></i></div>
-                        <span class="truncate font-medium text-gray-700">${file.name}</span>
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="w-8 flex-shrink-0 flex justify-center"><i class="fas ${iconClass} ${iconColor} text-lg"></i></div>
+                        <span class="font-medium text-gray-700 break-words pr-2">${item.name}</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span class="text-gray-400 text-[10px] hidden sm:block w-20 text-right">${file.date}</span>
-                        <div class="list-actions flex items-center gap-1 transition-opacity duration-200" style="opacity: 0;">
-                            <button class="btn-preview-file p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded" title="Ver"><i class="fas fa-eye"></i></button>
-                            <button class="btn-download-file p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded" title="Descargar"><i class="fas fa-download"></i></button>
-                            ${ canDelete ? `<button class="btn-delete p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded" title="Eliminar"><i class="fas fa-times"></i></button>` : '' }
-                        </div>
-                    </div>
-                `;
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <span class="text-gray-400 text-[10px] hidden sm:block w-20 text-right">${item.date}</span>
+                        <div class="list-actions flex items-center gap-1 transition-opacity duration-200" style="opacity: 0;">${actions}</div>
+                    </div>`;
             }
 
-            const btnPreview = el.querySelector('.btn-preview-file');
-            const btnDownload = el.querySelector('.btn-download-file');
-            const btnDelete = el.querySelector('.btn-delete');
-            
-            if(btnPreview) btnPreview.onclick = (e) => { e.stopPropagation(); this.previewFile(file.name); };
-            if(btnDownload) btnDownload.onclick = (e) => { e.stopPropagation(); this.downloadFile(file.name); };
-            // Solo asignamos el evento si el botón existe (es decir, si tiene permiso)
-            if(btnDelete) btnDelete.onclick = (e) => { e.stopPropagation(); this.deleteFile(file.name); }; 
-
-            el.onclick = (e) => { if(!e.target.closest('button')) this.previewFile(file.name); };
+            // Eventos (Igual que antes)
+            if(item.isFolder) {
+                el.onclick = (e) => { e.stopPropagation(); this.loadFolder(item.id, item.name); };
+                const btnOpen = el.querySelector('.btn-open-folder');
+                const btnDel = el.querySelector('.btn-delete-folder');
+                if(btnOpen) btnOpen.onclick = (e) => { e.stopPropagation(); this.loadFolder(item.id, item.name); };
+                if(btnDel) btnDel.onclick = (e) => { e.stopPropagation(); this.deleteCustomFolder(item.id, item.name); };
+            } else {
+                const btnPreview = el.querySelector('.btn-preview-file'); if(btnPreview) btnPreview.onclick = (e) => { e.stopPropagation(); this.previewFile(item.name); };
+                const btnDownload = el.querySelector('.btn-download-file'); if(btnDownload) btnDownload.onclick = (e) => { e.stopPropagation(); this.downloadFile(item.name); };
+                const btnDelete = el.querySelector('.btn-delete'); if(btnDelete) btnDelete.onclick = (e) => { e.stopPropagation(); this.deleteFile(item.name); }; 
+                el.onclick = (e) => { if(!e.target.closest('button')) this.previewFile(item.name); };
+            }
             content.appendChild(el);
         });
+        document.getElementById('explorer-stats').textContent = `${items.length} Elementos`;
+    }
 
-        document.getElementById('explorer-stats').textContent = `${files.length} Documentos`;
+    // --- ELIMINAR CARPETA PERSONALIZADA ---
+    deleteCustomFolder(folderId, name) {
+        Swal.fire({
+            title: '¿Eliminar Carpeta?',
+            text: `Se borrará la carpeta "${name}". Si tiene archivos, estos se eliminarán también.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sí, borrar todo'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 1. Borrar la carpeta del localStorage
+                let customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
+                customFolders = customFolders.filter(f => f.id !== folderId);
+                localStorage.setItem('custom_folders', JSON.stringify(customFolders));
+
+                // 2. Borrar (o mover) los archivos que estaban dentro
+                // En este caso, optamos por borrar para mantener la limpieza, como advierte el mensaje.
+                if (this.expediente.documentos) {
+                    this.expediente.documentos = this.expediente.documentos.filter(d => d.folderId !== folderId);
+                    updateExpediente(this.id, { documentos: this.expediente.documentos });
+                }
+
+                this.loadFolder('anexos', 'Anexos y Pruebas');
+                Swal.fire('Eliminado', 'La carpeta ha sido eliminada', 'success');
+            }
+        });
     }
 
     deleteFile(fileName) {
@@ -538,93 +601,98 @@ export class ExpedienteDetalleModule {
     }
 
     performDelete(fileName) {
-            if (!this.currentFolderId) return;
-            let eliminado = false;
+        if (!this.currentFolderId) return;
+        let eliminado = false;
 
-            // 1. Borrar de ANEXOS
-            if (this.currentFolderId === 'anexos') {
-                const index = this.expediente.documentos.findIndex(d => d.nombre === fileName);
-                if (index !== -1) {
-                    this.expediente.documentos.splice(index, 1);
-                    updateExpediente(this.id, { documentos: this.expediente.documentos });
-                    eliminado = true;
-                }
-            } 
-            // 2. Borrar de TÉRMINOS
-            else if (this.currentFolderId.startsWith('term-')) {
-                const realId = this.currentFolderId.replace('term-', '');
-                const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
-                const idx = terminos.findIndex(t => String(t.id) === String(realId));
-
-                if (idx !== -1) {
-                    const term = terminos[idx];
-                    if (term.archivoWord === fileName) {
-                        term.archivoWord = null; 
-                        eliminado = true;
-                    } else if (term.acuseDocumento === fileName) {
-                        term.acuseDocumento = null; 
-                        eliminado = true;
-                    }
-                    if (eliminado) localStorage.setItem('terminos', JSON.stringify(terminos));
-                }
+        if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-')) {
+            const index = this.expediente.documentos.findIndex(d => d.nombre === fileName);
+            if (index !== -1) {
+                this.expediente.documentos.splice(index, 1);
+                updateExpediente(this.id, { documentos: this.expediente.documentos });
+                eliminado = true;
             }
-
-            if (eliminado) {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo eliminado', showConfirmButton: false, timer: 2000 });
-                this.loadFolder(this.currentFolderId, this.currentLabel);
-                this.renderDocumentsTable(); 
+        } 
+        else if (this.currentFolderId.startsWith('term-')) {
+            const realId = this.currentFolderId.replace('term-', '');
+            const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
+            const idx = terminos.findIndex(t => String(t.id) === String(realId));
+            if (idx !== -1) {
+                // Borrar del Historial
+                if (terminos[idx].historialArchivos) {
+                    terminos[idx].historialArchivos = terminos[idx].historialArchivos.filter(d => d.nombre !== fileName);
+                }
+                
+                // Si el archivo borrado es el "actual", lo limpiamos también
+                if (terminos[idx].archivoWord === fileName) terminos[idx].archivoWord = null; 
+                if (terminos[idx].acuseDocumento === fileName) terminos[idx].acuseDocumento = null; 
+                
+                localStorage.setItem('terminos', JSON.stringify(terminos));
+                eliminado = true;
+            }
+        }
+        else if (this.currentFolderId.startsWith('aud-')) {
+            const realId = this.currentFolderId.replace('aud-', '');
+            let activas = JSON.parse(localStorage.getItem('audiencias')) || [];
+            let idx = activas.findIndex(a => String(a.id) === String(realId));
+            if (idx !== -1) {
+                if(activas[idx].actaDocumento === fileName) { activas[idx].actaDocumento = ""; localStorage.setItem('audiencias', JSON.stringify(activas)); eliminado = true; }
             } else {
-                Swal.fire('Error', 'No se pudo localizar el archivo para eliminar.', 'error');
+                let historicas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+                idx = historicas.findIndex(a => String(a.id) === String(realId));
+                if (idx !== -1) { if(historicas[idx].actaDocumento === fileName) { historicas[idx].actaDocumento = ""; localStorage.setItem('audienciasDesahogadas', JSON.stringify(historicas)); eliminado = true; } }
             }
+        }
+
+        if (eliminado) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo eliminado', showConfirmButton: false, timer: 2000 });
+            this.loadFolder(this.currentFolderId, this.currentLabel);
+            this.renderDocumentsTable(); 
+        } else {
+            Swal.fire('Error', 'No se pudo localizar el archivo.', 'error');
+        }
     }
 
    handleExplorerUpload(file) {
         if (!this.currentFolderId) return;
-
-        // Subida a una carpeta de Término Específico
         if (this.currentFolderId.startsWith('term-')) {
             const realId = this.currentFolderId.replace('term-', '');
             const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
             const idx = terminos.findIndex(t => String(t.id) === String(realId));
-
             if (idx !== -1) {
-                // Decidir si es Word o PDF basado en extensión (lógica simple)
-                if (file.name.endsWith('.pdf')) {
-                    terminos[idx].acuseDocumento = file.name;
-                    // Auto-cambio de estado si aplica
-                    if(terminos[idx].estatus === 'Liberado') terminos[idx].estatus = 'Presentado';
-                } else {
-                    terminos[idx].archivoWord = file.name;
-                }
-
+                if (file.name.endsWith('.pdf')) { terminos[idx].acuseDocumento = file.name; if(terminos[idx].estatus === 'Liberado') terminos[idx].estatus = 'Presentado'; } else { terminos[idx].archivoWord = file.name; }
+                if(!terminos[idx].historialArchivos) terminos[idx].historialArchivos = [];
+                terminos[idx].historialArchivos.push({ nombre: file.name, fecha: new Date().toISOString(), tipo: file.name.endsWith('.pdf') ? 'Acuse' : 'Borrador' });
                 localStorage.setItem('terminos', JSON.stringify(terminos));
-                
-                // Recargar carpeta visualmente
                 this.loadFolder(this.currentFolderId, document.getElementById('explorer-breadcrumb').innerText);
-                
-                // Notificación
-                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                Toast.fire({ icon: 'success', title: 'Archivo subido correctamente' });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo guardado en Historial', showConfirmButton: false, timer: 2000 });
             }
-        } // CASO 2: Subida a Anexos (NUEVO)
-        else if (this.currentFolderId === 'anexos') {
-            const newDoc = {
-                nombre: file.name,
-                tipo: 'Anexo',
-                comentario: 'Subido desde Gestor',
-                fecha: new Date().toLocaleDateString('es-MX')
-            };
-            
+        } 
+        else if (this.currentFolderId.startsWith('aud-')) {
+            const realId = this.currentFolderId.replace('aud-', '');
+            let activas = JSON.parse(localStorage.getItem('audiencias')) || [];
+            let idx = activas.findIndex(a => String(a.id) === String(realId));
+            if (idx !== -1) {
+                activas[idx].actaDocumento = file.name; localStorage.setItem('audiencias', JSON.stringify(activas));
+                this.loadFolder(this.currentFolderId, document.getElementById('explorer-breadcrumb').innerText);
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo guardado en Audiencia', showConfirmButton: false, timer: 2000 });
+                return;
+            }
+            let historicas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
+            idx = historicas.findIndex(a => String(a.id) === String(realId));
+            if (idx !== -1) {
+                historicas[idx].actaDocumento = file.name; localStorage.setItem('audienciasDesahogadas', JSON.stringify(historicas));
+                this.loadFolder(this.currentFolderId, document.getElementById('explorer-breadcrumb').innerText);
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo guardado en Histórico', showConfirmButton: false, timer: 2000 });
+            }
+        }
+        else if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-')) {
+            const newDoc = { nombre: file.name, tipo: 'Anexo', comentario: 'Subido desde Gestor', fecha: new Date().toLocaleDateString('es-MX'), folderId: this.currentFolderId.startsWith('custom-') ? this.currentFolderId : null };
             if (!this.expediente.documentos) this.expediente.documentos = [];
             this.expediente.documentos.push(newDoc);
             updateExpediente(this.id, { documentos: this.expediente.documentos });
-            
-            // Refrescar vista
-            this.loadFolder('anexos', 'Anexos y Pruebas');
-            this.renderDocumentsTable(); // También actualizar la lista simple si la usas
-            
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-            Toast.fire({ icon: 'success', title: 'Anexo subido correctamente' });
+            this.loadFolder(this.currentFolderId, this.currentLabel);
+            this.renderDocumentsTable(); 
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo subido', showConfirmButton: false, timer: 2000 });
         }
     }
 

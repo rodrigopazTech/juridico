@@ -60,7 +60,6 @@ function initAudiencias() {
     const searchInput = document.getElementById('search-audiencias');
     if(searchInput) searchInput.addEventListener('input', loadAudiencias);
 
-    // NUEVO: Inicializar la lógica del selector de ubicación segmentado
     const ubicacionGroup = document.getElementById('ubicacion-selector-group');
     if (ubicacionGroup) {
         ubicacionGroup.addEventListener('change', updateUbicacionInputs);
@@ -68,9 +67,7 @@ function initAudiencias() {
     }
 }
 
-// NUEVA FUNCIÓN: Maneja la visibilidad de los campos según la selección
 function updateUbicacionInputs() {
-    // 🛑 CLAVE: Leer el estado del radio button
     const isOnline = document.getElementById('radio-online')?.checked;
     const inputSala = document.getElementById('input-sala');
     const inputUrl = document.getElementById('input-url');
@@ -78,19 +75,16 @@ function updateUbicacionInputs() {
     if (isOnline) {
         inputUrl?.classList.remove('hidden');
         inputSala?.classList.add('hidden');
-        // Limpiar campo no usado para evitar errores de validación
-        document.getElementById('sala-audiencia').value = ''; 
+        if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = ''; 
     } else {
         inputSala?.classList.remove('hidden');
         inputUrl?.classList.add('hidden');
-        // Limpiar campo no usado
-        document.getElementById('url-audiencia').value = ''; 
+        if(document.getElementById('url-audiencia')) document.getElementById('url-audiencia').value = ''; 
     }
 }
 
-
 // -------------------------------
-// Lógica de Tipos de Audiencia (Se mantiene igual)
+// Lógica de Tipos de Audiencia
 // -------------------------------
 function getTiposAudiencia() {
     return JSON.parse(localStorage.getItem('tiposAudiencia')) || DEFAULT_TIPOS_AUDIENCIA;
@@ -160,10 +154,14 @@ function initModalManageTipos() {
 }
 
 function resetEditMode() {
-    document.getElementById('tipo-audiencia-edit-index').value = '';
-    document.getElementById('input-nuevo-tipo').value = '';
-    document.getElementById('btn-save-tipo').innerHTML = '<i class="fas fa-plus"></i>';
-    document.getElementById('btn-cancel-edit-tipo').classList.add('hidden');
+    const editIdx = document.getElementById('tipo-audiencia-edit-index');
+    if(editIdx) editIdx.value = '';
+    const input = document.getElementById('input-nuevo-tipo');
+    if(input) input.value = '';
+    const btnSave = document.getElementById('btn-save-tipo');
+    if(btnSave) btnSave.innerHTML = '<i class="fas fa-plus"></i>';
+    const btnCancel = document.getElementById('btn-cancel-edit-tipo');
+    if(btnCancel) btnCancel.classList.add('hidden');
 }
 
 function renderListaTipos() {
@@ -211,7 +209,7 @@ function renderListaTipos() {
 }
 
 // -------------------------------
-// Renderizado Principal (Actualizado para mostrar ubicación)
+// Renderizado Principal
 // -------------------------------
 function loadAudiencias() {
     const tbody = document.getElementById('audiencias-body');
@@ -271,12 +269,10 @@ function loadAudiencias() {
 
         const sem = getSemaforoStatusAudiencia(a.fecha, a.hora);
         
-        // CAMBIO AQUÍ: Modificar el badge de estado para "con documento"
         let estadoBadge = '';
         if (a.atendida) {
             estadoBadge = '<span class="inline-flex items-center bg-gray-800 text-white text-xs font-bold px-2.5 py-0.5 rounded border border-gray-600"><i class="fas fa-flag-checkered mr-1"></i> Concluida</span>';
         } else if (a.actaDocumento) {
-            // NUEVO ESTADO "CON DOCUMENTO"
             estadoBadge = '<span class="inline-flex items-center bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded border border-purple-200"><i class="fas fa-file-alt mr-1"></i> Con Documento</span>';
         } else {
             estadoBadge = '<span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200"><i class="fas fa-clock mr-1"></i> Pendiente</span>';
@@ -401,7 +397,6 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
                 </div>`;
     };
 
-    // 1. NAVEGACIÓN
     html += crearBoton('action-view-asunto-audiencia', 'fas fa-folder-open', 'Ir al Expediente');
 
     if (audiencia.esEnLinea && !audiencia.atendida && audiencia.urlReunion && !audiencia.actaDocumento) {
@@ -411,20 +406,16 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
                  </a>`;
     }
 
-    // 2. GESTIÓN DE ARCHIVOS - CAMBIO AQUÍ
     if (!audiencia.atendida) {
         if (audiencia.actaDocumento) {
             const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Documento';
             
             html += crearSeparador("Documento Adjunto");
-            // CAMBIO: Usar "Ver Documento" en lugar de "Ver Acta Prev."
             html += crearBoton('action-view-acta', 'fas fa-eye', `Ver Documento`, 'text-blue-600');
             
-            // Mover la opción "Concluir Audiencia" fuera de esta sección
             html += crearSeparador("Gestión");
             html += crearBoton('action-desahogar', 'fas fa-flag-checkered', 'Concluir Audiencia', 'text-green-700', 'bg-green-50/50');
             
-            // CAMBIO: Usar "Quitar Documento" en lugar de "Quitar Acta"
             html += crearSeparador();
             html += crearBoton('action-remove-acta', 'fas fa-times-circle', `Quitar Documento`, 'text-red-500');
         } else {
@@ -553,8 +544,6 @@ function setupActionMenuListenerAudiencia() {
     });
 }
 
-
-
 function setupFilters() {
     ['filter-tipo','filter-gerencia','filter-materia','filter-prioridad'].forEach(id => {
         const el = document.getElementById(id);
@@ -567,10 +556,9 @@ function subirActa(id, file, tipoElegido = "Acta") {
     const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
     if (idx !== -1) {
         AUDIENCIAS[idx].actaDocumento = file.name;
-        AUDIENCIAS[idx].tipoDocumentoSubido = tipoElegido; // <--- GUARDAR TIPO
+        AUDIENCIAS[idx].tipoDocumentoSubido = tipoElegido; 
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        // CAMBIO: Cambiar mensaje para reflejar que es un documento
         mostrarMensajeGlobal(`Documento "${file.name}" cargado correctamente.`, 'success');
     }
 }
@@ -579,10 +567,9 @@ function quitarActa(id) {
     if (idx !== -1) {
         const nombreArchivo = AUDIENCIAS[idx].actaDocumento;
         AUDIENCIAS[idx].actaDocumento = '';
-        AUDIENCIAS[idx].tipoDocumentoSubido = ''; // <--- LIMPIAR TIPO
+        AUDIENCIAS[idx].tipoDocumentoSubido = ''; 
         localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
         loadAudiencias();
-        // CAMBIO: Mensaje más específico
         mostrarMensajeGlobal(`Documento "${nombreArchivo}" eliminado.`, 'warning');
     }
 }
@@ -609,15 +596,14 @@ function openAudienciaModal(audiencia = null) {
     cargarAsuntosEnSelectorAudiencia();
     cargarTiposAudienciaSelect();
 
-    // NUEVO: Resetear y Cargar estado del selector
     const radioPresencial = document.getElementById('radio-presencial');
     const radioOnline = document.getElementById('radio-online');
     
     if (radioPresencial) radioPresencial.checked = true;
     if (radioOnline) radioOnline.checked = false;
 
-    document.getElementById('sala-audiencia').value = '';
-    document.getElementById('url-audiencia').value = '';
+    if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = '';
+    if(document.getElementById('url-audiencia')) document.getElementById('url-audiencia').value = '';
 
     if(audiencia) {
         title.textContent = 'Editar Audiencia';
@@ -629,15 +615,14 @@ function openAudienciaModal(audiencia = null) {
         if(document.getElementById('fecha-audiencia')) document.getElementById('fecha-audiencia').value = audiencia.fecha || '';
         if(document.getElementById('hora-audiencia')) document.getElementById('hora-audiencia').value = audiencia.hora || '';
         
-        // NUEVO: Cargar estado del radio button
         if (audiencia.esEnLinea) {
             if (radioOnline) radioOnline.checked = true;
         } else {
             if (radioPresencial) radioPresencial.checked = true;
         }
 
-        document.getElementById('sala-audiencia').value = audiencia.sala || '';
-        document.getElementById('url-audiencia').value = audiencia.urlReunion || '';
+        if(document.getElementById('sala-audiencia')) document.getElementById('sala-audiencia').value = audiencia.sala || '';
+        if(document.getElementById('url-audiencia')) document.getElementById('url-audiencia').value = audiencia.urlReunion || '';
         
         updateUbicacionInputs(); 
 
@@ -676,7 +661,6 @@ function guardarAudiencia() {
     if (!esEnLinea && !sala) return alert('Especifique Sala/Lugar.');
     if (esEnLinea && !urlReunion) return alert('Especifique URL.');
 
-    // Datos automáticos y de recordatorio
     const exp = document.getElementById('expediente-auto-audiencia').value;
     const tribunal = document.getElementById('organo-auto-audiencia').value;
     const actor = document.getElementById('partes-auto-audiencia').value;
@@ -694,7 +678,6 @@ function guardarAudiencia() {
 
     let textoAnticipacion = diasAntes > 0 ? `${diasAntes} días` : (horasAntes > 0 ? `${horasAntes} horas` : "el momento");
 
-    // 1. Notificación de Recordatorio (Siempre se actualiza o crea)
     crearNotificacionGlobal({
         eventType: 'recordatorio',
         title: `Recordatorio: Audiencia ${tipoAudiencia}`,
@@ -705,7 +688,6 @@ function guardarAudiencia() {
         meta: { tipoOrigen: 'audiencia', expediente: exp, anticipacion: textoAnticipacion, fechaEvento: fechaBase.toISOString() }
     });
 
-    // Objeto con los DATOS NUEVOS
     const nueva = {
         id: id || Date.now().toString(),
         fecha, hora, asuntoId,
@@ -722,96 +704,27 @@ function guardarAudiencia() {
     };
 
     if(id) {
-        // === MODO EDICIÓN: DETECTAR CAMBIOS ===
         const idx = AUDIENCIAS.findIndex(a => String(a.id) === String(id));
         if(idx !== -1) {
             const original = AUDIENCIAS[idx];
             
-            // Mantener datos que no cambian en el form
             nueva.actaDocumento = original.actaDocumento;
             nueva.atendida = original.atendida;
             nueva.comentarios = original.comentarios;
 
-            // A. CAMBIO DE TIPO
             if (original.tipo !== nueva.tipo) {
-                crearNotificacionGlobal({
-                    eventType: 'audiencia',
-                    title: nueva.tipo,
-                    expediente: exp,
-                    status: 'Edición',
-                    detalles: { juzgado: `Tipo de audiencia modificado. Anterior: ${original.tipo}` }
-                });
+                crearNotificacionGlobal({ eventType: 'audiencia', title: nueva.tipo, expediente: exp, status: 'Edición', detalles: { juzgado: `Tipo modificado. Anterior: ${original.tipo}` } });
             }
-
-            // B. CAMBIO DE FECHA
             if (original.fecha !== nueva.fecha) {
-                crearNotificacionGlobal({
-                    eventType: 'audiencia',
-                    title: nueva.tipo,
-                    expediente: exp,
-                    status: 'Edición',
-                    detalles: { juzgado: `Fecha reagendada. Anterior: ${formatDate(original.fecha)}. Nueva: ${formatDate(nueva.fecha)}` }
-                });
+                crearNotificacionGlobal({ eventType: 'audiencia', title: nueva.tipo, expediente: exp, status: 'Edición', detalles: { juzgado: `Fecha reagendada. Anterior: ${formatDate(original.fecha)}. Nueva: ${formatDate(nueva.fecha)}` } });
             }
-
-            // C. CAMBIO DE HORA
             if (original.hora !== nueva.hora) {
-                crearNotificacionGlobal({
-                    eventType: 'audiencia',
-                    title: nueva.tipo,
-                    expediente: exp,
-                    status: 'Edición',
-                    detalles: { juzgado: `Hora modificada. Anterior: ${original.hora}. Nueva: ${nueva.hora}` }
-                });
+                crearNotificacionGlobal({ eventType: 'audiencia', title: nueva.tipo, expediente: exp, status: 'Edición', detalles: { juzgado: `Hora modificada. Anterior: ${original.hora}. Nueva: ${nueva.hora}` } });
             }
 
-            // D. CAMBIO DE ABOGADO
-            if (original.abogadoComparece !== nueva.abogadoComparece) {
-                crearNotificacionGlobal({
-                    eventType: 'audiencia',
-                    title: nueva.tipo,
-                    expediente: exp,
-                    status: 'Edición',
-                    detalles: { juzgado: `Cambio de abogado. Asignado anteriormente: ${original.abogadoComparece}` }
-                });
-            }
-
-            // E. CAMBIO DE UBICACIÓN (Lógica compuesta)
-            let huboCambioUbicacion = false;
-            let detalleUbicacion = "";
-
-            if (original.esEnLinea !== nueva.esEnLinea) {
-                // Cambió de Presencial a Online o viceversa
-                const anterior = original.esEnLinea ? "En Línea" : "Presencial";
-                const actual = nueva.esEnLinea ? "En Línea" : "Presencial";
-                detalleUbicacion = `Modalidad cambiada de ${anterior} a ${actual}.`;
-                huboCambioUbicacion = true;
-            } else {
-                // Misma modalidad, pero cambiaron los detalles (Sala o URL)
-                if (nueva.esEnLinea && original.urlReunion !== nueva.urlReunion) {
-                    detalleUbicacion = `Se actualizó la URL de la reunión.`;
-                    huboCambioUbicacion = true;
-                } else if (!nueva.esEnLinea && original.sala !== nueva.sala) {
-                    detalleUbicacion = `Cambio de Sala/Lugar. Anterior: ${original.sala}. Nueva: ${nueva.sala}`;
-                    huboCambioUbicacion = true;
-                }
-            }
-
-            if (huboCambioUbicacion) {
-                crearNotificacionGlobal({
-                    eventType: 'audiencia',
-                    title: nueva.tipo,
-                    expediente: exp,
-                    status: 'Edición',
-                    detalles: { juzgado: detalleUbicacion }
-                });
-            }
-
-            // Guardar en el array
             AUDIENCIAS[idx] = nueva;
         }
     } else {
-        // === MODO CREACIÓN ===
         AUDIENCIAS.push(nueva);
         
         crearNotificacionGlobal({
@@ -832,13 +745,15 @@ function guardarAudiencia() {
     }
     
     localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
-    document.getElementById('modal-audiencia').classList.add('hidden');
-    document.getElementById('modal-audiencia').classList.remove('flex');
+    
+    // === CORRECCIÓN AQUÍ: USAR DISPLAY NONE EN LUGAR DE CLASES MIXTAS ===
+    document.getElementById('modal-audiencia').style.display = 'none';
+    // ====================================================================
+    
     loadAudiencias();
     mostrarMensajeGlobal('Audiencia guardada correctamente', 'success');
 }
 
-// Helper para mensaje toast (si no lo tienes, puedes agregarlo al final del archivo)
 function mostrarMensajeGlobal(msg, tipo='success') {
     const toast = document.createElement('div');
     const color = tipo === 'success' ? 'bg-green-600' : 'bg-blue-600';
@@ -855,6 +770,10 @@ function initModalFinalizarAudiencia() {
     
     document.getElementById('confirmar-finalizar').onclick = () => {
         const id = document.getElementById('finalizar-audiencia-id').value;
+        // === CORRECCIÓN AQUÍ: LEER VALOR DEL TEXTAREA ANTES DE USARLO ===
+        const observaciones = document.getElementById('observaciones-finales').value;
+        // ================================================================
+
         const idx = AUDIENCIAS.findIndex(a => a.id == id);
         if(idx !== -1) {
             const audienciaAConcluir = AUDIENCIAS[idx];
@@ -863,7 +782,6 @@ function initModalFinalizarAudiencia() {
             audienciaAConcluir.atendida = true;
             audienciaAConcluir.fechaDesahogo = new Date().toISOString().split('T')[0]; 
 
-            // Notificación de Conclusión (Solo Tipo)
             crearNotificacionGlobal({
                 eventType: 'audiencia',
                 title: audienciaAConcluir.tipo,
@@ -873,12 +791,10 @@ function initModalFinalizarAudiencia() {
                 notifyAt: new Date().toISOString()
             });
 
-            // Mover a Agenda General
             const historico = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
             historico.push(audienciaAConcluir);
             localStorage.setItem('audienciasDesahogadas', JSON.stringify(historico));
             
-            // Eliminar de pendientes
             AUDIENCIAS = AUDIENCIAS.filter(a => String(a.id) !== String(id));
             localStorage.setItem('audiencias', JSON.stringify(AUDIENCIAS));
             
@@ -954,14 +870,6 @@ function guardarComentario() {
     }
 }
 
-function mostrarMensajeGlobal(msg, type) {
-    const div = document.createElement('div');
-    div.className = `fixed top-5 right-5 px-6 py-3 text-white rounded shadow-lg z-50 ${type==='success'?'bg-green-600':'bg-yellow-500'}`;
-    div.innerText = msg;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
-}
-
 function cargarAsuntosEnSelectorAudiencia() {
     const sel = document.getElementById('asunto-selector-audiencia');
     if(!sel) return;
@@ -1008,10 +916,6 @@ function cargarAbogadosSelects() {
     const sel = document.getElementById('abogado-comparece');
     if(sel) sel.innerHTML += '<option>Lic. Demo</option><option>Lic. Pérez</option>';
 }
-
-// ===============================================
-// LÓGICA DE MODALES FALTANTE 
-// ===============================================
 
 function initModalReasignarAudiencia() {
     const modal = document.getElementById('modal-reasignar-audiencia');
@@ -1089,7 +993,6 @@ function abrirModalReasignarAudiencia(id) {
 function mostrarAlertaAudiencia(mensaje) {
     const modal = document.getElementById('modal-alerta-audiencia');
     if(!modal) {
-        // CAMBIO: Mostrar alerta con el nombre del documento
         alert(mensaje); 
         return;
     }
@@ -1140,7 +1043,6 @@ function cerrarConfirmacionAudiencia() {
     onConfirmActionAudiencia = null;
 }
 
-// === FUNCION HELPER PARA VINCULAR CON EXPEDIENTE ===
 function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono = 'info') {
     if (!asuntoId) return;
 
@@ -1162,7 +1064,6 @@ function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono =
     }
 }
 
-// === HELPER PARA GENERAR NOTIFICACIONES DINÁMICAS ===
 function crearNotificacionGlobal(datos) {
     const KEY = 'jl_notifications_v4';
     const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];

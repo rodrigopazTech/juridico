@@ -284,10 +284,8 @@ function crearSeparador(titulo = "") {
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
-
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
-    
     loadTerminos(); 
     
     document.getElementById('terminos-body').addEventListener('click', function(e) {
@@ -305,11 +303,8 @@ function setupActionMenuListener() {
             if (!menu) return;
             if (!menu.classList.contains('hidden')) { menu.classList.add('hidden'); menu.style.cssText = ''; return; }
             menu.classList.remove('hidden');
-            
             const rect = target.getBoundingClientRect(); 
-            const menuWidth = 224; 
-            const menuHeight = menu.offsetHeight || 220; 
-            const spaceBelow = window.innerHeight - rect.bottom;
+            const menuWidth = 224; const menuHeight = menu.offsetHeight || 220; const spaceBelow = window.innerHeight - rect.bottom;
             menu.style.position = 'fixed'; menu.style.zIndex = '99999'; menu.style.width = menuWidth + 'px'; menu.style.left = (rect.right - menuWidth) + 'px';
             if (spaceBelow < menuHeight) { menu.style.top = 'auto'; menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px'; menu.classList.remove('border-t-4'); menu.classList.add('border-b-4'); } else { menu.style.bottom = 'auto'; menu.style.top = (rect.bottom + 5) + 'px'; menu.classList.add('border-t-4'); menu.classList.remove('border-b-4'); }
             return;
@@ -317,89 +312,94 @@ function setupActionMenuListener() {
 
         if (target.classList.contains('action-edit')) openTerminoModalJS(termino);
         else if (target.classList.contains('action-view-expediente')) {
-            if (termino.asuntoId) {
-                window.location.href = `../expediente-module/expediente-detalle.html?id=${termino.asuntoId}`;
-            } else {
-                mostrarMensajeGlobal("Este término no está vinculado a un expediente digital.", "warning");
-            }
+            if (termino.asuntoId) window.location.href = `../expediente-module/expediente-detalle.html?id=${termino.asuntoId}`;
+            else mostrarMensajeGlobal("Este término no está vinculado a un expediente digital.", "warning");
         }
         else if (target.classList.contains('action-upload-word')) {
-        // Usamos un input file global
-        const fileInput = document.getElementById('input-word-termino');
-        fileInput.onchange = (e) => {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
-                TERMINOS[tIdx].archivoWord = file.name; // Guardamos el nombre
-                
-                registrarActividadExpediente(
-                    TERMINOS[tIdx].asuntoId,
-                    'Borrador Actualizado',
-                    `Se cargó el archivo: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`,
-                    'upload'
-                );
-                
-                guardarYRecargar();
-                mostrarMensajeGlobal("Archivo cargado correctamente", "success");
-            }
-        };
-        fileInput.click();
+            // === LÓGICA DE SUBIDA CON HISTORIAL (WORD) ===
+            const fileInput = document.getElementById('input-word-termino');
+            fileInput.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
+                    
+                    // 1. Guardar como versión actual (para la vista de Términos)
+                    TERMINOS[tIdx].archivoWord = file.name; 
+                    
+                    // 2. Agregar al Historial (para el Gestor Documental)
+                    if(!TERMINOS[tIdx].historialArchivos) TERMINOS[tIdx].historialArchivos = [];
+                    TERMINOS[tIdx].historialArchivos.push({
+                        nombre: file.name,
+                        fecha: new Date().toISOString(),
+                        tipo: 'Borrador',
+                        etapa: TERMINOS[tIdx].estatus
+                    });
+
+                    registrarActividadExpediente(
+                        TERMINOS[tIdx].asuntoId, 'Borrador Actualizado', `Se cargó: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`, 'upload'
+                    );
+                    guardarYRecargar();
+                    mostrarMensajeGlobal("Archivo cargado correctamente (Guardado en Historial)", "success");
+                }
+            };
+            fileInput.click();
         }
         else if (target.classList.contains('action-download-word')) {
             mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
-            // Aquí iría la lógica real de descarga
         }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
-        else if (target.classList.contains('action-reject')) regresarEtapa(id);
         else if (target.classList.contains('action-upload-acuse')) row.querySelector('.input-acuse-hidden').click();
-        else if (target.classList.contains('action-download-acuse')) mostrarAlertaTermino(`Descargando documento: ${termino.acuseDocumento}`);
-        else if (target.classList.contains('action-preview-acuse')) mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
-        
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
-        else if (target.classList.contains('action-remove-acuse')) {
-            mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
-        }
-        else if (target.classList.contains('action-delete')) {
-            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); guardarYRecargar(); mostrarMensajeGlobal('Término eliminado.', 'success'); });
-        }
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion(
                 'Quitar Acuse / Corregir', 
-                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.', 
+                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado".', 
                 () => {
                     const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
                     if (tIdx !== -1) {
                         TERMINOS[tIdx].acuseDocumento = '';
                         TERMINOS[tIdx].estatus = 'Liberado'; 
-                        registrarActividadExpediente(
-                            TERMINOS[tIdx].asuntoId,
-                            'Acuse Removido',
-                            `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}" para corrección.`,
-                            'delete'
-                        );  
+                        // Nota: No borramos del historial para tener trazabilidad, solo quitamos el "actual"
+                        registrarActividadExpediente(TERMINOS[tIdx].asuntoId, 'Acuse Removido', `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}".`, 'delete');  
                         guardarYRecargar();
                         mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
                     }
                 }
             );
         }
+        else if (target.classList.contains('action-delete')) {
+            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); guardarYRecargar(); mostrarMensajeGlobal('Término eliminado.', 'success'); });
+        }
         
         document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-    
     });
     
     document.addEventListener('click', e => { if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) { document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); } });
     window.addEventListener('scroll', () => { document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); }, true);
     
+    // === LÓGICA DE SUBIDA CON HISTORIAL (ACUSE) ===
     document.getElementById('terminos-body').addEventListener('change', function(e) {
         if (e.target.classList.contains('input-acuse-hidden') && e.target.files.length > 0) {
             const id = e.target.getAttribute('data-id');
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
             if(idx !== -1) {
-                TERMINOS[idx].acuseDocumento = e.target.files[0].name;
+                const file = e.target.files[0];
+                
+                // 1. Guardar como actual
+                TERMINOS[idx].acuseDocumento = file.name;
                 if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
+                
+                // 2. Agregar al Historial
+                if(!TERMINOS[idx].historialArchivos) TERMINOS[idx].historialArchivos = [];
+                TERMINOS[idx].historialArchivos.push({
+                    nombre: file.name,
+                    fecha: new Date().toISOString(),
+                    tipo: 'Acuse',
+                    etapa: 'Presentado'
+                });
+
                 guardarYRecargar();
-                mostrarMensajeGlobal('Acuse subido', 'success');
+                mostrarMensajeGlobal('Acuse subido y guardado en historial', 'success');
             }
         }
     });

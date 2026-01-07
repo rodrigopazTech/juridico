@@ -421,8 +421,7 @@ function generarAccionesRapidasAudiencia(audiencia, rol) {
             html += crearBoton('action-remove-acta', 'fas fa-times-circle', `Quitar ${labelDoc}`, 'text-red-500');
         } else {
             html += crearSeparador("Subir Archivo");
-            html += crearBoton('action-upload-generic-acta', 'fas fa-file-signature', 'Subir Acta', 'text-gob-oro font-bold');
-            html += crearBoton('action-upload-generic-alegatos', 'fas fa-file-invoice', 'Subir Alegatos Amparo', 'text-indigo-600 font-bold');
+            html += crearBoton('action-upload-generic-documento', 'fas fa-file-upload', 'Subir Documento', 'text-gob-oro font-bold');
         }
     } else if (audiencia.actaDocumento) {
         const labelDoc = audiencia.tipoDocumentoSubido === 'Alegatos Amparo' ? 'Alegatos' : 'Acta';
@@ -497,14 +496,9 @@ function setupActionMenuListenerAudiencia() {
                 }
                 return;
             }
-            else if (target.classList.contains('action-upload-generic-acta')) {
+            else if (target.classList.contains('action-upload-generic-documento')) {
                 const input = row.querySelector('.input-acta-hidden');
-                input.dataset.tipoDoc = "Acta"; 
-                input.click();
-            }
-            else if (target.classList.contains('action-upload-generic-alegatos')) {
-                const input = row.querySelector('.input-acta-hidden');
-                input.dataset.tipoDoc = "Alegatos Amparo";
+                input.dataset.tipoDoc = "Documento"; 
                 input.click();
             }
             else if (target.classList.contains('action-remove-acta')) {

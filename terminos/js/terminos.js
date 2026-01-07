@@ -92,12 +92,11 @@ function loadTerminos() {
         search: document.getElementById('search-terminos')?.value.toLowerCase() || ''
     };
 
-    // Filtrar términos que NO están en estado "Liberado" para la tabla principal
-    // (Los liberados se mueven a Agenda General)
     const listaFiltrada = TERMINOS.filter(t => {
         const textoCompleto = `${t.expediente || ''} ${t.actor || ''} ${t.asunto || ''} ${t.abogado || ''}`.toLowerCase();
-        // Excluir términos que ya fueron liberados (se trasladan a Agenda General)
-        if (t.estatus === 'Liberado') return false;
+        
+        // ** CLAVE: Ocultar si ya está Concluido **
+        if (t.estatus === 'Concluido') return false; 
         
         if (filtros.search && !textoCompleto.includes(filtros.search)) return false;
         if (filtros.estatus && !filtros.estatus.includes('Todos') && t.estatus !== filtros.estatus) return false;
@@ -126,7 +125,39 @@ function loadTerminos() {
 
         const prioridad = t.prioridad || 'Media';
         let dotColor = '';
-        // 1. NAVEGACIÓN (Siempre visible)
+        let textColor = '';
+        let borderColor = '';
+
+        switch(prioridad) {
+            case 'Alta': 
+                dotColor = 'bg-red-500'; 
+                textColor = 'text-red-600'; 
+                borderColor = 'border-red-200';
+                break;
+            case 'Baja': 
+                dotColor = 'bg-gray-400'; 
+                textColor = 'text-gray-500'; 
+                borderColor = 'border-gray-200';
+                break;
+            default: // Media
+                dotColor = 'bg-orange-400'; 
+                textColor = 'text-orange-600'; 
+                borderColor = 'border-orange-200';
+        }
+
+   
+        html += `
+        <tr class="bg-white hover:bg-gray-50 border-b transition-colors group" data-id="${t.id}">
+            <td class="px-4 py-3 whitespace-nowrap text-center">
+                <div class="flex items-center">
+                    <div class="w-2.5 h-2.5 rounded-full mr-2 ${semaforoColor}" title="${tooltipTexto}"></div>
+                    <span class="text-sm font-medium text-gray-900">${formatDate(t.fechaIngreso)}</span>
+                </div>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-500 font-bold">${formatDate(t.fechaVencimiento)}</td>
+
+            <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex flex-col">
                     <span class="text-sm font-bold text-gob-guinda leading-none">${t.expediente || 'S/N'}</span>
                     <div class="flex items-center gap-1.5 mt-1">
                         <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
@@ -185,28 +216,7 @@ function generarAccionesRapidas(termino, rol) {
     const tieneDocumento = !!termino.archivoWord;
     const rolesPermitidos = PERMISOS_ETAPAS[etapa] || [];
     const puedeActuar = rolesPermitidos.includes(rol);
-    
-    let htmlGestion = "";
-    let hayAccionesGestion = false;
 
-<<<<<<< HEAD
-    // A) CASO: CONCLUIDO
-    if (etapa === 'Concluido') {
-        if (termino.acuseDocumento) {
-            hayAccionesGestion = true;
-            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
-        }
-    }
-    // B) CASO: PRESENTADO
-    else if (etapa === 'Presentado') {
-        hayAccionesGestion = true;
-        
-        if (termino.acuseDocumento) {
-            htmlGestion += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-            htmlGestion += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
-            htmlGestion += crearBoton('action-remove-acuse', 'fas fa-times-circle', 'Quitar Acuse', 'text-red-500');
-=======
     // 1. NAVEGACIÓN (Siempre visible)
     html += crearBoton('action-view-expediente', 'fas fa-folder-open', 'Ir al Expediente', 'text-gray-700');
     html += crearSeparador();
@@ -215,11 +225,10 @@ function generarAccionesRapidas(termino, rol) {
     // Se muestra en etapas previas a la liberación final
     if (etapa !== 'Concluido' && etapa !== 'Presentado' && etapa !== 'Liberado') {
         if (tieneDocumento) {
-            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Proyecto', 'text-blue-600');
+            html += crearBoton('action-download-word', 'fas fa-file-word', 'Descargar Borrador', 'text-blue-600');
             html += crearBoton('action-upload-word', 'fas fa-sync-alt', 'Subir Nueva Versión', 'text-gob-oro');
         } else {
-            html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Proyecto Word', 'text-gob-oro font-bold');
->>>>>>> f5b1e3ac81976811afb7d3dc15aae021c93e1241
+            html += crearBoton('action-upload-word', 'fas fa-cloud-upload-alt', 'Subir Borrador Word', 'text-gob-oro font-bold');
         }
     }
 
@@ -253,85 +262,7 @@ function generarAccionesRapidas(termino, rol) {
         html += crearBoton('action-delete', 'fas fa-trash-alt', 'Eliminar Término', 'text-red-600 hover:bg-red-50 font-bold');
     }
 
-    // 2. GESTIÓN: acciones sobre Acuse / Presentación (si aplica)
-    if (etapa === 'Concluido' && termino.acuseDocumento) {
-        html += crearSeparador('Gestión');
-        html += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-        html += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
-    } else if (etapa === 'Presentado' && termino.acuseDocumento) {
-        html += crearSeparador('Gestión');
-        html += crearBoton('action-preview-acuse', 'fas fa-eye', 'Ver Acuse', 'text-gob-oro');
-        html += crearBoton('action-download-acuse', 'fas fa-file-download', 'Descargar Acuse', 'text-blue-600');
-        html += crearBoton('action-remove-acuse', 'fas fa-times-circle', 'Quitar Acuse', 'text-red-500');
-    }
-
     return html + '</div>';
-}
-
-// ===============================================
-// 5. SINCRONIZACIÓN CON AGENDA GENERAL
-// ===============================================
-function sincronizarConAgendaGeneral(termino) {
-    if (!termino || (termino.estatus !== 'Liberado' && termino.estatus !== 'Presentado')) return;
-
-    let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
-
-    const existe = terminosPresentados.some(t =>
-        String(t.id) === String(termino.id) || (t.terminoIdOriginal && String(t.terminoIdOriginal) === String(termino.id))
-    );
-
-    if (!existe) {
-        const terminoAgenda = {
-            id: Date.now(),
-            fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
-            fechaVencimiento: termino.fechaVencimiento || '',
-            fechaPresentacion: new Date().toISOString().split('T')[0],
-            expediente: termino.expediente || 'S/N',
-            actuacion: termino.asunto || termino.actuacion || '',
-            partes: termino.actor || '',
-            abogado: termino.abogado || 'Sin asignar',
-            acuseDocumento: termino.acuseDocumento || '',
-            etapaRevision: termino.estatus,
-            estatus: termino.estatus,
-            observaciones: termino.observaciones || 'Término liberado para presentación',
-            fechaCreacion: new Date().toISOString(),
-            terminoIdOriginal: termino.id
-        };
-
-        terminosPresentados.unshift(terminoAgenda);
-        localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
-
-        // Eliminar del listado principal
-        eliminarTerminoDeTablaPrincipal(termino.id);
-
-        mostrarMensajeGlobal(`Término liberado y movido a Agenda General`, 'success');
-    }
-}
-
-function eliminarTerminoDeTablaPrincipal(id) {
-    const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
-    if (indice !== -1) {
-        const terminoEliminado = TERMINOS.splice(indice, 1)[0];
-        localStorage.setItem('terminos', JSON.stringify(TERMINOS));
-        guardarEnHistoricoTerminos(terminoEliminado);
-        return true;
-    }
-    return false;
-}
-
-function guardarEnHistoricoTerminos(termino) {
-    try {
-        const historico = JSON.parse(localStorage.getItem('historicoTerminos')) || [];
-        historico.push({ ...termino, fechaMovimiento: new Date().toISOString(), motivo: 'Movido a Agenda General' });
-        localStorage.setItem('historicoTerminos', JSON.stringify(historico));
-    } catch (e) { console.error('Error guardando en histórico:', e); }
-}
-
-function sincronizarTodosLiberados() {
-    const liberados = TERMINOS.filter(t => t.estatus === 'Liberado');
-    let sincronizados = 0;
-    liberados.forEach(t => { sincronizarConAgendaGeneral(t); sincronizados++; });
-    if (sincronizados > 0) mostrarMensajeGlobal(`${sincronizados} términos trasladado(s) a Agenda General`, 'success');
 }
 
 function crearBoton(claseAccion, icono, texto, color = "text-gray-700", extra = "") {
@@ -403,7 +334,7 @@ function setupActionMenuListener() {
                 
                 registrarActividadExpediente(
                     TERMINOS[tIdx].asuntoId,
-                    'Proyecto Actualizado',
+                    'Borrador Actualizado',
                     `Se cargó el archivo: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`,
                     'upload'
                 );
@@ -415,7 +346,7 @@ function setupActionMenuListener() {
         fileInput.click();
         }
         else if (target.classList.contains('action-download-word')) {
-            mostrarMensajeGlobal(`Descargando Proyecto: ${termino.archivoWord}`, "success");
+            mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
             // Aquí iría la lógica real de descarga
         }
         else if (target.classList.contains('action-advance')) avanzarEtapa(id);
@@ -425,29 +356,27 @@ function setupActionMenuListener() {
         else if (target.classList.contains('action-preview-acuse')) mostrarAlertaTermino(`Previsualizando (Simulación): ${termino.acuseDocumento}`);
         
         else if (target.classList.contains('action-conclude')) abrirModalPresentar(id, 'Concluir Término', 'Se marcará como finalizado.');
+        else if (target.classList.contains('action-remove-acuse')) {
+            mostrarConfirmacion('Quitar Acuse', '¿Deseas quitar el acuse actual? \n\nEl término regresará al estado "Liberado".', () => { termino.acuseDocumento = ''; termino.estatus = 'Liberado'; guardarYRecargar(); mostrarMensajeGlobal('Acuse eliminado. Estado regresado a Liberado.', 'warning'); });
         }
         else if (target.classList.contains('action-delete')) {
-            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { 
-                TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); 
-                guardarYRecargar(); 
-                mostrarMensajeGlobal('Término eliminado.', 'success'); 
-            });
+            mostrarConfirmacion('Eliminar Término', '¿Eliminar término permanentemente?', () => { TERMINOS = TERMINOS.filter(t => String(t.id) !== String(id)); guardarYRecargar(); mostrarMensajeGlobal('Término eliminado.', 'success'); });
         }
         else if (target.classList.contains('action-remove-acuse')) {
             mostrarConfirmacion(
-                'Quitar Acuse / Corregir',
-                '¿Deseas eliminar el acuse actual?\n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.',
+                'Quitar Acuse / Corregir', 
+                '¿Deseas eliminar el acuse actual? \n\nEl término regresará al estado "Liberado" para que puedas subir el archivo correcto.', 
                 () => {
                     const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
                     if (tIdx !== -1) {
                         TERMINOS[tIdx].acuseDocumento = '';
-                        TERMINOS[tIdx].estatus = 'Liberado';
+                        TERMINOS[tIdx].estatus = 'Liberado'; 
                         registrarActividadExpediente(
                             TERMINOS[tIdx].asuntoId,
                             'Acuse Removido',
                             `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}" para corrección.`,
                             'delete'
-                        );
+                        );  
                         guardarYRecargar();
                         mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
                     }
@@ -468,12 +397,7 @@ function setupActionMenuListener() {
             const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
             if(idx !== -1) {
                 TERMINOS[idx].acuseDocumento = e.target.files[0].name;
-                if(TERMINOS[idx].estatus === 'Liberado') {
-                    TERMINOS[idx].estatus = 'Presentado';
-                    
-                    // Si se sube acuse a un término liberado, sincronizar primero
-                    sincronizarConAgendaGeneral(TERMINOS[idx]);
-                }
+                if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
                 guardarYRecargar();
                 mostrarMensajeGlobal('Acuse subido', 'success');
             }
@@ -482,7 +406,64 @@ function setupActionMenuListener() {
 }
 
 // ===============================================
-// 5. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
+// 5. SINCRONIZACIÓN CON AGENDA GENERAL (Solo Concluido)
+// ===============================================
+function sincronizarConAgendaGeneral(termino) {
+    if (termino.estatus !== 'Concluido') return;    
+    
+    let terminosPresentados = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+    const existe = terminosPresentados.some(t => 
+        t.id === termino.id || 
+        (t.terminoIdOriginal && String(t.terminoIdOriginal) === String(termino.id))
+    );
+    
+    if (!existe) {
+        const terminoAgenda = {
+            id: termino.id, // Usar el ID original para referencia
+            fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
+            fechaVencimiento: termino.fechaVencimiento || '',
+            fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha de conclusión
+            expediente: termino.expediente || 'S/N',
+            actuacion: termino.asunto || termino.actuacion || '',
+            partes: termino.actor || '',
+            abogado: termino.abogado || 'Sin asignar',
+            acuseDocumento: termino.acuseDocumento || '',
+            estatus: termino.estatus, // 'Concluido'
+            observaciones: termino.observaciones || 'Término concluido y finalizado',
+            fechaCreacion: new Date().toISOString(),
+            terminoIdOriginal: termino.id 
+        };
+        
+        terminosPresentados.unshift(terminoAgenda);
+        
+        localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
+        
+        console.log('✅ Término sincronizado con Agenda General:', terminoAgenda);
+        
+        // ** ELIMINAR EL TÉRMINO DE LA TABLA PRINCIPAL **
+        eliminarTerminoDeTablaPrincipal(termino.id);
+        
+        mostrarMensajeGlobal(`Término concluido y movido a Agenda General`, 'success');
+    }
+}
+
+function eliminarTerminoDeTablaPrincipal(id) {
+    const indice = TERMINOS.findIndex(t => String(t.id) === String(id));
+    if (indice !== -1) {
+        
+        TERMINOS.splice(indice, 1);
+        
+        guardarYRecargar(); 
+        
+        console.log(`🗑️ Término ${id} eliminado de la tabla principal`);
+        return true;
+    }
+    return false;
+}
+
+
+// ===============================================
+// 6. LÓGICA DE NEGOCIO (AVANZAR/RETROCEDER/GUARDAR)
 // ===============================================
 function avanzarEtapa(id) {
     const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
@@ -491,13 +472,12 @@ function avanzarEtapa(id) {
     const actual = termino.estatus;
 
     if (!termino.archivoWord && actual !== 'Liberado' && actual !== 'Presentado') {
-        mostrarMensajeGlobal("No puede avanzar sin subir el Proyecto Word primero.", "danger");
+        mostrarMensajeGlobal("No puede avanzar sin subir el borrador Word primero.", "danger");
         return;
     }
 
     const config = FLUJO_ETAPAS[actual];
-    
-    if(config && config.siguiente) {
+    if(config && config.siguiente){
         
         const ejecutarAvance = (nuevoEstado) => {
             TERMINOS[idx].estatus = nuevoEstado; 
@@ -520,10 +500,6 @@ function avanzarEtapa(id) {
                     `El término "${TERMINOS[idx].asunto}" ha sido liberado por Dirección.`,
                     'status'
                 );
-                // Sincronizar al liberar (mover a Agenda General y limpiar tabla principal)
-                sincronizarConAgendaGeneral(TERMINOS[idx]);
-                // sincronizarConAgendaGeneral eliminará el término de la lista principal; no continuar con más operaciones
-                return;
             }
             guardarYRecargar(); 
             mostrarMensajeGlobal(`Avanzado a ${nuevoEstado}`, 'success'); 
@@ -564,7 +540,7 @@ function guardarYRecargar() {
 }
 
 // ===============================================
-// 8. MODALES (MANUALES) - ROBUSTO
+// 7. MODALES (MANUALES) - ROBUSTO
 // ===============================================
 function initModalTerminosJS() {
    const modal = document.getElementById('modal-termino');
@@ -773,21 +749,31 @@ function initModalPresentar() {
                 
                 if(nuevoEstatus) {
                     TERMINOS[idx].estatus = nuevoEstatus;
-
+                    
                     if(observaciones) {
                         TERMINOS[idx].observaciones = observaciones;
                     }
-
-                    // Si se libera, sincronizar y salir (la sincronización elimina el término de la lista principal)
-                    if (nuevoEstatus === 'Liberado') {
+                    
+                    // --- PUNTO DE SINCRONIZACIÓN ---
+                    if (nuevoEstatus === 'Concluido') {
+                        registrarActividadExpediente(
+                            TERMINOS[idx].asuntoId,
+                            'Término Concluido',
+                            `El término "${TERMINOS[idx].asunto}" ha sido presentado y finalizado.`,
+                            'status'
+                        );
+                        
+                        guardarYRecargar(); 
+                        
                         sincronizarConAgendaGeneral(TERMINOS[idx]);
-                        modal.classList.remove('flex'); modal.classList.add('hidden');
-                        return;
+                        
+                    } else {
+                        guardarYRecargar();
                     }
-
-                    guardarYRecargar();
+                    // -------------------------------
+                    
                     mostrarMensajeGlobal(`Término actualizado a: ${nuevoEstatus}`, 'success');
-
+                    
                     modal.classList.remove('flex'); 
                     modal.classList.add('hidden');
                 }
@@ -820,7 +806,7 @@ function abrirModalPresentar(id, titulo, mensaje) {
 }
 
 // ===============================================
-// 7. HELPERS Y UTILIDADES
+// 8. HELPERS Y UTILIDADES
 // ===============================================
 function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;
@@ -877,7 +863,6 @@ function mostrarPrompt(titulo, mensaje, placeholder, callback) {
     document.getElementById('prompt-titulo').textContent = titulo;
     document.getElementById('prompt-mensaje').textContent = mensaje;
     const input = document.getElementById('prompt-input');
-
     input.placeholder = placeholder || '...';
     input.value = '';
     onPromptAction = callback;
@@ -998,4 +983,66 @@ function exportarTablaExcel() {
     const table = document.querySelector('table');
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, 'Terminos.xlsx');
+}
+
+// === FUNCION HELPER PARA VINCULAR CON EXPEDIENTE ===
+function registrarActividadExpediente(asuntoId, titulo, descripcion, tipoIcono = 'info') {
+    if (!asuntoId) return;
+
+    const expedientes = JSON.parse(localStorage.getItem('expedientesData')) || [];
+    const index = expedientes.findIndex(e => String(e.id) === String(asuntoId));
+
+    if (index !== -1) {
+        if (!expedientes[index].actividad) expedientes[index].actividad = [];
+
+        const nuevaActividad = {
+            fecha: new Date().toISOString(),
+            titulo: titulo,
+            descripcion: descripcion,
+            tipo: tipoIcono 
+        };
+
+        expedientes[index].actividad.unshift(nuevaActividad);
+        localStorage.setItem('expedientesData', JSON.stringify(expedientes));
+        console.log(`Actividad registrada en expediente ${asuntoId}: ${titulo}`);
+    }
+}
+
+// ===============================================
+// 10. FUNCIÓN ADICIONAL PARA SINCRONIZACIÓN MANUAL
+// ===============================================
+function sincronizarTerminosConcluidos() {
+    
+    const terminosAEnviar = TERMINOS.filter(t => t.estatus === 'Concluido');
+    let sincronizados = 0;
+    
+    terminosAEnviar.forEach(termino => {
+        sincronizarConAgendaGeneral(termino);
+        sincronizados++;
+    });
+    
+    if (sincronizados > 0) {
+        mostrarMensajeGlobal(`${sincronizados} términos Concluidos movidos a Agenda General`, 'success');
+    } else {
+        mostrarMensajeGlobal('No hay términos en estado Concluido para sincronizar', 'info');
+    }
+}
+
+function crearNotificacionGlobal(datos) {
+    const KEY = 'jl_notifications_v4';
+    const notificaciones = JSON.parse(localStorage.getItem(KEY)) || [];
+    
+    const nuevaNotif = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        eventType: datos.eventType,
+        title: datos.title,
+        expediente: datos.expediente,
+        status: datos.status,
+        detalles: datos.detalles || {},
+        notifyAt: datos.notifyAt || new Date().toISOString(),
+        meta: datos.meta || {}
+    };
+    
+    notificaciones.push(nuevaNotif);
+    localStorage.setItem(KEY, JSON.stringify(notificaciones));
 }

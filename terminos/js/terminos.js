@@ -17,7 +17,7 @@ const FLUJO_ETAPAS = {
 const PERMISOS_ETAPAS = {
     'Proyectista': ['Abogado', 'Gerente','JefeDepto','Direccion', 'Subdireccion'],
     'Revisión':    ['JefeDepto', 'Gerente', 'Direccion', 'Subdireccion'],
-    'Gerencia':    ['Gerente', 'Direcc  ion', 'Subdireccion'],
+    'Gerencia':    ['Gerente', 'Direccion', 'Subdireccion'],
     'Dirección':   ['Direccion', 'Subdireccion'],
     'Liberado':    ['Abogado', 'JefeDepto', 'Gerente','Direccion', 'Subdireccion'],
     'Presentado':  ['Direccion', 'Subdireccion', 'Abogado'],

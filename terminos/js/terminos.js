@@ -602,30 +602,29 @@ function openTerminoModalJS(termino = null) {
 function guardarTermino() {
     const id = document.getElementById('termino-id').value;
     
-    const prioridadReal = document.getElementById('termino-prioridad')?.value || 'Media';
-
+    // Recopilar datos del formulario
     const data = {
         asuntoId: document.getElementById('asunto-selector')?.value,
         fechaIngreso: document.getElementById('fecha-ingreso')?.value,
         fechaVencimiento: document.getElementById('fecha-vencimiento')?.value,
         asunto: document.getElementById('actuacion')?.value,
-        prioridad: prioridadReal, 
-        organo: document.getElementById('termino-organo')?.value || 'No asignado'
+        linkDocumento: document.getElementById('link-documento')?.value.trim() || '',
     };
 
     if(!data.asuntoId || !data.fechaVencimiento) return mostrarMensajeGlobal('Faltan campos obligatorios', 'danger');
 
-    // === LÓGICA DE RECORDATORIO ===
+    // === LÓGICA DE RECORDATORIO (Se mantiene igual) ===
     const fechaBaseStr = document.getElementById('fecha-vencimiento').value;
     const fechaBase = new Date(fechaBaseStr + 'T09:00:00');
     const diasAntes = parseInt(document.getElementById('dias-antes-recordatorio').value) || 0;
     const notaRec = document.getElementById('nota-recordatorio').value;
+
     const fechaNotificacion = new Date(fechaBase);
     fechaNotificacion.setDate(fechaBase.getDate() - diasAntes);
-
+    
     let textoAnticipacion = diasAntes > 0 ? `${diasAntes} días` : "el mismo día";
 
-    // Notificación de Recordatorio
+    // Generar o actualizar Recordatorio
     crearNotificacionGlobal({
         eventType: 'recordatorio',
         title: `Recordatorio: ${data.asunto}`,
@@ -633,30 +632,68 @@ function guardarTermino() {
         status: 'Activo',
         notifyAt: fechaNotificacion.toISOString(),
         detalles: { descripcion: notaRec || 'Recordatorio automático de término' },
-        meta: {
-            tipoOrigen: 'termino',
-            expediente: document.getElementById('termino-expediente')?.value,
-            anticipacion: textoAnticipacion,
-            fechaEvento: fechaBase.toISOString()
-        }
+        meta: { tipoOrigen: 'termino', expediente: document.getElementById('termino-expediente')?.value, anticipacion: textoAnticipacion, fechaEvento: fechaBase.toISOString() }
     });
 
     if(id) {
+        // === MODO EDICIÓN: DETECTAR CAMBIOS ===
         const idx = TERMINOS.findIndex(t => String(t.id) === String(id));
-        if(idx !== -1) TERMINOS[idx] = { ...TERMINOS[idx], ...data };
+        if(idx !== -1) {
+            const original = TERMINOS[idx];
+            
+            // 1. Detectar cambio de NOMBRE (Asunto)
+            if (original.asunto !== data.asunto) {
+                crearNotificacionGlobal({
+                    eventType: 'termino',
+                    title: data.asunto,
+                    expediente: original.expediente,
+                    status: 'Edición',
+                    detalles: { actuacion: `El término fue renombrado. Anteriormente: "${original.asunto}"` },
+                    notifyAt: new Date().toISOString()
+                });
+            }
+
+            // 2. Detectar cambio de FECHA DE VENCIMIENTO
+            if (original.fechaVencimiento !== data.fechaVencimiento) {
+                crearNotificacionGlobal({
+                    eventType: 'termino',
+                    title: data.asunto,
+                    expediente: original.expediente,
+                    status: 'Edición',
+                    detalles: { actuacion: `Se editó fecha de vencimiento. Anterior: ${formatDate(original.fechaVencimiento)}. Nueva: ${formatDate(data.fechaVencimiento)}` },
+                    notifyAt: new Date().toISOString()
+                });
+            }
+
+            // 3. Detectar cambio de FECHA DE INGRESO (NUEVO)
+            if (original.fechaIngreso !== data.fechaIngreso) {
+                crearNotificacionGlobal({
+                    eventType: 'termino',
+                    title: data.asunto,
+                    expediente: original.expediente,
+                    status: 'Edición',
+                    detalles: { actuacion: `Se editó fecha de ingreso. Anterior: ${formatDate(original.fechaIngreso)}. Nueva: ${formatDate(data.fechaIngreso)}` },
+                    notifyAt: new Date().toISOString()
+                });
+            }
+
+            // Guardar cambios
+            TERMINOS[idx] = { ...TERMINOS[idx], ...data };
+        }
     } else {
-        // NUEVO TÉRMINO
+        // === MODO CREACIÓN ===
         TERMINOS.push({
             id: Date.now(),
             estatus: 'Proyectista',
             ...data,
             acuseDocumento: '',
-            archivoWord: '', 
             expediente: document.getElementById('termino-expediente')?.value || '',
             actor: document.getElementById('termino-partes')?.value || '',
             abogado: document.getElementById('termino-abogado')?.value || '',
+            prioridad: 'Media'
         });
 
+        // Notificación de Creación
         crearNotificacionGlobal({
             eventType: 'termino',
             title: data.asunto,
@@ -666,18 +703,15 @@ function guardarTermino() {
             notifyAt: new Date().toISOString()
         });
 
-        registrarActividadExpediente(
-            data.asuntoId, 
-            'Nuevo Término Asignado', 
-            `Se agregó el término: "${data.asunto}" con vencimiento al ${data.fechaVencimiento}.`, 
-            'edit'
-        );
+        registrarActividadExpediente(data.asuntoId, 'Nuevo Término Asignado', `Se agregó el término: "${data.asunto}" con vencimiento al ${formatDate(data.fechaVencimiento)}.`, 'edit');
     }
     
     guardarYRecargar();
+    
     const modal = document.getElementById('modal-termino');
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    
     mostrarMensajeGlobal('Término guardado correctamente', 'success');
 }
 

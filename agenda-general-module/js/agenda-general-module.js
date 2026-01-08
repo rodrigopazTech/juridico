@@ -69,62 +69,7 @@ class AgendaGeneralManager {
         // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
         if (this.audienciasDesahogadas.length === 0) {
             this.audienciasDesahogadas = [
-                {
-                    id: 1,
-                    fechaAudiencia: getFechaStr(0),
-                    horaAudiencia: '09:30',
-                    expediente: 'EXP-2025-0456',
-                    tipoAudiencia: 'Conciliación',
-                    partes: 'Martínez vs. Rodríguez',
-                    abogado: 'Dra. Laura Méndez',
-                    actaDocumento: 'ACTA-PENDIENTE.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(0),
-                    observaciones: 'Programada para hoy a primera hora.',
-                    fechaCreacion: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    fechaAudiencia: getFechaStr(1),
-                    horaAudiencia: '11:00',
-                    expediente: 'EXP-2025-0789',
-                    tipoAudiencia: 'Vista',
-                    partes: 'Pérez e Hijos S.A. vs. Estado',
-                    abogado: 'Lic. Carlos Ruiz',
-                    actaDocumento: 'ACTA-FUTURA.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(1),
-                    observaciones: 'Vista pública confirmada para mañana.',
-                    fechaCreacion: new Date().toISOString()
-                },
-                {
-                    id: 3,
-                    fechaAudiencia: getFechaStr(3),
-                    horaAudiencia: '15:15',
-                    expediente: 'EXP-2025-1123',
-                    tipoAudiencia: 'Juicio',
-                    partes: 'González vs. Instituto Federal',
-                    abogado: 'Lic. Ana Vargas',
-                    actaDocumento: 'ACTA-PROXIMA.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(3),
-                    observaciones: 'Juicio oral próximo.',
-                    fechaCreacion: new Date().toISOString()
-                },
-                {
-                    id: 4,
-                    fechaAudiencia: getFechaStr(15),
-                    horaAudiencia: '10:00',
-                    expediente: '3485/2025',
-                    tipoAudiencia: 'Inicial',
-                    partes: 'Herrera Campos vs. Transportes',
-                    abogado: 'Lic. María González',
-                    actaDocumento: 'ACTA-MES.pdf',
-                    atendida: true,
-                    fechaDesahogo: getFechaStr(15),
-                    observaciones: 'Audiencia inicial programada para final de mes.',
-                    fechaCreacion: new Date().toISOString()
-                }
+               
             ];
             
             // Guardar los datos de ejemplo
@@ -170,54 +115,7 @@ class AgendaGeneralManager {
         // Si aún no hay datos, usar ejemplos con fechas de HOY y FUTURO
         if (this.terminosPresentados.length === 0) {
             this.terminosPresentados = [
-                {
-                    id: 1,
-                    fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(0),
-                    fechaPresentacion: getFechaStr(0),
-                    expediente: 'EXP-2025-001',
-                    actuacion: 'Contestación de demanda',
-                    partes: 'Empresa A vs. Empleado B',
-                    abogado: 'Lic. Juan Pérez',
-                    acuseDocumento: 'ACUSE-HOY.pdf',
-                    etapaRevision: 'Presentado',
-                    estatus: 'Presentado',
-                    observaciones: 'Vencimiento el día de hoy.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 1
-                },
-                {
-                    id: 2,
-                    fechaIngreso: getFechaStr(0),
-                    fechaVencimiento: getFechaStr(2),
-                    fechaPresentacion: getFechaStr(2),
-                    expediente: 'EXP-2025-002',
-                    actuacion: 'Ofrecimiento de pruebas',
-                    partes: 'Banco X vs. Deudor Y',
-                    abogado: 'Lic. Ana López',
-                    acuseDocumento: 'ACUSE-PENDIENTE.pdf',
-                    etapaRevision: 'Liberado',
-                    estatus: 'Liberado',
-                    observaciones: 'Preparar pruebas para esta semana.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 2
-                },
-                {
-                    id: 3,
-                    fechaIngreso: getFechaStr(5),
-                    fechaVencimiento: getFechaStr(10),
-                    fechaPresentacion: getFechaStr(10),
-                    expediente: 'EXP-2025-003',
-                    actuacion: 'Alegatos finales',
-                    partes: 'Constructora Z vs. Municipio',
-                    abogado: 'Lic. Roberto M.',
-                    acuseDocumento: 'ACUSE-FUTURO.pdf',
-                    etapaRevision: 'Concluido',
-                    estatus: 'Concluido',
-                    observaciones: 'Alegatos programados para mediados de mes.',
-                    fechaCreacion: new Date().toISOString(),
-                    terminoIdOriginal: 3
-                }
+               
             ];
             
             // Guardar los datos de ejemplo
@@ -407,10 +305,12 @@ class AgendaGeneralManager {
                     <td class="px-6 py-4">${this.formatDate(t.fechaPresentacion)}</td>
                     <td class="px-6 py-4">${this.formatDate(t.fechaVencimiento)}</td>
                     <td class="px-6 py-4 font-medium text-gob-guinda">${t.expediente}</td>
+                    <td class="px-6 py-4 text-sm truncate max-w-[200px]">${t.actuacion}</td>
                     <td class="px-6 py-4 text-sm">
                         <span class="${badgeClass} text-xs font-semibold px-2.5 py-0.5 rounded mr-2">${t.estatus}</span>
-                        ${t.actuacion}
+                        
                     </td>
+                    
                     <td class="px-6 py-4 text-sm truncate max-w-[200px]">${t.partes}</td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex justify-center gap-2">

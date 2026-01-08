@@ -284,6 +284,8 @@ function crearSeparador(titulo = "") {
 function setupActionMenuListener() {
     const tbody = document.getElementById('terminos-body');
     if(!tbody) return;
+    
+    // Clonar para limpiar listeners previos
     const newTbody = tbody.cloneNode(true);
     tbody.parentNode.replaceChild(newTbody, tbody);
     loadTerminos(); 
@@ -316,33 +318,39 @@ function setupActionMenuListener() {
             else mostrarMensajeGlobal("Este término no está vinculado a un expediente digital.", "warning");
         }
         else if (target.classList.contains('action-upload-word')) {
-            // === LÓGICA DE SUBIDA CON HISTORIAL (WORD) ===
+            // === LÓGICA DE SUBIDA (WORD) CON HISTORIAL ===
             const fileInput = document.getElementById('input-word-termino');
-            fileInput.onchange = (e) => {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
+            // Removemos listeners anteriores para evitar duplicados
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            
+            newFileInput.onchange = (evt) => {
+                if (evt.target.files.length > 0) {
+                    const file = evt.target.files[0];
                     const tIdx = TERMINOS.findIndex(t => String(t.id) === String(id));
                     
-                    // 1. Guardar como versión actual (para la vista de Términos)
-                    TERMINOS[tIdx].archivoWord = file.name; 
-                    
-                    // 2. Agregar al Historial (para el Gestor Documental)
-                    if(!TERMINOS[tIdx].historialArchivos) TERMINOS[tIdx].historialArchivos = [];
-                    TERMINOS[tIdx].historialArchivos.push({
-                        nombre: file.name,
-                        fecha: new Date().toISOString(),
-                        tipo: 'Borrador',
-                        etapa: TERMINOS[tIdx].estatus
-                    });
+                    if (tIdx !== -1) {
+                        // 1. Guardar como actual
+                        TERMINOS[tIdx].archivoWord = file.name; 
+                        
+                        // 2. GUARDAR EN HISTORIAL (CRÍTICO)
+                        if(!TERMINOS[tIdx].historialArchivos) TERMINOS[tIdx].historialArchivos = [];
+                        TERMINOS[tIdx].historialArchivos.push({
+                            nombre: file.name,
+                            fecha: new Date().toISOString(),
+                            tipo: 'Borrador',
+                            etapa: TERMINOS[tIdx].estatus
+                        });
 
-                    registrarActividadExpediente(
-                        TERMINOS[tIdx].asuntoId, 'Borrador Actualizado', `Se cargó: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`, 'upload'
-                    );
-                    guardarYRecargar();
-                    mostrarMensajeGlobal("Archivo cargado correctamente (Guardado en Historial)", "success");
+                        registrarActividadExpediente(
+                            TERMINOS[tIdx].asuntoId, 'Borrador Actualizado', `Se cargó: ${file.name} en etapa ${TERMINOS[tIdx].estatus}`, 'upload'
+                        );
+                        guardarYRecargar();
+                        mostrarMensajeGlobal("Archivo cargado y guardado en historial", "success");
+                    }
                 }
             };
-            fileInput.click();
+            newFileInput.click();
         }
         else if (target.classList.contains('action-download-word')) {
             mostrarMensajeGlobal(`Descargando borrador: ${termino.archivoWord}`, "success");
@@ -359,7 +367,7 @@ function setupActionMenuListener() {
                     if (tIdx !== -1) {
                         TERMINOS[tIdx].acuseDocumento = '';
                         TERMINOS[tIdx].estatus = 'Liberado'; 
-                        // Nota: No borramos del historial para tener trazabilidad, solo quitamos el "actual"
+                        // Nota: NO borramos el historial para mantener evidencia de que existió
                         registrarActividadExpediente(TERMINOS[tIdx].asuntoId, 'Acuse Removido', `Se quitó el acuse del término "${TERMINOS[tIdx].asunto}".`, 'delete');  
                         guardarYRecargar();
                         mostrarMensajeGlobal('Acuse quitado. Estado regresado a Liberado.', 'warning');
@@ -377,7 +385,7 @@ function setupActionMenuListener() {
     document.addEventListener('click', e => { if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) { document.querySelectorAll('.action-menu').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); } });
     window.addEventListener('scroll', () => { document.querySelectorAll('.action-menu:not(.hidden)').forEach(m => { m.classList.add('hidden'); m.style.cssText = ''; }); }, true);
     
-    // === LÓGICA DE SUBIDA CON HISTORIAL (ACUSE) ===
+    // === LÓGICA DE SUBIDA (ACUSE) CON HISTORIAL ===
     document.getElementById('terminos-body').addEventListener('change', function(e) {
         if (e.target.classList.contains('input-acuse-hidden') && e.target.files.length > 0) {
             const id = e.target.getAttribute('data-id');
@@ -389,7 +397,7 @@ function setupActionMenuListener() {
                 TERMINOS[idx].acuseDocumento = file.name;
                 if(TERMINOS[idx].estatus === 'Liberado') TERMINOS[idx].estatus = 'Presentado';
                 
-                // 2. Agregar al Historial
+                // 2. GUARDAR EN HISTORIAL (CRÍTICO)
                 if(!TERMINOS[idx].historialArchivos) TERMINOS[idx].historialArchivos = [];
                 TERMINOS[idx].historialArchivos.push({
                     nombre: file.name,
@@ -405,9 +413,6 @@ function setupActionMenuListener() {
     });
 }
 
-// ===============================================
-// 5. SINCRONIZACIÓN CON AGENDA GENERAL (Solo Concluido)
-// ===============================================
 function sincronizarConAgendaGeneral(termino) {
     if (termino.estatus !== 'Concluido') return;    
     
@@ -419,16 +424,22 @@ function sincronizarConAgendaGeneral(termino) {
     
     if (!existe) {
         const terminoAgenda = {
-            id: termino.id, // Usar el ID original para referencia
+            id: termino.id,
             fechaIngreso: termino.fechaIngreso || new Date().toISOString().split('T')[0],
             fechaVencimiento: termino.fechaVencimiento || '',
-            fechaPresentacion: new Date().toISOString().split('T')[0], // Fecha de conclusión
+            fechaPresentacion: new Date().toISOString().split('T')[0],
             expediente: termino.expediente || 'S/N',
+            asuntoId: termino.asuntoId, // IMPORTANTE: MANTENER ID DE EXPEDIENTE
             actuacion: termino.asunto || termino.actuacion || '',
             partes: termino.actor || '',
             abogado: termino.abogado || 'Sin asignar',
             acuseDocumento: termino.acuseDocumento || '',
-            estatus: termino.estatus, // 'Concluido'
+            archivoWord: termino.archivoWord || '', // Mantener ref al último word
+            
+            // ** CORRECCIÓN: COPIAR EL HISTORIAL COMPLETO **
+            historialArchivos: termino.historialArchivos || [], 
+            
+            estatus: termino.estatus,
             observaciones: termino.observaciones || 'Término concluido y finalizado',
             fechaCreacion: new Date().toISOString(),
             terminoIdOriginal: termino.id 
@@ -438,9 +449,7 @@ function sincronizarConAgendaGeneral(termino) {
         
         localStorage.setItem('terminosPresentados', JSON.stringify(terminosPresentados));
         
-        console.log('✅ Término sincronizado con Agenda General:', terminoAgenda);
-        
-        // ** ELIMINAR EL TÉRMINO DE LA TABLA PRINCIPAL **
+        // Eliminar de la tabla principal
         eliminarTerminoDeTablaPrincipal(termino.id);
         
         mostrarMensajeGlobal(`Término concluido y movido a Agenda General`, 'success');

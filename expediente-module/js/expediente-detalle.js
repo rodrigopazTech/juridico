@@ -50,19 +50,85 @@ export class ExpedienteDetalleModule {
 
     loadData() {
         this.expediente = expedienteById(this.id);
-        
         if (!this.expediente.documentos) this.expediente.documentos = [];
         if (!this.expediente.observaciones) this.expediente.observaciones = [];
-        
-        if (!this.expediente.actividad) {
-            this.expediente.actividad = [{ fecha: new Date().toISOString(), titulo: 'Expediente Consultado', descripcion: 'Acceso al detalle.', tipo: 'info' }];
-        }
+        if (!this.expediente.actividad) { this.expediente.actividad = [{ fecha: new Date().toISOString(), titulo: 'Expediente Consultado', descripcion: 'Acceso al detalle.', tipo: 'info' }]; }
     }
 
+   getAllAudiencias() {
+        const activas = JSON.parse(localStorage.getItem('audiencias')) || [];
+        const historicas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];     
+        
+        // Unimos todas
+        const todas = [...activas, ...historicas];
+
+        return todas.filter(a => {
+            // 1. Busqueda precisa por ID (Lo ideal)
+            if (a.asuntoId && String(a.asuntoId) === String(this.id)) return true;
+            
+            // 2. Busqueda de respaldo por Texto de Expediente (Para recuperar las concluidas)
+            if (this.expediente && this.expediente.numero && a.expediente) {
+                return a.expediente.trim() === this.expediente.numero.trim();
+            }
+            return false;
+        }).sort((a, b) => {
+            // Ordenar por fecha para mantener 001, 002...
+            const dateA = new Date(a.fecha + 'T' + (a.hora || '00:00'));
+            const dateB = new Date(b.fecha + 'T' + (b.hora || '00:00'));
+            return dateA - dateB;
+        });
+    }
+
+// === MODIFICACIÓN: ORDENAMIENTO POR CREACIÓN (ESTABLE 001, 002...) ===
+    
+    getAllAudiencias() {
+        const activas = JSON.parse(localStorage.getItem('audiencias')) || [];
+        const historicas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];     
+        
+        const todas = [...activas, ...historicas];
+
+        return todas.filter(a => {
+            // Filtro por ID o Número de Expediente
+            if (a.asuntoId && String(a.asuntoId) === String(this.id)) return true;
+            if (this.expediente && this.expediente.numero && a.expediente) {
+                return a.expediente.trim() === this.expediente.numero.trim();
+            }
+            return false;
+        }).sort((a, b) => {
+            // CORRECCIÓN CLAVE: Ordenar por ID (que es la fecha de creación)
+            // Esto garantiza que el primero que creaste sea siempre el 001
+            const idA = Number(a.id);
+            const idB = Number(b.id);
+            return idA - idB; 
+        });
+    }
+
+    getAllTerminos() {
+        const activos = JSON.parse(localStorage.getItem('terminos')) || [];
+        const historicos = JSON.parse(localStorage.getItem('terminosPresentados')) || [];      
+        
+        const todos = [...activos, ...historicos];
+
+        return todos.filter(t => {
+            if (t.asuntoId && String(t.asuntoId) === String(this.id)) return true;
+            if (this.expediente && this.expediente.numero && t.expediente) {
+                return t.expediente.trim() === this.expediente.numero.trim();
+            }
+            return false;
+        }).sort((a, b) => {
+            // CORRECCIÓN CLAVE: Ordenar por ID Original
+            // Si es histórico, usamos su ID original para mantener su posición
+            const idA = Number(a.terminoIdOriginal || a.id);
+            const idB = Number(b.terminoIdOriginal || b.id);
+            return idA - idB;
+        });
+    }
+    
     setupDocumentsModule() {
         this.renderDocumentsTable();
         
     }
+
     renderDocumentsTable() {
         const tbody = document.getElementById('tabla-documentos-body');
         if (!tbody) return;
@@ -120,9 +186,6 @@ export class ExpedienteDetalleModule {
         this.asignarListenersDocumentos();
     }
 
-    // ==========================================
-    // 2. VISTA 360 Y DATOS GENERALES
-    // ==========================================
     populateVista360() {
         const e = this.expediente;
         const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text || '—'; };
@@ -171,9 +234,6 @@ export class ExpedienteDetalleModule {
         }
     }
 
-    // ==========================================
-    // 3. NUEVO EXPLORADOR (GESTOR DOCUMENTAL)
-    // ==========================================
     setupExplorer() {
         const modal = document.getElementById('modal-explorer');
         const btnOpen = document.getElementById('btn-open-explorer'); 
@@ -200,12 +260,12 @@ export class ExpedienteDetalleModule {
 
         if (btnNewFolder) {
             btnNewFolder.onclick = () => {
-                if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-') || this.currentFolderId.startsWith('aud-')) {
+                if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-') || this.currentFolderId.startsWith('aud-') || this.currentFolderId.startsWith('term-')) {
                     this.promptNewFolder();
                 } else if (this.currentFolderId === 'terminos' || this.currentFolderId === 'audiencias') {
-                    Swal.fire('Estructura Protegida', 'No puedes crear carpetas en la raíz de secciones automáticas.', 'info');
+                    Swal.fire('Estructura Protegida', 'No puedes crear carpetas raíz manualmente. Se crean al agendar Audiencias o Términos.', 'info');
                 } else {
-                    Swal.fire('Acción no permitida', 'No puedes crear carpetas aquí.', 'warning');
+                    Swal.fire('Acción no permitida', 'Selecciona una carpeta válida primero.', 'warning');
                 }
             };
         }
@@ -219,7 +279,6 @@ export class ExpedienteDetalleModule {
         }
     }
 
-    // --- FUNCIÓN PARA CREAR CARPETA PERSONALIZADA ---
     async promptNewFolder() {
         const { value: folderName } = await Swal.fire({
             title: 'Nueva Carpeta',
@@ -239,14 +298,10 @@ export class ExpedienteDetalleModule {
         }
     }
 
-   createCustomFolder(name) {
-        const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
-        
-        // LÓGICA DE PADRE:
-        // Si estamos en una carpeta custom (custom-X) o en una audiencia (aud-X), ese es el padre.
-        // Si no, por defecto va a 'anexos'.
+  createCustomFolder(name) {
+        const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];       
         let parentId = 'anexos';
-        if (this.currentFolderId.startsWith('custom-') || this.currentFolderId.startsWith('aud-')) {
+        if (this.currentFolderId && this.currentFolderId !== 'root') {
             parentId = this.currentFolderId;
         }
 
@@ -257,13 +312,10 @@ export class ExpedienteDetalleModule {
             name: name,
             date: new Date().toLocaleDateString('es-MX')
         };
-        
         customFolders.push(newFolder);
         localStorage.setItem('custom_folders', JSON.stringify(customFolders));
         
-        // Expandimos la carpeta padre para que el usuario vea inmediatamente la nueva carpeta creada
         this.expandedFolders.add(parentId);
-        
         this.loadFolder(this.currentFolderId, this.currentLabel); 
         this.renderTree(); 
         
@@ -271,21 +323,18 @@ export class ExpedienteDetalleModule {
         Toast.fire({ icon: 'success', title: 'Carpeta creada' });
     }
 
-    // --- LÓGICA DE ÁRBOL "UNITY" (TOGGLE) ---
     toggleTreeNode(nodeId) {
         if (this.expandedFolders.has(nodeId)) {
-            this.expandedFolders.delete(nodeId); // Desacoplar (Cerrar)
+            this.expandedFolders.delete(nodeId); 
         } else {
-            this.expandedFolders.add(nodeId); // Acoplar (Abrir)
+            this.expandedFolders.add(nodeId); 
         }
-        this.renderTree(); // Redibujar árbol
+        this.renderTree();
     }
 
-    // Helper visual para resaltar el botón activo
-    updateViewButtons() {
+   updateViewButtons() {
         const btnGrid = document.getElementById('view-grid');
         const btnList = document.getElementById('view-list');
-        
         if (this.currentView === 'grid') {
             btnGrid.className = "p-1.5 rounded bg-white shadow-sm text-gob-guinda text-xs transition-all";
             btnList.className = "p-1.5 rounded hover:bg-white hover:shadow-sm text-gray-400 hover:text-gob-guinda text-xs transition-all";
@@ -295,99 +344,122 @@ export class ExpedienteDetalleModule {
         }
     }
 
+    // === FUNCIÓN AUXILIAR FALTANTE ===
+    appendExtraFilesToTree(structure, parentId) {
+        // Busca archivos sueltos que pertenezcan a esta carpeta específica
+        if(this.expediente.documentos) {
+            this.expediente.documentos.forEach((d, i) => {
+                // Si el documento tiene como padre esta carpeta (ej: una audiencia específica)
+                if(d.folderId === parentId) {
+                    structure.push({ 
+                        id: `doc-extra-${i}`, 
+                        label: d.nombre, 
+                        icon: d.nombre.endsWith('pdf') ? 'fa-file-pdf' : 'fa-file-word', 
+                        parent: parentId, 
+                        type: 'file', 
+                        color: d.nombre.endsWith('pdf') ? 'text-red-500' : 'text-blue-600' 
+                    });
+                }
+            });
+        }
+    }
+
     renderTree() {
         const treeContainer = document.getElementById('explorer-tree');
         if(!treeContainer) return;
 
-        // 1. Estructura Base
         let structure = [
-            { id: 'root', label: 'EXP-' + (this.expediente.numero || this.id), icon: 'fa-folder', color: 'text-gob-oro', type: 'folder' },
+            { id: 'root', label: 'EXP-' + (this.expediente.numero || this.id), icon: 'fa-folder-open', color: 'text-gob-oro', type: 'folder' },
             { id: 'audiencias', label: 'Audiencias', icon: 'fa-folder', parent: 'root', type: 'folder' },
             { id: 'terminos', label: 'Términos Legales', icon: 'fa-folder', parent: 'root', type: 'folder' },
             { id: 'anexos', label: 'Anexos y Pruebas', icon: 'fa-file-import', parent: 'root', type: 'folder' }
         ];
 
-        // 2. Términos (Carpetas y Archivos)
-        const allTerminos = JSON.parse(localStorage.getItem('terminos')) || [];
-        const misTerminos = allTerminos.filter(t => String(t.asuntoId) === String(this.id));
-        misTerminos.forEach((t, i) => {
-            const folderId = `term-${t.id}`;
-            structure.push({ id: folderId, label: `${String(i+1).padStart(3,'0')} - ${(t.asunto||'').substring(0,15)}...`, icon: 'fa-folder', parent: 'terminos', color: 'text-yellow-500', type: 'folder' });
-            
-            if(t.archivoWord) structure.push({ id: `f-t-w-${t.id}`, label: t.archivoWord, icon: 'fa-file-word', parent: folderId, type: 'file', color: 'text-blue-600' });
-            if(t.acuseDocumento) structure.push({ id: `f-t-a-${t.id}`, label: t.acuseDocumento, icon: 'fa-file-pdf', parent: folderId, type: 'file', color: 'text-red-500' });
-            if(t.historialArchivos) t.historialArchivos.forEach((h, hi) => {
-                if(h.nombre !== t.archivoWord && h.nombre !== t.acuseDocumento) structure.push({ id: `f-t-h-${t.id}-${hi}`, label: h.nombre, icon: h.nombre.endsWith('pdf')?'fa-file-pdf':'fa-file-word', parent: folderId, type: 'file', color: 'text-gray-400' });
-            });
-        });
-
-        // 3. Audiencias (Carpetas y Archivos)
-        const audAct = JSON.parse(localStorage.getItem('audiencias')) || [];
-        const audHist = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
-        const misAud = this.getMisAudienciasUnificadas(); 
-
-        misAud.forEach((a, i) => {
-            const folderId = `aud-${a.id}`;
-            // El número se basa en el índice ordenado
-            const numCarpeta = String(i + 1).padStart(3, '0'); 
+        // 1. TÉRMINOS
+        const todosTerminos = this.getAllTerminos();
+        
+        todosTerminos.forEach((t, i) => {
+            const realId = t.id || t.terminoIdOriginal; 
+            const folderId = `term-${realId}`;
+            const estaConcluido = t.estatus === 'Concluido' || t.estatus === 'Presentado';
             
             structure.push({ 
                 id: folderId, 
-                label: `${numCarpeta} - ${(a.tipo||'').substring(0,15)}...`, 
-                icon: a.atendida ? 'fa-check-circle' : 'fa-folder', 
-                parent: 'audiencias', 
-                color: a.atendida ? 'text-green-600' : 'text-indigo-500', 
+                label: `${String(i+1).padStart(3,'0')} - ${(t.asunto||t.actuacion||'').substring(0,15)}...`, 
+                icon: estaConcluido ? 'fa-check-circle' : 'fa-folder', 
+                parent: 'terminos', 
+                color: estaConcluido ? 'text-green-600' : 'text-yellow-500', 
                 type: 'folder' 
             });
-
-            if(a.actaDocumento) {
-                structure.push({ 
-                    id: `f-a-${a.id}`, 
-                    label: a.actaDocumento, 
-                    icon: 'fa-file-pdf', 
-                    parent: folderId, 
-                    type: 'file', 
-                    color: 'text-red-500' 
+            
+            // MOSTRAR CADA ARCHIVO DEL HISTORIAL
+            if(t.historialArchivos && t.historialArchivos.length > 0) {
+                t.historialArchivos.forEach((h, hi) => {
+                    const esPdf = h.nombre.endsWith('.pdf') || h.tipo === 'Acuse';
+                    structure.push({ 
+                        id: `f-t-h-${realId}-${hi}`, 
+                        label: h.nombre, // Muestra nombre real (ej: Borrador_V1.docx)
+                        icon: esPdf ? 'fa-file-pdf' : 'fa-file-word', 
+                        parent: folderId, 
+                        type: 'file', 
+                        color: esPdf ? 'text-red-500' : 'text-blue-600' 
+                    });
                 });
+            } else {
+                // Compatibilidad con datos antiguos sin historial
+                if(t.archivoWord) structure.push({ id: `f-t-w-${realId}`, label: t.archivoWord, icon: 'fa-file-word', parent: folderId, type: 'file', color: 'text-blue-600' });
+                if(t.acuseDocumento) structure.push({ id: `f-t-a-${realId}`, label: t.acuseDocumento, icon: 'fa-file-pdf', parent: folderId, type: 'file', color: 'text-red-500' });
             }
         });
 
-        // 4. Carpetas Personalizadas (Recursividad infinita)
+        // 2. AUDIENCIAS
+        const todasAudiencias = this.getAllAudiencias();
+        todasAudiencias.forEach((a, i) => {
+            const folderId = `aud-${a.id}`;
+            const estaAtendida = a.atendida || a.fechaDesahogo; 
+
+            structure.push({ 
+                id: folderId, 
+                label: `${String(i+1).padStart(3,'0')} - ${(a.tipo||a.tipoAudiencia||'').substring(0,15)}...`, 
+                icon: estaAtendida ? 'fa-check-circle' : 'fa-folder', 
+                parent: 'audiencias', 
+                color: estaAtendida ? 'text-green-600' : 'text-indigo-500', 
+                type: 'folder' 
+            });
+            
+            if(a.actaDocumento) structure.push({ id: `f-a-${a.id}`, label: a.actaDocumento, icon: 'fa-file-pdf', parent: folderId, type: 'file', color: 'text-red-500' });
+            this.appendExtraFilesToTree(structure, folderId);
+        });
+
+        // 3. OTROS
         const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
         const misCustom = customFolders.filter(f => String(f.expedienteId) === String(this.id));
-        
         misCustom.forEach(f => {
             structure.push({ id: f.id, label: f.name, icon: 'fa-folder', parent: f.parentId, type: 'folder', color: 'text-gray-500' });
         });
 
-        // 5. Archivos sueltos (General y en Subcarpetas)
         if(this.expediente.documentos) {
             this.expediente.documentos.forEach((d, i) => {
-                // Si tiene folderId, usa ese. Si es 'Anexo' sin folderId, va a 'anexos'. Si no, a root.
                 let parent = d.folderId ? d.folderId : (d.tipo==='Anexo' ? 'anexos' : 'root');
                 structure.push({ id: `doc-${i}`, label: d.nombre, icon: d.nombre.endsWith('pdf')?'fa-file-pdf':'fa-file-word', parent: parent, type: 'file', color: d.nombre.endsWith('pdf')?'text-red-500':'text-blue-600' });
             });
         }
 
-        // Renderizado Recursivo
+        // RENDER
         let html = '';
         const renderNode = (node, level = 0) => {
             const children = structure.filter(item => item.parent === node.id);
             const hasChildren = children.length > 0;
             const padding = 8 + (level * 12);
             
-            // Estado visual
             const isExpanded = this.expandedFolders.has(node.id);
             const isSelected = this.currentFolderId === node.id;
             
-            // Icono de carpeta (abierto/cerrado)
             let iconToRender = node.icon;
-            if (node.type === 'folder') {
-                if (node.id === 'root') iconToRender = 'fa-folder-open'; 
-                else if (isExpanded) iconToRender = 'fa-folder-open';
+            if (node.type === 'folder' && !node.icon.includes('check')) {
+                if (node.id === 'root' || isExpanded) iconToRender = 'fa-folder-open';
             }
 
-            // Flecha: Solo aparece si tiene hijos. Click -> Toggle
             let arrow = '<span class="w-4 inline-block"></span>';
             if (node.type === 'folder' && hasChildren) {
                 arrow = `<span class="w-4 inline-flex items-center justify-center cursor-pointer hover:text-gob-guinda transition-colors" 
@@ -396,24 +468,19 @@ export class ExpedienteDetalleModule {
                          </span>`;
             }
 
-            // Estilos de selección
             const bgClass = isSelected ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-100';
-            
-            // Acción principal (Click en nombre): Carga el contenido, NO expande el árbol obligatoriamente
             const mainAction = node.type === 'folder' 
                 ? `window.detalleModule.loadFolder('${node.id}', '${node.label.replace(/'/g, "\\'")}')`
                 : `window.detalleModule.previewFile('${node.label.replace(/'/g, "\\'")}')`;
 
             html += `
             <div class="flex items-center gap-1 p-1 rounded cursor-pointer transition-all text-xs group select-none ${bgClass}" 
-                 style="padding-left: ${padding}px" 
-                 onclick="${mainAction}">
+                 style="padding-left: ${padding}px" onclick="${mainAction}">
                 ${arrow}
                 <i class="fas ${iconToRender} ${node.color || 'text-gray-400'} min-w-[16px] text-center"></i>
                 <span class="truncate ${node.type==='file'?'text-gray-500':'font-medium'} ml-1">${node.label}</span>
             </div>`;
 
-            // Renderizar hijos si está expandido
             if (isExpanded && hasChildren) {
                 children.forEach(child => renderNode(child, level + 1));
             }
@@ -425,7 +492,7 @@ export class ExpedienteDetalleModule {
         window.detalleModule = this; 
     }
 
-   loadFolder(folderId, label) {
+    loadFolder(folderId, label) {
         this.currentFolderId = folderId; 
         this.currentLabel = label;       
         
@@ -448,15 +515,16 @@ export class ExpedienteDetalleModule {
             content.style.gap = '1rem';
             content.style.alignContent = 'start';
         } else {
-            content.classList.add('flex', 'flex-col', 'gap-1');
+            content.removeAttribute('style'); 
+            content.classList.add('flex', 'flex-col');
         }
 
-        const esPermitido = folderId.startsWith('term-') || folderId.startsWith('aud-') || folderId === 'anexos' || folderId.startsWith('custom-');
+        const esPermitido = folderId !== 'root'; 
         btnUpload.classList.toggle('hidden', !esPermitido);
 
         let items = []; 
 
-        // --- CARGA DE CONTENIDO ---
+        // --- CARGA DE DATOS ---
         if (folderId === 'root') {
             items.push(
                 { isFolder: true, id: 'audiencias', name: 'Audiencias', date: 'Sistema' },
@@ -465,74 +533,57 @@ export class ExpedienteDetalleModule {
             );
         }
         else if (folderId === 'terminos') {
-            const all = JSON.parse(localStorage.getItem('terminos')) || [];
-            all.filter(t => String(t.asuntoId) === String(this.id)).forEach((t, i) => {
-                items.push({ isFolder: true, id: `term-${t.id}`, name: `${String(i+1).padStart(3,'0')} - ${t.asunto}`, date: t.fechaIngreso || 'N/A' });
+            const todos = this.getAllTerminos();
+            todos.forEach((t, i) => {
+                const realId = t.id || t.terminoIdOriginal;
+                items.push({ isFolder: true, id: `term-${realId}`, name: `${String(i+1).padStart(3,'0')} - ${t.asunto || t.actuacion}`, date: t.fechaIngreso || 'N/A' });
+            });
+        }
+        else if (folderId === 'audiencias') {
+            const todas = this.getAllAudiencias();
+            todas.forEach((a, i) => {
+                items.push({ isFolder: true, id: `aud-${a.id}`, name: `${String(i+1).padStart(3,'0')} - ${a.tipo || a.tipoAudiencia}`, date: a.fecha || a.fechaAudiencia });
             });
         }
         else if (folderId.startsWith('term-')) {
             const realId = folderId.replace('term-', '');
-            const term = (JSON.parse(localStorage.getItem('terminos'))||[]).find(t => String(t.id) === String(realId));
+            const term = this.getAllTerminos().find(t => String(t.id) === String(realId) || String(t.terminoIdOriginal) === String(realId));
+            
             if (term) {
-                if(term.historialArchivos) term.historialArchivos.forEach(d => items.push({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: this.formatDateShort(d.fecha) }));
-                else {
+                if(term.historialArchivos && term.historialArchivos.length > 0) {
+                    term.historialArchivos.forEach(d => {
+                        items.push({ 
+                            name: d.nombre, 
+                            type: d.nombre.endsWith('pdf') ? 'pdf' : 'word', 
+                            date: this.formatDateShort(d.fecha) 
+                        });
+                    });
+                } else {
                     if(term.archivoWord) items.push({ name: term.archivoWord, type: 'word', date: term.fechaIngreso });
                     if(term.acuseDocumento) items.push({ name: term.acuseDocumento, type: 'pdf', date: term.fechaVencimiento });
                 }
             }
         }
-else if (folderId === 'audiencias') {
-            // USAMOS LA MISMA FUNCIÓN CENTRALIZADA
-            const misAud = this.getMisAudienciasUnificadas(); // <--- CAMBIO CLAVE
-
-            misAud.forEach((a, i) => {
-                const numCarpeta = String(i + 1).padStart(3, '0');
-                
-                items.push({ 
-                    isFolder: true, 
-                    id: `aud-${a.id}`, 
-                    name: `${numCarpeta} - ${a.tipo}`, 
-                    date: a.fecha 
-                });
-            });
+        else if (folderId.startsWith('aud-')) {
+            const realId = folderId.replace('aud-', '');
+            const aud = this.getAllAudiencias().find(a => String(a.id) === String(realId));
+            if (aud && aud.actaDocumento) items.push({ name: aud.actaDocumento, type: 'pdf', date: aud.fecha || aud.fechaAudiencia });
         }
         
-        else if (folderId.startsWith('aud-')) {
-            // Lógica para entrar A DENTRO de una audiencia específica
-            const realId = folderId.replace('aud-', '');
-            
-            // Buscamos en la lista unificada para encontrarla esté activa o concluida
-            const aud = this.getMisAudienciasUnificadas().find(a => String(a.id) === String(realId));
-            
-            // 1. Archivo Principal (Acta)
-            if (aud && aud.actaDocumento) items.push({ name: aud.actaDocumento, type: 'pdf', date: aud.fecha });
-
-            // 2. Subcarpetas
-            const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
-            customFolders.filter(f => String(f.expedienteId) === String(this.id) && f.parentId === folderId).forEach(f => {
-                items.push({ isFolder: true, id: f.id, name: f.name, date: f.date });
-            });
-
-            // 3. Archivos Extra
-            const docs = this.expediente.documentos || [];
-            docs.filter(d => d.folderId === folderId).forEach(d => {
+        // Genéricos
+        const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
+        customFolders.filter(f => String(f.expedienteId) === String(this.id) && f.parentId === folderId).forEach(f => {
+            items.push({ isFolder: true, id: f.id, name: f.name, date: f.date });
+        });
+        const docs = this.expediente.documentos || [];
+        docs.filter(d => {
+            if (folderId === 'anexos') return d.tipo === 'Anexo' && (!d.folderId || d.folderId === 'anexos');
+            return d.folderId === folderId;
+        }).forEach(d => {
+            if(!items.some(it => it.name === d.nombre)) {
                 items.push({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: d.fecha });
-            });
-        }
-        else {
-            // SOPORTE MIXTO PARA ANEXOS Y CUSTOM FOLDERS
-            const customFolders = JSON.parse(localStorage.getItem('custom_folders')) || [];
-            customFolders.filter(f => String(f.expedienteId) === String(this.id) && f.parentId === folderId).forEach(f => {
-                items.push({ isFolder: true, id: f.id, name: f.name, date: f.date });
-            });
-            const docs = this.expediente.documentos || [];
-            docs.filter(d => {
-                if (folderId === 'anexos') return d.tipo === 'Anexo' && (!d.folderId || d.folderId === 'anexos');
-                return d.tipo === 'Anexo' && d.folderId === folderId;
-            }).forEach(d => {
-                items.push({ name: d.nombre, type: d.nombre.endsWith('pdf')?'pdf':'word', date: d.fecha });
-            });
-        }
+            }
+        });
 
         if (items.length === 0) {
             content.style.display = 'flex'; content.className = "flex-1 flex items-center justify-center p-4"; 
@@ -548,7 +599,7 @@ else if (folderId === 'audiencias') {
             let iconClass = item.isFolder ? 'fa-folder' : ((item.name.endsWith('.pdf')||item.type==='pdf')?'fa-file-pdf':'fa-file-word');
             let iconColor = item.isFolder ? 'text-yellow-400' : ((item.name.endsWith('.pdf')||item.type==='pdf')?'text-red-500':'text-blue-600');
             
-            // --- RENDERIZADO VISUAL ---
+            // --- VISTA GRID ---
             if (this.currentView === 'grid') {
                 el.className = "group relative flex flex-col items-center justify-start pt-4 gap-2 border border-gray-200 rounded-lg bg-white transition-all cursor-pointer overflow-hidden";
                 el.style.height = '140px'; 
@@ -560,25 +611,41 @@ else if (folderId === 'audiencias') {
                     : `${ canDelete ? `<button class="btn-delete absolute top-2 right-2 w-6 h-6 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-colors"><i class="fas fa-times text-xs"></i></button>` : '' }<div class="flex gap-2"><button class="btn-preview-file w-8 h-8 rounded-full bg-gob-guinda text-white flex items-center justify-center hover:scale-110"><i class="fas fa-eye text-xs"></i></button><button class="btn-download-file w-8 h-8 rounded-full bg-white text-gray-600 border border-gray-200 flex items-center justify-center hover:text-gob-guinda shadow-md hover:scale-110"><i class="fas fa-download text-xs"></i></button></div>`;
 
                 el.innerHTML = `<i class="fas ${iconClass} ${iconColor} text-4xl transition-transform duration-300"></i><div class="w-full text-center px-2"><span class="block text-[11px] font-bold text-gray-700 leading-tight line-clamp-2 break-words" title="${item.name}">${item.name}</span><span class="block text-[9px] text-gray-400 mt-1">${item.date}</span></div><div class="overlay-actions absolute inset-0 flex flex-col items-center justify-center gap-2 z-10 transition-opacity duration-200" style="background-color: rgba(255,255,255,0.95); opacity: 0; backdrop-filter: blur(1px);">${actions}</div>`;
-            } else {
-                // CORRECCIÓN VISTA LISTA: NOMBRE COMPLETO (Sin truncate)
-                el.className = "flex items-center justify-between p-2 border-b border-gray-100 transition-colors rounded text-xs cursor-pointer";
-                el.onmouseenter = () => { el.style.backgroundColor = '#f8fafc'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '1'; };
-                el.onmouseleave = () => { el.style.backgroundColor = 'transparent'; const actions = el.querySelector('.list-actions'); if(actions) actions.style.opacity = '0'; };
+            } 
+            
+            // --- VISTA LISTA ESTILO LINUX (Limpieza Total) ---
+            else {
+                // Fila completa clickeable, hover gris/azul, padding equilibrado
+                el.className = "flex items-center px-4 py-2.5 border-b border-gray-100 hover:bg-blue-50 transition-colors cursor-pointer group text-xs select-none";
                 
-                let actions = item.isFolder 
-                    ? `${ canDelete && item.id.startsWith('custom-') ? `<button class="btn-delete-folder p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded"><i class="fas fa-trash-alt"></i></button>` : '' }<button class="btn-open-folder p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded"><i class="fas fa-folder-open"></i></button>`
-                    : `<button class="btn-preview-file p-1.5 text-gray-500 hover:text-gob-guinda hover:bg-white rounded"><i class="fas fa-eye"></i></button><button class="btn-download-file p-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded"><i class="fas fa-download"></i></button>${ canDelete ? `<button class="btn-delete p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded"><i class="fas fa-times"></i></button>` : '' }`;
+                let actionsHTML = '';
+                if(item.isFolder) {
+                     actionsHTML = `
+                     ${ canDelete && item.id.startsWith('custom-') ? `<button class="btn-delete-folder p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"><i class="fas fa-trash-alt"></i></button>` : '' }
+                     <button class="btn-open-folder p-1.5 text-gray-500 hover:text-gob-guinda rounded transition-colors" title="Abrir"><i class="fas fa-folder-open"></i></button>`;
+                } else {
+                     actionsHTML = `
+                        <button class="btn-preview-file p-1.5 text-gray-500 hover:text-gob-guinda rounded transition-colors" title="Ver"><i class="fas fa-eye"></i></button>
+                        <button class="btn-download-file p-1.5 text-gray-500 hover:text-blue-600 rounded transition-colors" title="Descargar"><i class="fas fa-download"></i></button>
+                        ${ canDelete ? `<button class="btn-delete p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors" title="Borrar"><i class="fas fa-times"></i></button>` : '' }`;
+                }
 
-                // Aquí usamos flex-1 y break-words para que el nombre ocupe todo el espacio posible
+                // Layout: Icono | Nombre (Expandido) | Fecha | Acciones
                 el.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1">
-                        <div class="w-8 flex-shrink-0 flex justify-center"><i class="fas ${iconClass} ${iconColor} text-lg"></i></div>
-                        <span class="font-medium text-gray-700 break-words pr-2">${item.name}</span>
+                    <div class="w-8 flex-shrink-0 flex justify-center text-center mr-3">
+                        <i class="fas ${iconClass} ${iconColor} text-lg"></i>
                     </div>
-                    <div class="flex items-center gap-4 flex-shrink-0">
-                        <span class="text-gray-400 text-[10px] hidden sm:block w-20 text-right">${item.date}</span>
-                        <div class="list-actions flex items-center gap-1 transition-opacity duration-200" style="opacity: 0;">${actions}</div>
+                    
+                    <div class="flex-1 min-w-0 mr-4">
+                        <span class="font-medium text-gray-700 block break-words">${item.name}</span>
+                    </div>
+                    
+                    <div class="w-24 flex-shrink-0 text-right text-gray-400 font-mono text-[10px] self-center">
+                        ${item.date}
+                    </div>
+                    
+                    <div class="w-24 flex-shrink-0 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                        ${actionsHTML}
                     </div>`;
             }
 
@@ -599,7 +666,6 @@ else if (folderId === 'audiencias') {
         });
         document.getElementById('explorer-stats').textContent = `${items.length} Elementos`;
     }
-
     // === NUEVA FUNCIÓN AUXILIAR: CENTRALIZA LA LISTA DE AUDIENCIAS ===
     getMisAudienciasUnificadas() {
         const audAct = JSON.parse(localStorage.getItem('audiencias')) || [];
@@ -642,34 +708,15 @@ else if (folderId === 'audiencias') {
 
     deleteFile(fileName) {
         event.stopPropagation(); 
-
-        // VALIDACIÓN DE SEGURIDAD
-        if (!this.canUserDelete()) {
-            Swal.fire('Acceso Restringido', 'Solo el personal de Dirección puede eliminar archivos.', 'error');
-            return;
-        }
-
-        Swal.fire({
-            title: '¿Eliminar archivo?',
-            text: `Se borrará "${fileName}" de esta carpeta.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, borrar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.performDelete(fileName);
-            }
-        });
+        if (!this.canUserDelete()) { Swal.fire('Acceso Restringido', 'Solo el personal de Dirección puede eliminar archivos.', 'error'); return; }
+        Swal.fire({ title: '¿Eliminar archivo?', text: `Se borrará "${fileName}".`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar' }).then((result) => { if (result.isConfirmed) { this.performDelete(fileName); } });
     }
 
     performDelete(fileName) {
         if (!this.currentFolderId) return;
         let eliminado = false;
         
-        // BORRADO UNIFICADO: Busca en documentos generales (Anexos, Custom, Audiencias Extras)
+        // BORRADO UNIFICADO
         if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-') || this.currentFolderId.startsWith('aud-')) {
             const index = this.expediente.documentos.findIndex(d => d.nombre === fileName && (d.folderId === this.currentFolderId || (this.currentFolderId === 'anexos' && !d.folderId)));
             if (index !== -1) { 
@@ -679,20 +726,30 @@ else if (folderId === 'audiencias') {
             }
         } 
         
-        // BORRADO TÉRMINOS
+        // BORRADO TÉRMINOS (Activos e Históricos)
         if (!eliminado && this.currentFolderId.startsWith('term-')) {
             const realId = this.currentFolderId.replace('term-', '');
-            const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
-            const idx = terminos.findIndex(t => String(t.id) === String(realId));
+            // Activos
+            let terminos = JSON.parse(localStorage.getItem('terminos')) || [];
+            let idx = terminos.findIndex(t => String(t.id) === String(realId));
             if (idx !== -1) {
                 if (terminos[idx].historialArchivos) terminos[idx].historialArchivos = terminos[idx].historialArchivos.filter(d => d.nombre !== fileName);
                 if (terminos[idx].archivoWord === fileName) terminos[idx].archivoWord = null; 
                 if (terminos[idx].acuseDocumento === fileName) terminos[idx].acuseDocumento = null; 
                 localStorage.setItem('terminos', JSON.stringify(terminos)); eliminado = true;
+            } else {
+                // Históricos
+                let historicos = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+                idx = historicos.findIndex(t => String(t.id) === String(realId) || String(t.terminoIdOriginal) === String(realId));
+                if (idx !== -1) {
+                    if (historicos[idx].historialArchivos) historicos[idx].historialArchivos = historicos[idx].historialArchivos.filter(d => d.nombre !== fileName);
+                    if (historicos[idx].acuseDocumento === fileName) historicos[idx].acuseDocumento = null;
+                    localStorage.setItem('terminosPresentados', JSON.stringify(historicos)); eliminado = true;
+                }
             }
         }
         
-        // BORRADO PROPIEDAD PRINCIPAL AUDIENCIA (Si no se borró como documento extra)
+        // BORRADO AUDIENCIAS (Activas e Históricas)
         if (!eliminado && this.currentFolderId.startsWith('aud-')) {
             const realId = this.currentFolderId.replace('aud-', '');
             let activas = JSON.parse(localStorage.getItem('audiencias')) || [];
@@ -708,71 +765,110 @@ else if (folderId === 'audiencias') {
     handleExplorerUpload(file) {
         if (!this.currentFolderId) return;
 
+        // 1. TÉRMINOS (Lógica de Historial Completo)
         if (this.currentFolderId.startsWith('term-')) {
             const realId = this.currentFolderId.replace('term-', '');
-            const terminos = JSON.parse(localStorage.getItem('terminos')) || [];
-            const idx = terminos.findIndex(t => String(t.id) === String(realId));
-            if (idx !== -1) {
-                if (file.name.endsWith('.pdf')) { terminos[idx].acuseDocumento = file.name; if(terminos[idx].estatus === 'Liberado') terminos[idx].estatus = 'Presentado'; } else { terminos[idx].archivoWord = file.name; }
-                if(!terminos[idx].historialArchivos) terminos[idx].historialArchivos = [];
-                terminos[idx].historialArchivos.push({ nombre: file.name, fecha: new Date().toISOString(), tipo: file.name.endsWith('.pdf') ? 'Acuse' : 'Borrador' });
-                localStorage.setItem('terminos', JSON.stringify(terminos));
-                this.loadFolder(this.currentFolderId, document.getElementById('explorer-breadcrumb').innerText);
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo guardado en Historial', showConfirmButton: false, timer: 2000 });
-            }
-        } 
-        else if (this.currentFolderId.startsWith('aud-')) {
-            const realId = this.currentFolderId.replace('aud-', '');
-            let activas = JSON.parse(localStorage.getItem('audiencias')) || [];
-            let idx = activas.findIndex(a => String(a.id) === String(realId));
             
-            // LÓGICA HÍBRIDA: Actualizar propiedad principal Y guardar como archivo suelto
-            const updateMain = (list, i) => {
-                // Solo actualizamos el "Acta" si no existe, o si el usuario quiere reemplazarla explícitamente. 
-                // Por simplicidad, aquí actualizamos si está vacío para tener al menos un link directo.
-                if (!list[i].actaDocumento) list[i].actaDocumento = file.name;
-                return list;
+            // Buscar en Activos
+            let terminos = JSON.parse(localStorage.getItem('terminos')) || [];
+            let idx = terminos.findIndex(t => String(t.id) === String(realId));
+            
+            // Helper para guardar en historial sin borrar lo anterior
+            const agregarAlHistorial = (item, nombreArchivo, tipo) => {
+                if(!item.historialArchivos) item.historialArchivos = [];
+                item.historialArchivos.push({
+                    nombre: nombreArchivo,
+                    fecha: new Date().toISOString(),
+                    tipo: tipo, // 'Borrador' o 'Acuse'
+                    subidoPor: 'Gestor'
+                });
             };
 
-            // Además, guardamos el archivo en documentos generales ligado a esta audiencia
-            const newDoc = { 
-                nombre: file.name, 
-                tipo: 'Anexo', 
-                comentario: 'Subido a Audiencia', 
-                fecha: new Date().toLocaleDateString('es-MX'), 
-                folderId: this.currentFolderId // 'aud-ID'
-            };
+            if (idx !== -1) {
+                // ACTIVO
+                let tipoDoc = 'Borrador';
+                
+                // Actualizamos la referencia rápida (el archivo "principal" actual)
+                if (file.name.endsWith('.pdf')) { 
+                    terminos[idx].acuseDocumento = file.name; 
+                    if(terminos[idx].estatus === 'Liberado') terminos[idx].estatus = 'Presentado';
+                    tipoDoc = 'Acuse';
+                } else { 
+                    terminos[idx].archivoWord = file.name; 
+                    tipoDoc = 'Borrador';
+                }
+                
+                // ¡AQUÍ ESTÁ LA CLAVE! Guardamos una copia en el historial
+                agregarAlHistorial(terminos[idx], file.name, tipoDoc);
+                localStorage.setItem('terminos', JSON.stringify(terminos));
+
+            } else {
+                // HISTÓRICO (Concluido)
+                let historicos = JSON.parse(localStorage.getItem('terminosPresentados')) || [];
+                idx = historicos.findIndex(t => String(t.id) === String(realId) || String(t.terminoIdOriginal) === String(realId));
+                
+                if (idx !== -1) {
+                    let tipoDoc = file.name.endsWith('.pdf') ? 'Acuse Extra' : 'Anexo Histórico';
+                    // También guardamos en historial del concluido
+                    agregarAlHistorial(historicos[idx], file.name, tipoDoc);
+                    // Opcional: Actualizar la referencia principal si es PDF
+                    if (file.name.endsWith('.pdf')) historicos[idx].acuseDocumento = file.name; 
+                    
+                    localStorage.setItem('terminosPresentados', JSON.stringify(historicos));
+                }
+            }
+            
+            this.loadFolder(this.currentFolderId, this.currentLabel);
+            this.renderTree(); 
+            this.renderDocumentsTable(); 
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Versión guardada en historial', showConfirmButton: false, timer: 2000 });
+        } 
+        // 2. AUDIENCIAS
+        else if (this.currentFolderId.startsWith('aud-')) {
+            const realId = this.currentFolderId.replace('aud-', '');
+            // Guardamos como anexo general vinculado a la carpeta
+            const newDoc = { nombre: file.name, tipo: 'Anexo', comentario: 'Subido a Audiencia', fecha: new Date().toLocaleDateString('es-MX'), folderId: this.currentFolderId };
+            
             if (!this.expediente.documentos) this.expediente.documentos = [];
             this.expediente.documentos.push(newDoc);
             updateExpediente(this.id, { documentos: this.expediente.documentos });
 
+            // Actualizamos referencia en el objeto audiencia
+            let activas = JSON.parse(localStorage.getItem('audiencias')) || [];
+            let idx = activas.findIndex(a => String(a.id) === String(realId));
             if (idx !== -1) {
-                activas = updateMain(activas, idx);
+                if(!activas[idx].actaDocumento) activas[idx].actaDocumento = file.name; 
                 localStorage.setItem('audiencias', JSON.stringify(activas));
             } else {
                 let historicas = JSON.parse(localStorage.getItem('audienciasDesahogadas')) || [];
                 idx = historicas.findIndex(a => String(a.id) === String(realId));
                 if (idx !== -1) {
-                    historicas = updateMain(historicas, idx);
+                    if(!historicas[idx].actaDocumento) historicas[idx].actaDocumento = file.name;
                     localStorage.setItem('audienciasDesahogadas', JSON.stringify(historicas));
                 }
             }
             
             this.loadFolder(this.currentFolderId, this.currentLabel);
             this.renderTree(); 
+            this.renderDocumentsTable();
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo agregado a Audiencia', showConfirmButton: false, timer: 2000 });
         }
-        else if (this.currentFolderId === 'anexos' || this.currentFolderId.startsWith('custom-')) {
-            const newDoc = { nombre: file.name, tipo: 'Anexo', comentario: 'Subido desde Gestor', fecha: new Date().toLocaleDateString('es-MX'), folderId: this.currentFolderId.startsWith('custom-') ? this.currentFolderId : null };
+        // 3. GENÉRICO (ANEXOS / CUSTOM)
+        else {
+            const folderDestino = (this.currentFolderId === 'anexos') ? null : this.currentFolderId;
+            const newDoc = { nombre: file.name, tipo: 'Anexo', comentario: 'Subido desde Gestor', fecha: new Date().toLocaleDateString('es-MX'), folderId: folderDestino };
+            
             if (!this.expediente.documentos) this.expediente.documentos = [];
             this.expediente.documentos.push(newDoc);
             updateExpediente(this.id, { documentos: this.expediente.documentos });
+            
             this.loadFolder(this.currentFolderId, this.currentLabel);
+            this.renderTree();
             this.renderDocumentsTable(); 
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Archivo subido', showConfirmButton: false, timer: 2000 });
         }
     }
-
+    
     previewFile(name) {
         Swal.fire({
             title: 'Vista Previa',
@@ -793,9 +889,6 @@ else if (folderId === 'audiencias') {
         });
     }
 
-    // ==========================================
-    // 4. MODALES DE EDICIÓN Y ESTADO
-    // ==========================================
     setupModals() {
         this.setupEditModal();
         this.setupEstadoModal();
@@ -929,9 +1022,6 @@ else if (folderId === 'audiencias') {
         }
     }
 
-    // ==========================================
-    // 5. MÓDULO DE DOCUMENTOS (LISTA SIMPLE)
-    // ==========================================
     setupDocumentsModule() {
         this.renderDocumentsTable();
         this.setupUploadModal();
@@ -1045,9 +1135,6 @@ else if (folderId === 'audiencias') {
         this.renderDocumentsTable();
     }
 
-    // ==========================================
-    // 6. MÓDULO DE OBSERVACIONES (NOTAS)
-    // ==========================================
     setupObservacionesModule() {
         const modal = document.getElementById('modal-observaciones-expediente');
         const btnOpen = document.getElementById('btn-observaciones-expediente');
@@ -1127,9 +1214,6 @@ else if (folderId === 'audiencias') {
         });
     }
 
-    // ==========================================
-    // 7. HISTORIAL (TIMELINE Y ACTIVIDAD)
-    // ==========================================
     registrarActividad(titulo, descripcion, tipo) {
         const nuevaActividad = {
             fecha: new Date().toISOString(),
@@ -1189,9 +1273,6 @@ else if (folderId === 'audiencias') {
 
     renderError(msg){ console.error(msg); }
 
-    // ==========================================
-    // 8. MÓDULO: HISTÓRICO LEGAL (CONSULTA ACUSES)
-    // ==========================================
     setupHistoricoLegalModule() {
         const container = document.getElementById('historico-legal-container');
         if (!container) return;
